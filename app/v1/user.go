@@ -72,7 +72,9 @@ func UserGET(md common.MethodData) (r common.Response) {
 		}
 	}
 
-	if !showcountry {
+	// If the user wants to stay anonymous, don't show their country.
+	// This can be overriden if we have the ReadConfidential privilege and the user we are accessing is the token owner.
+	if !(showcountry || (md.User.Privileges.HasPrivilegeReadConfidential() && user.ID == md.User.UserID)) {
 		user.Country = "XX"
 	}
 
