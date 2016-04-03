@@ -24,7 +24,8 @@ func Start(conf common.Conf, db *sql.DB) {
 			gv1.GET("/privileges", Method(v1.PrivilegesGET, db))
 
 			// Read privilege required
-			gv1.GET("/users/:id", Method(v1.UserGET, db, common.PrivilegeRead))
+			gv1.GET("/users/id/:id", Method(v1.UserByIDGET, db, common.PrivilegeRead))
+			gv1.GET("/users/name/:name", Method(v1.UserByNameGET, db, common.PrivilegeRead))
 			gv1.GET("/badges", Method(v1.BadgesGET, db, common.PrivilegeRead))
 			gv1.GET("/badges/:id", Method(v1.BadgeByIDGET, db, common.PrivilegeRead))
 		}

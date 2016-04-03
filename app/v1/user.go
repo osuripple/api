@@ -22,8 +22,8 @@ type userData struct {
 	Badges         []int     `json:"badges"`
 }
 
-// UserGET is the API handler for GET /user/:id
-func UserGET(md common.MethodData) (r common.Response) {
+// UserByIDGET is the API handler for GET /users/id/:id
+func UserByIDGET(md common.MethodData) (r common.Response) {
 	var err error
 	var uid int
 	uidStr := md.C.Param("id")
@@ -38,14 +38,45 @@ func UserGET(md common.MethodData) (r common.Response) {
 		}
 	}
 
-	user := userData{}
+	query := `
+SELECT users.id, users.username, register_datetime, rank,
+	latest_activity, users_stats.username_aka, users_stats.badges_shown,
+	users_stats.country, users_stats.show_country
+FROM users
+LEFT JOIN users_stats
+ON users.id=users_stats.id
+WHERE users.id=?
+LIMIT 1`
+	r = userPuts(md, md.DB.QueryRow(query, uid))
+	return
+}
+
+// UserByNameGET is the API handler for GET /users/name/:name
+func UserByNameGET(md common.MethodData) (r common.Response) {
+	username := md.C.Param("name")
+
+	query := `
+SELECT users.id, users.username, register_datetime, rank,
+	latest_activity, users_stats.username_aka, users_stats.badges_shown,
+	users_stats.country, users_stats.show_country
+FROM users
+LEFT JOIN users_stats
+ON users.id=users_stats.id
+WHERE users.username=?
+LIMIT 1`
+	r = userPuts(md, md.DB.QueryRow(query, username))
+	return
+}
+
+func userPuts(md common.MethodData, row *sql.Row) (r common.Response) {
+	var err error
+	var user userData
 
 	registeredOn := int64(0)
 	latestActivity := int64(0)
 	var badges string
 	var showcountry bool
-	err = md.DB.QueryRow("SELECT users.id, users.username, register_datetime, rank, latest_activity, users_stats.username_aka, users_stats.badges_shown, users_stats.country, users_stats.show_country FROM users LEFT JOIN users_stats ON users.id=users_stats.id WHERE users.id=? LIMIT 1", uid).Scan(
-		&user.ID, &user.Username, &registeredOn, &user.Rank, &latestActivity, &user.UsernameAKA, &badges, &user.Country, &showcountry)
+	err = row.Scan(&user.ID, &user.Username, &registeredOn, &user.Rank, &latestActivity, &user.UsernameAKA, &badges, &user.Country, &showcountry)
 	switch {
 	case err == sql.ErrNoRows:
 		r.Code = 404
