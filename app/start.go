@@ -18,10 +18,15 @@ func Start(conf common.Conf, db *sql.DB) {
 	{
 		gv1 := api.Group("/v1")
 		{
-			gv1.GET("/user/:id", Method(v1.UserGET, db, common.PrivilegeRead))
+			// Auth-free API endpoints
 			gv1.GET("/ping", Method(v1.Ping, db))
 			gv1.GET("/surprise_me", Method(v1.SurpriseMe, db))
 			gv1.GET("/privileges", Method(v1.PrivilegesGET, db))
+
+			// Read privilege required
+			gv1.GET("/users/:id", Method(v1.UserGET, db, common.PrivilegeRead))
+			gv1.GET("/badges", Method(v1.BadgesGET, db, common.PrivilegeRead))
+			gv1.GET("/badges/:id", Method(v1.BadgeByIDGET, db, common.PrivilegeRead))
 		}
 	}
 

@@ -44,7 +44,7 @@ func UserGET(md common.MethodData) (r common.Response) {
 	latestActivity := int64(0)
 	var badges string
 	var showcountry bool
-	err = md.DB.QueryRow("SELECT users.id, users.username, register_datetime, rank, latest_activity, users_stats.username_aka, users_stats.badges_shown, users_stats.country, users_stats.show_country FROM users LEFT JOIN users_stats ON users.id=users_stats.id WHERE users.id=?", uid).Scan(
+	err = md.DB.QueryRow("SELECT users.id, users.username, register_datetime, rank, latest_activity, users_stats.username_aka, users_stats.badges_shown, users_stats.country, users_stats.show_country FROM users LEFT JOIN users_stats ON users.id=users_stats.id WHERE users.id=? LIMIT 1", uid).Scan(
 		&user.ID, &user.Username, &registeredOn, &user.Rank, &latestActivity, &user.UsernameAKA, &badges, &user.Country, &showcountry)
 	switch {
 	case err == sql.ErrNoRows:
