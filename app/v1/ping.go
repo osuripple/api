@@ -87,8 +87,8 @@ type pingData struct {
 	Privileges int `json:"privileges"`
 }
 
-// Ping is a message to check with the API that we are logged in, and know what are our privileges.
-func Ping(md common.MethodData) (r common.Response) {
+// PingGET is a message to check with the API that we are logged in, and know what are our privileges.
+func PingGET(md common.MethodData) (r common.Response) {
 	r.Code = 200
 	if md.User.UserID == 0 {
 		r.Message = "You have not given us a token, so we don't know who you are! But you can still login with /api/v1/login " + kaomojis[rn.Intn(len(kaomojis))]
@@ -102,10 +102,10 @@ func Ping(md common.MethodData) (r common.Response) {
 	return
 }
 
-// SurpriseMe generates cute cats.
+// SurpriseMeGET generates cute cats.
 //
 // ... Yes.
-func SurpriseMe(md common.MethodData) (r common.Response) {
+func SurpriseMeGET(md common.MethodData) (r common.Response) {
 	r.Code = 200
 	cats := make([]string, 100)
 	for i := 0; i < 100; i++ {
