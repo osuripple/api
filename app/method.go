@@ -55,9 +55,12 @@ func Method(f func(md common.MethodData) common.Response, db *sql.DB, privileges
 
 		resp := f(md)
 		if resp.Code == 0 {
-			c.IndentedJSON(500, resp)
-		} else {
+			resp.Code = 500
+		}
+		if _, exists := c.GetQuery("pls200"); exists {
 			c.IndentedJSON(200, resp)
+		} else {
+			c.IndentedJSON(resp.Code, resp)
 		}
 	}
 }
