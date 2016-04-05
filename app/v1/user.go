@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/osuripple/api/common"
 )
 
@@ -112,4 +113,13 @@ func userPuts(md common.MethodData, row *sql.Row) (r common.Response) {
 	r.Code = 200
 	r.Data = user
 	return
+}
+
+// UserSelfGET is a shortcut for /users/id/self. (/users/self)
+func UserSelfGET(md common.MethodData) common.Response {
+	md.C.Params = append(md.C.Params, gin.Param{
+		Key:   "id",
+		Value: "self",
+	})
+	return UserByIDGET(md)
 }
