@@ -1,7 +1,9 @@
 package app
 
 import (
+	"crypto/md5"
 	"database/sql"
+	"fmt"
 
 	"github.com/osuripple/api/common"
 )
@@ -10,7 +12,7 @@ import (
 func GetTokenFull(token string, db *sql.DB) (common.Token, bool) {
 	var uid int
 	var privs int
-	err := db.QueryRow("SELECT user, privileges FROM tokens WHERE token = ? LIMIT 1", token).Scan(&uid, &privs)
+	err := db.QueryRow("SELECT user, privileges FROM tokens WHERE token = ? LIMIT 1", fmt.Sprintf("%x", md5.Sum([]byte(token)))).Scan(&uid, &privs)
 	switch {
 	case err == sql.ErrNoRows:
 		return common.Token{}, false
