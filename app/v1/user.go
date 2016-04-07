@@ -268,3 +268,21 @@ LIMIT 1
 	r.Data = fd
 	return
 }
+
+// UserUserpageGET gets an user's userpage, as in the customisable thing.
+func UserUserpageGET(md common.MethodData) (r common.Response) {
+	var userpage string
+	err := md.DB.QueryRow("SELECT userpage_content FROM users_stats WHERE id = ? LIMIT 1", md.C.Param("id")).Scan(&userpage)
+	switch {
+	case err == sql.ErrNoRows:
+		r.Code = 404
+		r.Message = "No user with that user ID!"
+	case err != nil:
+		md.C.Error(err)
+		r = Err500
+		return
+	}
+	r.Code = 200
+	r.Data = userpage
+	return
+}
