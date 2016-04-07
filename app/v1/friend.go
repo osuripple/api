@@ -117,3 +117,26 @@ func friendPuts(md common.MethodData, row *sql.Rows) (user friendData) {
 	}
 	return
 }
+
+type friendsWithData struct {
+	Friends bool `json:"friend"`
+	Mutual  bool `json:"mutual"`
+}
+
+// FriendsWithGET checks the current user is friends with the one passed in the request path.
+func FriendsWithGET(md common.MethodData) (r common.Response) {
+	r.Code = 200
+	var d friendsWithData
+	uid, err := strconv.Atoi(md.C.Param("id"))
+	if err != nil {
+		r.Data = d
+		return
+	}
+	md.DB.QueryRow("SELECT EXISTS(SELECT 1 FROM users_relationships WHERE user1 = ? AND user2 = ? LIMIT 1)", md.User.UserID, uid).Scan(&d.Friends)
+	if d.Friends {
+		// Nyo mode: activated
+		md.DB.QueryRow("SELECT EXISTS(SELECT 1 FROM users_relationships WHERE user2 = ? AND user1 = ? LIMIT 1)", md.User.UserID, uid).Scan(&d.Mutual)
+	}
+	r.Data = d
+	return
+}

@@ -35,6 +35,7 @@ func Start(conf common.Conf, db *sql.DB) {
 
 			// ReadConfidential privilege required
 			gv1.GET("/friends", Method(v1.FriendsGET, db, common.PrivilegeReadConfidential))
+			gv1.GET("/friends/with/:id", Method(v1.FriendsWithGET, db, common.PrivilegeReadConfidential))
 		}
 	}
 
