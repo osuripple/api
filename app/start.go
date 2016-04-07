@@ -12,7 +12,7 @@ import (
 // Start begins taking HTTP connections.
 func Start(conf common.Conf, db *sql.DB) {
 	r := gin.Default()
-	r.Use(gzip.Gzip(gzip.DefaultCompression))
+	r.Use(gzip.Gzip(gzip.DefaultCompression), ErrorHandler())
 
 	api := r.Group("/api")
 	{
