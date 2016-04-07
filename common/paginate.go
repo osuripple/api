@@ -1,0 +1,33 @@
+package common
+
+import (
+	"fmt"
+	"strconv"
+)
+
+// Paginate creates an additional SQL LIMIT clause for paginating.
+func Paginate(page, limit string) string {
+	var (
+		pInt int
+		lInt int
+		err  error
+	)
+	if page == "" {
+		pInt = 1
+	} else {
+		pInt, err = strconv.Atoi(page)
+		if err != nil {
+			pInt = 1
+		}
+	}
+	if limit == "" {
+		lInt = 50
+	} else {
+		lInt, err = strconv.Atoi(limit)
+		if err != nil {
+			lInt = 50
+		}
+	}
+	start := (pInt - 1) * lInt
+	return fmt.Sprintf(" LIMIT %d,%d ", start, lInt)
+}

@@ -38,6 +38,7 @@ func BadgesGET(md common.MethodData) (r common.Response) {
 	if err != nil {
 		md.C.Error(err)
 		r = Err500
+		return
 	}
 	defer rows.Close()
 	for rows.Next() {
