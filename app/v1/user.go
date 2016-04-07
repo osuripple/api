@@ -123,3 +123,22 @@ func UserSelfGET(md common.MethodData) common.Response {
 	})
 	return UserByIDGET(md)
 }
+
+// UserWhatsTheIDGET is an API request that only returns an user's ID.
+func UserWhatsTheIDGET(md common.MethodData) common.Response {
+	var (
+		id      int
+		allowed int
+	)
+	err := md.DB.QueryRow("SELECT id, allowed FROM users WHERE username = ?", md.C.Param("username")).Scan(&id, &allowed)
+	if err != nil || allowed != 1 {
+		return common.Response{
+			Code:    404,
+			Message: "That user could not be found!",
+		}
+	}
+	return common.Response{
+		Code: 200,
+		Data: id,
+	}
+}
