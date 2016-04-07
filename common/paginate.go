@@ -28,6 +28,12 @@ func Paginate(page, limit string) string {
 			lInt = 50
 		}
 	}
+	if pInt < 1 {
+		pInt = 1
+	}
+	if lInt < 1 {
+		lInt = 50
+	}
 	start := (pInt - 1) * lInt
 	return fmt.Sprintf(" LIMIT %d,%d ", start, lInt)
 }
