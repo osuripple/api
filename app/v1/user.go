@@ -130,7 +130,7 @@ func UserWhatsTheIDGET(md common.MethodData) common.Response {
 		id      int
 		allowed int
 	)
-	err := md.DB.QueryRow("SELECT id, allowed FROM users WHERE username = ?", md.C.Param("username")).Scan(&id, &allowed)
+	err := md.DB.QueryRow("SELECT id, allowed FROM users WHERE username = ? LIMIT 1", md.C.Param("username")).Scan(&id, &allowed)
 	if err != nil || allowed != 1 {
 		return common.Response{
 			Code:    404,

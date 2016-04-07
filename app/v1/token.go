@@ -111,7 +111,7 @@ func TokenNewPOST(md common.MethodData) (r common.Response) {
 		ret.Token = tokenStr
 		id := 0
 
-		err := md.DB.QueryRow("SELECT id FROM tokens WHERE token=?", tokenMD5).Scan(&id)
+		err := md.DB.QueryRow("SELECT id FROM tokens WHERE token=? LIMIT 1", tokenMD5).Scan(&id)
 		if err == sql.ErrNoRows {
 			break
 		}
