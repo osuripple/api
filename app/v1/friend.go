@@ -76,6 +76,9 @@ ORDER BY users_relationships.id`
 	if err := results.Err(); err != nil {
 		md.C.Error(err)
 	}
+
+	r.Code = 200
+	r.Data = myFriends
 	return
 }
 
