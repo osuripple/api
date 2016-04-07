@@ -10,7 +10,7 @@ import (
 )
 
 // Start begins taking HTTP connections.
-func Start(conf common.Conf, db *sql.DB) {
+func Start(conf common.Conf, db *sql.DB) *gin.Engine {
 	r := gin.Default()
 	r.Use(gzip.Gzip(gzip.DefaultCompression), ErrorHandler())
 
@@ -38,12 +38,20 @@ func Start(conf common.Conf, db *sql.DB) {
 			// ReadConfidential privilege required
 			gv1.GET("/friends", Method(v1.FriendsGET, db, common.PrivilegeReadConfidential))
 			gv1.GET("/friends/with/:id", Method(v1.FriendsWithGET, db, common.PrivilegeReadConfidential))
+
+			// M E T A
+			// E     T    "wow thats so meta"
+			// T     E                  -- the one who said "wow that's so meta"
+			// A T E M
+			gv1.GET("/meta/restart", Method(v1.MetaRestartGET, db, common.PrivilegeAPIMeta))
 		}
 	}
 
 	r.NoRoute(v1.Handle404)
-	if conf.Unix {
+
+	return r
+	/*if conf.Unix {
 		panic(r.RunUnix(conf.ListenTo))
 	}
-	panic(r.Run(conf.ListenTo))
+	panic(r.Run(conf.ListenTo))*/
 }

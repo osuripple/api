@@ -16,6 +16,7 @@ type privilegesData struct {
 	PrivilegeManageRoles      bool `json:"manage_roles"`
 	PrivilegeManageAPIKeys    bool `json:"manage_api_keys"`
 	PrivilegeBlog             bool `json:"blog"`
+	PrivilegeAPIMeta          bool `json:"api_meta"`
 }
 
 // PrivilegesGET returns an explaination for the privileges, telling the client what they can do with this token.
@@ -34,6 +35,7 @@ func PrivilegesGET(md common.MethodData) (r common.Response) {
 		PrivilegeManageRoles:      md.User.Privileges.HasPrivilegeManageRoles(),
 		PrivilegeManageAPIKeys:    md.User.Privileges.HasPrivilegeManageAPIKeys(),
 		PrivilegeBlog:             md.User.Privileges.HasPrivilegeBlog(),
+		PrivilegeAPIMeta:          md.User.Privileges.HasPrivilegeAPIMeta(),
 	}
 	return
 }

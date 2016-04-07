@@ -15,10 +15,11 @@ const (
 	PrivilegeManageRoles                  // translates as admin, as they can basically assign roles to anyone, even themselves
 	PrivilegeManageAPIKeys                // admin permission to manage user permission, not only self permissions. Only ever do this if you completely trust the application, because this essentially means to put the entire ripple database in the hands of a (potentially evil?) application.
 	PrivilegeBlog                         // can do pretty much anything to the blog, and the documentation.
+	PrivilegeAPIMeta                      // can do /meta API calls. basically means they can restart the API server.
 )
 
 // Privileges is a bitwise enum of the privileges of an user's API key.
-type Privileges int
+type Privileges uint64
 
 // HasPrivilegeRead returns whether the Read privilege is included in the privileges.
 func (p Privileges) HasPrivilegeRead() bool {
@@ -75,6 +76,11 @@ func (p Privileges) HasPrivilegeBlog() bool {
 	return p&PrivilegeBlog != 0
 }
 
+// HasPrivilegeAPIMeta returns whether the Blog privilege is included in the privileges.
+func (p Privileges) HasPrivilegeAPIMeta() bool {
+	return p&PrivilegeAPIMeta != 0
+}
+
 var privilegeString = [...]string{
 	"Read",
 	"ReadConfidential",
@@ -87,6 +93,7 @@ var privilegeString = [...]string{
 	"ManageRoles",
 	"ManageAPIKeys",
 	"Blog",
+	"APIMeta",
 }
 
 func (p Privileges) String() string {
@@ -111,6 +118,7 @@ var privilegeMustBe = [...]int{
 	4,
 	4,
 	3,
+	4,
 }
 
 // CanOnly removes any privilege that the user has requested to have, but cannot have due to their rank.
