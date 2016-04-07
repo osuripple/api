@@ -30,6 +30,7 @@ func Start(conf common.Conf, db *sql.DB) {
 			gv1.GET("/users/name/:name", Method(v1.UserByNameGET, db, common.PrivilegeRead))
 			gv1.GET("/users/self", Method(v1.UserSelfGET, db, common.PrivilegeRead))
 			gv1.GET("/users/whatid/:username", Method(v1.UserWhatsTheIDGET, db, common.PrivilegeRead))
+			gv1.GET("/users/full/:id", Method(v1.UserFullGET, db, common.PrivilegeRead))
 			gv1.GET("/badges", Method(v1.BadgesGET, db, common.PrivilegeRead))
 			gv1.GET("/badges/:id", Method(v1.BadgeByIDGET, db, common.PrivilegeRead))
 
