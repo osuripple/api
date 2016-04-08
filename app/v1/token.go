@@ -72,7 +72,7 @@ func TokenNewPOST(md common.MethodData) (r common.Response) {
 		r.Message = "No user with that username/id was found."
 		return
 	case err != nil:
-		md.C.Error(err)
+		md.Err(err)
 		r = Err500
 		return
 	}
@@ -88,7 +88,7 @@ func TokenNewPOST(md common.MethodData) (r common.Response) {
 			r.Message = "That password doesn't match!"
 			return
 		}
-		md.C.Error(err)
+		md.Err(err)
 		r = Err500
 		return
 	}
@@ -116,14 +116,14 @@ func TokenNewPOST(md common.MethodData) (r common.Response) {
 			break
 		}
 		if err != nil {
-			md.C.Error(err)
+			md.Err(err)
 			r = Err500
 			return
 		}
 	}
 	_, err = md.DB.Exec("INSERT INTO tokens(user, privileges, description, token) VALUES (?, ?, ?, ?)", ret.ID, ret.Privileges, data.Description, tokenMD5)
 	if err != nil {
-		md.C.Error(err)
+		md.Err(err)
 		r = Err500
 		return
 	}

@@ -22,7 +22,7 @@ func BadgeByIDGET(md common.MethodData) (r common.Response) {
 		r.Message = "No such badge was found"
 		return
 	case err != nil:
-		md.C.Error(err)
+		md.Err(err)
 		r = Err500
 		return
 	}
@@ -36,7 +36,7 @@ func BadgesGET(md common.MethodData) (r common.Response) {
 	var badges []badgeData
 	rows, err := md.DB.Query("SELECT id, name, icon FROM badges")
 	if err != nil {
-		md.C.Error(err)
+		md.Err(err)
 		r = Err500
 		return
 	}
@@ -45,12 +45,12 @@ func BadgesGET(md common.MethodData) (r common.Response) {
 		nb := badgeData{}
 		err = rows.Scan(&nb.ID, &nb.Name, &nb.Icon)
 		if err != nil {
-			md.C.Error(err)
+			md.Err(err)
 		}
 		badges = append(badges, nb)
 	}
 	if err := rows.Err(); err != nil {
-		md.C.Error(err)
+		md.Err(err)
 	}
 	r.Code = 200
 	r.Data = badges

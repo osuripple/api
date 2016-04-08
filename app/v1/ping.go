@@ -90,13 +90,13 @@ type pingData struct {
 // PingGET is a message to check with the API that we are logged in, and know what are our privileges.
 func PingGET(md common.MethodData) (r common.Response) {
 	r.Code = 200
-	if md.User.UserID == 0 {
+	if md.ID() == 0 {
 		r.Message = "You have not given us a token, so we don't know who you are! But you can still login with /api/v1/login " + kaomojis[rn.Intn(len(kaomojis))]
 	} else {
 		r.Message = surpriseMe()
 	}
 	r.Data = pingData{
-		ID:         md.User.UserID,
+		ID:         md.ID(),
 		Privileges: int(md.User.Privileges),
 	}
 	return

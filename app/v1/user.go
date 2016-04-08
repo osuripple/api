@@ -29,7 +29,7 @@ func UserByIDGET(md common.MethodData) (r common.Response) {
 	var uid int
 	uidStr := md.C.Param("id")
 	if uidStr == "self" {
-		uid = md.User.UserID
+		uid = md.ID()
 	} else {
 		uid, err = strconv.Atoi(uidStr)
 		if err != nil {
@@ -86,7 +86,7 @@ func userPuts(md common.MethodData, row *sql.Row) (r common.Response) {
 		r.Message = "No such user was found!"
 		return
 	case err != nil:
-		md.C.Error(err)
+		md.Err(err)
 		r = Err500
 		return
 	}
@@ -122,7 +122,7 @@ func badgesToArray(badges string) []int {
 func genCountry(md common.MethodData, uid int, showCountry bool, country string) string {
 	// If the user wants to stay anonymous, don't show their country.
 	// This can be overriden if we have the ReadConfidential privilege and the user we are accessing is the token owner.
-	if showCountry || (md.User.Privileges.HasPrivilegeReadConfidential() && uid == md.User.UserID) {
+	if showCountry || (md.User.Privileges.HasPrivilegeReadConfidential() && uid == md.ID()) {
 		return country
 	}
 	return "XX"
@@ -253,7 +253,7 @@ LIMIT 1
 		r.Message = "That user could not be found!"
 		return
 	case err != nil:
-		md.C.Error(err)
+		md.Err(err)
 		r = Err500
 		return
 	}
@@ -278,7 +278,7 @@ func UserUserpageGET(md common.MethodData) (r common.Response) {
 		r.Code = 404
 		r.Message = "No user with that user ID!"
 	case err != nil:
-		md.C.Error(err)
+		md.Err(err)
 		r = Err500
 		return
 	}
