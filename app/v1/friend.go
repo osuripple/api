@@ -132,10 +132,11 @@ func FriendsWithGET(md common.MethodData) (r common.Response) {
 		r.Data = d
 		return
 	}
-	md.DB.QueryRow("SELECT EXISTS(SELECT 1 FROM users_relationships WHERE user1 = ? AND user2 = ? LIMIT 1)", md.User.UserID, uid).Scan(&d.Friends)
-	if d.Friends {
-		// Nyo mode: activated
-		md.DB.QueryRow("SELECT EXISTS(SELECT 1 FROM users_relationships WHERE user2 = ? AND user1 = ? LIMIT 1)", md.User.UserID, uid).Scan(&d.Mutual)
+	err = md.DB.QueryRow("SELECT EXISTS(SELECT 1 FROM users_relationships WHERE user1 = ? AND user2 = ? LIMIT 1), EXISTS(SELECT 1 FROM users_relationships WHERE user2 = ? AND user1 = ? LIMIT 1)", md.User.UserID, uid, md.User.UserID, uid).Scan(&d.Friends, &d.Mutual)
+	if err != sql.ErrNoRows && err != nil {
+		md.C.Error(err)
+		r = Err500
+		return
 	}
 	r.Data = d
 	return
