@@ -42,6 +42,8 @@ func Start(conf common.Conf, db *sql.DB) *gin.Engine {
 			// Write privilege required
 			gv1.POST("/friends/add", Method(v1.FriendsAddPOST, db, common.PrivilegeWrite))
 			gv1.GET("/friends/add/:id", Method(v1.FriendsAddGET, db, common.PrivilegeWrite))
+			gv1.POST("/friends/del", Method(v1.FriendsDelPOST, db, common.PrivilegeWrite))
+			gv1.GET("/friends/del/:id", Method(v1.FriendsDelGET, db, common.PrivilegeWrite))
 
 			// M E T A
 			// E     T    "wow thats so meta"

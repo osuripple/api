@@ -203,7 +203,7 @@ func addFriend(md common.MethodData, u int) (r common.Response) {
 	}
 	r.Code = 200
 	r.Data = friendsWithData{
-		Friends: relExists,
+		Friends: true,
 		Mutual:  isMutual,
 	}
 	return
@@ -216,4 +216,44 @@ func userExists(md common.MethodData, u int) (r bool) {
 		md.Err(err)
 	}
 	return
+}
+
+// FriendsDelGET is the GET version of FriendDelPOST.
+func FriendsDelGET(md common.MethodData) common.Response {
+	uidS := md.C.Param("id")
+	uid, err := strconv.Atoi(uidS)
+	if err != nil {
+		return common.Response{
+			Code:    400,
+			Message: "Nope. That's not a number.",
+		}
+	}
+	return delFriend(md, uid)
+}
+
+// FriendsDelPOST allows for deleting friends.
+func FriendsDelPOST(md common.MethodData) (r common.Response) {
+	d := friendAddPOSTData{}
+	err := json.Unmarshal(md.RequestData, &d)
+	if err != nil {
+		md.Err(err)
+		r = Err500
+		return
+	}
+	return delFriend(md, d.UserID)
+}
+
+func delFriend(md common.MethodData, u int) common.Response {
+	_, err := md.DB.Exec("DELETE FROM users_relationships WHERE user1 = ? AND user2 = ?", md.ID(), u)
+	if err != nil {
+		md.Err(err)
+		return Err500
+	}
+	return common.Response{
+		Code: 200,
+		Data: friendsWithData{
+			Friends: false,
+			Mutual:  false,
+		},
+	}
 }
