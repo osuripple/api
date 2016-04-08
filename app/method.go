@@ -2,6 +2,7 @@ package app
 
 import (
 	"database/sql"
+	"encoding/json"
 	"io/ioutil"
 
 	"github.com/gin-gonic/gin"
@@ -62,9 +63,37 @@ func initialCaretaker(c *gin.Context, f func(md common.MethodData) common.Respon
 	if resp.Code == 0 {
 		resp.Code = 500
 	}
+
 	if _, exists := c.GetQuery("pls200"); exists {
-		c.IndentedJSON(200, resp)
+		c.Writer.WriteHeader(200)
 	} else {
-		c.IndentedJSON(resp.Code, resp)
+		c.Writer.WriteHeader(resp.Code)
+	}
+
+	if _, exists := c.GetQuery("callback"); exists {
+		c.Header("Content-Type", "application/javascript; charset=utf-8")
+	} else {
+		c.Header("Content-Type", "application/json; charset=utf-8")
+	}
+
+	mkjson(c, resp)
+}
+
+// mkjson auto indents json, and wraps json into a jsonp callback if specified by the request.
+// then writes to the gin.Context the data.
+func mkjson(c *gin.Context, data interface{}) {
+	exported, err := json.MarshalIndent(data, "", "\t")
+	if err != nil {
+		c.Error(err)
+		exported = []byte(`{ "code": 500, "message": "something has gone really really really really really really wrong.", "data": null }`)
+	}
+	cb := c.Query("callback")
+	willcb := cb != "" && len(cb) < 100
+	if willcb {
+		c.Writer.Write([]byte("/**/ typeof " + cb + " === 'function' && " + cb + "("))
+	}
+	c.Writer.Write(exported)
+	if willcb {
+		c.Writer.Write([]byte(");"))
 	}
 }
