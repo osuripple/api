@@ -50,6 +50,8 @@ func Start(conf common.Conf, db *sql.DB) *gin.Engine {
 			// T     E                  -- the one who said "wow that's so meta"
 			// A T E M
 			gv1.GET("/meta/restart", Method(v1.MetaRestartGET, db, common.PrivilegeAPIMeta))
+			gv1.GET("/meta/kill", Method(v1.MetaKillGET, db, common.PrivilegeAPIMeta))
+			gv1.GET("/meta/up_since", Method(v1.MetaUpSinceGET, db, common.PrivilegeAPIMeta))
 		}
 	}
 
