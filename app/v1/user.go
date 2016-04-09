@@ -40,7 +40,7 @@ func UserByIDGET(md common.MethodData) (r common.Response) {
 
 	query := `
 SELECT users.id, users.username, register_datetime, rank,
-	latest_activity, users_stats.username_aka, users_stats.badges_shown,
+	latest_activity, users_stats.username_aka,
 	users_stats.country, users_stats.show_country
 FROM users
 LEFT JOIN users_stats
