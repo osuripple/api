@@ -18,7 +18,7 @@ func Start(conf common.Conf, db *sql.DB) *gin.Engine {
 	{
 		gv1 := api.Group("/v1")
 		{
-			gv1.POST("/token/new", Method(v1.TokenNewPOST, db))
+			gv1.POST("/tokens/new", Method(v1.TokenNewPOST, db))
 
 			// Auth-free API endpoints
 			gv1.GET("/ping", Method(v1.PingGET, db))
