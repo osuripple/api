@@ -5,18 +5,18 @@ import (
 )
 
 type privilegesData struct {
-	PrivilegeRead             bool `json:"read"`
-	PrivilegeReadConfidential bool `json:"read_confidential"`
-	PrivilegeWrite            bool `json:"write"`
-	PrivilegeManageBadges     bool `json:"manage_badges"`
-	PrivilegeBetaKeys         bool `json:"beta_keys"`
-	PrivilegeManageSettings   bool `json:"manage_settings"`
-	PrivilegeViewUserAdvanced bool `json:"view_user_advanced"`
-	PrivilegeManageUser       bool `json:"manage_user"`
-	PrivilegeManageRoles      bool `json:"manage_roles"`
-	PrivilegeManageAPIKeys    bool `json:"manage_api_keys"`
-	PrivilegeBlog             bool `json:"blog"`
-	PrivilegeAPIMeta          bool `json:"api_meta"`
+	Read             bool `json:"read"`
+	ReadConfidential bool `json:"read_confidential"`
+	Write            bool `json:"write"`
+	ManageBadges     bool `json:"manage_badges"`
+	BetaKeys         bool `json:"beta_keys"`
+	ManageSettings   bool `json:"manage_settings"`
+	ViewUserAdvanced bool `json:"view_user_advanced"`
+	ManageUser       bool `json:"manage_user"`
+	ManageRoles      bool `json:"manage_roles"`
+	ManageAPIKeys    bool `json:"manage_api_keys"`
+	Blog             bool `json:"blog"`
+	APIMeta          bool `json:"api_meta"`
 }
 
 // PrivilegesGET returns an explaination for the privileges, telling the client what they can do with this token.
@@ -24,18 +24,18 @@ func PrivilegesGET(md common.MethodData) (r common.Response) {
 	// This code sucks.
 	r.Code = 200
 	r.Data = privilegesData{
-		PrivilegeRead:             md.User.Privileges.HasPrivilegeRead(),
-		PrivilegeReadConfidential: md.User.Privileges.HasPrivilegeReadConfidential(),
-		PrivilegeWrite:            md.User.Privileges.HasPrivilegeWrite(),
-		PrivilegeManageBadges:     md.User.Privileges.HasPrivilegeManageBadges(),
-		PrivilegeBetaKeys:         md.User.Privileges.HasPrivilegeBetaKeys(),
-		PrivilegeManageSettings:   md.User.Privileges.HasPrivilegeManageSettings(),
-		PrivilegeViewUserAdvanced: md.User.Privileges.HasPrivilegeViewUserAdvanced(),
-		PrivilegeManageUser:       md.User.Privileges.HasPrivilegeManageUser(),
-		PrivilegeManageRoles:      md.User.Privileges.HasPrivilegeManageRoles(),
-		PrivilegeManageAPIKeys:    md.User.Privileges.HasPrivilegeManageAPIKeys(),
-		PrivilegeBlog:             md.User.Privileges.HasPrivilegeBlog(),
-		PrivilegeAPIMeta:          md.User.Privileges.HasPrivilegeAPIMeta(),
+		Read:             md.User.Privileges.HasPrivilegeRead(),
+		ReadConfidential: md.User.Privileges.HasPrivilegeReadConfidential(),
+		Write:            md.User.Privileges.HasPrivilegeWrite(),
+		ManageBadges:     md.User.Privileges.HasPrivilegeManageBadges(),
+		BetaKeys:         md.User.Privileges.HasPrivilegeBetaKeys(),
+		ManageSettings:   md.User.Privileges.HasPrivilegeManageSettings(),
+		ViewUserAdvanced: md.User.Privileges.HasPrivilegeViewUserAdvanced(),
+		ManageUser:       md.User.Privileges.HasPrivilegeManageUser(),
+		ManageRoles:      md.User.Privileges.HasPrivilegeManageRoles(),
+		ManageAPIKeys:    md.User.Privileges.HasPrivilegeManageAPIKeys(),
+		Blog:             md.User.Privileges.HasPrivilegeBlog(),
+		APIMeta:          md.User.Privileges.HasPrivilegeAPIMeta(),
 	}
 	return
 }
