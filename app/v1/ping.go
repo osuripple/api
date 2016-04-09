@@ -91,7 +91,7 @@ type pingData struct {
 func PingGET(md common.MethodData) (r common.Response) {
 	r.Code = 200
 	if md.ID() == 0 {
-		r.Message = "You have not given us a token, so we don't know who you are! But you can still login with /api/v1/login " + kaomojis[rn.Intn(len(kaomojis))]
+		r.Message = "You have not given us a token, so we don't know who you are! But you can still login with /api/v1/tokens/new " + kaomojis[rn.Intn(len(kaomojis))]
 	} else {
 		r.Message = surpriseMe()
 	}
