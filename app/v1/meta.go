@@ -2,7 +2,11 @@ package v1
 
 import (
 	"fmt"
+	"io"
+	"io/ioutil"
+	"log"
 	"os"
+	"os/exec"
 	"syscall"
 	"time"
 
@@ -55,4 +59,69 @@ func MetaUpSinceGET(md common.MethodData) common.Response {
 		Code: 200,
 		Data: upSince.UnixNano(),
 	}
+}
+
+// MetaUpdateGET updates the API to the latest version, and restarts it.
+func MetaUpdateGET(md common.MethodData) common.Response {
+	if f, err := os.Stat(".git"); err == os.ErrNotExist || !f.IsDir() {
+		return common.Response{
+			Code:    500,
+			Message: "repo is not using git",
+		}
+	}
+	go func() {
+		// go get
+		//        -u: update all dependencies (including API source)
+		//        -d: stop after downloading deps
+		if !execCommand("go", "get", "-u", "-d") {
+			return
+		}
+		if !execCommand("go", "build") {
+			return
+		}
+
+		proc, err := os.FindProcess(syscall.Getpid())
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		proc.Signal(syscall.SIGUSR2)
+	}()
+	return common.Response{
+		Code:    200,
+		Message: "Started updating! " + surpriseMe(),
+	}
+}
+
+func execCommand(command string, args ...string) bool {
+	cmd := exec.Command(command, args...)
+	cmd.Env = os.Environ()
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		log.Println(err)
+		return false
+	}
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		log.Println(err)
+		return false
+	}
+	if err := cmd.Start(); err != nil {
+		log.Println(err)
+		return false
+	}
+	data, err := ioutil.ReadAll(stderr)
+	if err != nil {
+		log.Println(err)
+		return false
+	}
+	// Bob. We got a problem.
+	if len(data) != 0 {
+		log.Println(string(data))
+		return false
+	}
+	io.Copy(os.Stdout, stdout)
+	cmd.Wait()
+	stdout.Close()
+	return true
 }
