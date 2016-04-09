@@ -20,7 +20,6 @@ type userData struct {
 	Rank           int       `json:"rank"`
 	LatestActivity time.Time `json:"latest_activity"`
 	Country        string    `json:"country"`
-	Badges         []int     `json:"badges"`
 }
 
 // UserByIDGET is the API handler for GET /users/id/:id
@@ -58,7 +57,7 @@ func UserByNameGET(md common.MethodData) (r common.Response) {
 
 	query := `
 SELECT users.id, users.username, register_datetime, rank,
-	latest_activity, users_stats.username_aka, users_stats.badges_shown,
+	latest_activity, users_stats.username_aka,
 	users_stats.country, users_stats.show_country
 FROM users
 LEFT JOIN users_stats
@@ -76,10 +75,9 @@ func userPuts(md common.MethodData, row *sql.Row) (r common.Response) {
 	var (
 		registeredOn   int64
 		latestActivity int64
-		badges         string
 		showCountry    bool
 	)
-	err = row.Scan(&user.ID, &user.Username, &registeredOn, &user.Rank, &latestActivity, &user.UsernameAKA, &badges, &user.Country, &showCountry)
+	err = row.Scan(&user.ID, &user.Username, &registeredOn, &user.Rank, &latestActivity, &user.UsernameAKA, &user.Country, &showCountry)
 	switch {
 	case err == sql.ErrNoRows:
 		r.Code = 404
@@ -93,8 +91,6 @@ func userPuts(md common.MethodData, row *sql.Row) (r common.Response) {
 
 	user.RegisteredOn = time.Unix(registeredOn, 0)
 	user.LatestActivity = time.Unix(latestActivity, 0)
-
-	user.Badges = badgesToArray(badges)
 
 	user.Country = genCountry(md, user.ID, showCountry, user.Country)
 
@@ -174,6 +170,7 @@ type userFullData struct {
 	Mania         modeData `json:"mania"`
 	PlayStyle     int      `json:"play_style"`
 	FavouriteMode int      `json:"favourite_mode"`
+	Badges        []int    `json:"badges"`
 }
 
 // UserFullGET gets all of an user's information, with one exception: their userpage.

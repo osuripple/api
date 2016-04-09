@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/osuripple/api/common"
@@ -44,7 +43,7 @@ func FriendsGET(md common.MethodData) (r common.Response) {
 SELECT 
 	users.id, users.username, users.register_datetime, users.rank, users.latest_activity,
 	
-	users_stats.username_aka, users_stats.badges_shown,
+	users_stats.username_aka,
 	users_stats.country, users_stats.show_country
 FROM users_relationships
 LEFT JOIN users
@@ -88,9 +87,8 @@ func friendPuts(md common.MethodData, row *sql.Rows) (user friendData) {
 
 	registeredOn := int64(0)
 	latestActivity := int64(0)
-	var badges string
 	var showcountry bool
-	err = row.Scan(&user.ID, &user.Username, &registeredOn, &user.Rank, &latestActivity, &user.UsernameAKA, &badges, &user.Country, &showcountry)
+	err = row.Scan(&user.ID, &user.Username, &registeredOn, &user.Rank, &latestActivity, &user.UsernameAKA, &user.Country, &showcountry)
 	if err != nil {
 		md.Err(err)
 		return
@@ -98,18 +96,6 @@ func friendPuts(md common.MethodData, row *sql.Rows) (user friendData) {
 
 	user.RegisteredOn = time.Unix(registeredOn, 0)
 	user.LatestActivity = time.Unix(latestActivity, 0)
-
-	badgesSl := strings.Split(badges, ",")
-	for _, badge := range badgesSl {
-		if badge != "" && badge != "0" {
-			// We are ignoring errors because who really gives a shit if something's gone wrong on our end in this
-			// particular thing, we can just silently ignore this.
-			nb, err := strconv.Atoi(badge)
-			if err == nil && nb != 0 {
-				user.Badges = append(user.Badges, nb)
-			}
-		}
-	}
 
 	// If the user wants to stay anonymous, don't show their country.
 	// This can be overriden if we have the ReadConfidential privilege and the user we are accessing is the token owner.
