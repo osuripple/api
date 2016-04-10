@@ -6,12 +6,12 @@ import (
 )
 
 type statusResponse struct {
-	Response int `json:"response"`
+	Status int `json:"status"`
 }
 
 // Status is used for checking the API is up by the ripple website, on the status page.
 func Status(c *gin.Context) {
 	c.JSON(200, statusResponse{
-		Response: 1,
+		Status: 1,
 	})
 }
