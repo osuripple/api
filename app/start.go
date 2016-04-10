@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/contrib/gzip"
 	"github.com/gin-gonic/gin"
+	"github.com/osuripple/api/app/internals"
 	"github.com/osuripple/api/app/v1"
 	"github.com/osuripple/api/common"
 )
@@ -54,6 +55,8 @@ func Start(conf common.Conf, db *sql.DB) *gin.Engine {
 			gv1.GET("/meta/up_since", Method(v1.MetaUpSinceGET, db, common.PrivilegeAPIMeta))
 			gv1.GET("/meta/update", Method(v1.MetaUpdateGET, db, common.PrivilegeAPIMeta))
 		}
+
+		api.GET("/status", internals.Status)
 	}
 
 	r.NoRoute(v1.Handle404)
