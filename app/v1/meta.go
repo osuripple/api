@@ -50,7 +50,7 @@ func MetaKillGET(md common.MethodData) (r common.Response) {
 	return
 }
 
-var upSince time.Time
+var upSince = time.Now()
 
 // MetaUpSinceGET retrieves the moment the API application was started.
 // Mainly used to get if the API was restarted.

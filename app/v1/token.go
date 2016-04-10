@@ -77,6 +77,12 @@ func TokenNewPOST(md common.MethodData) (r common.Response) {
 		return
 	}
 
+	if nFailedAttempts(ret.ID) > 20 {
+		r.Code = 429
+		r.Message = "You've made too many login attempts. Try again later."
+		return
+	}
+
 	if pwVersion == 1 {
 		r.Code = 418 // Teapots!
 		r.Message = "That user still has a password in version 1. Unfortunately, in order for the API to check for the password to be OK, the user has to first log in through the website."
@@ -84,6 +90,7 @@ func TokenNewPOST(md common.MethodData) (r common.Response) {
 	}
 	if err := bcrypt.CompareHashAndPassword([]byte(pw), []byte(fmt.Sprintf("%x", md5.Sum([]byte(data.Password))))); err != nil {
 		if err == bcrypt.ErrMismatchedHashAndPassword {
+			go addFailedAttempt(ret.ID)
 			r.Code = 403
 			r.Message = "That password doesn't match!"
 			return
