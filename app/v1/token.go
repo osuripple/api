@@ -3,7 +3,6 @@ package v1
 import (
 	"crypto/md5"
 	"database/sql"
-	"encoding/json"
 	"fmt"
 
 	"github.com/osuripple/api/common"
@@ -31,7 +30,7 @@ type tokenNewOutData struct {
 // TokenNewPOST is the handler for POST /token/new.
 func TokenNewPOST(md common.MethodData) (r common.Response) {
 	data := tokenNewInData{}
-	err := json.Unmarshal(md.RequestData, &data)
+	err := md.RequestData.Unmarshal(&data)
 	if err != nil {
 		r = ErrBadJSON
 		return

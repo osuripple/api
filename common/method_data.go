@@ -2,6 +2,7 @@ package common
 
 import (
 	"database/sql"
+	"encoding/json"
 
 	"github.com/gin-gonic/gin"
 )
@@ -10,7 +11,7 @@ import (
 type MethodData struct {
 	User        Token
 	DB          *sql.DB
-	RequestData []byte
+	RequestData RequestData
 	C           *gin.Context
 }
 
@@ -22,4 +23,15 @@ func (md MethodData) Err(err error) {
 // ID retrieves the Token's owner user ID.
 func (md MethodData) ID() int {
 	return md.User.UserID
+}
+
+// RequestData is the body of a request. It is wrapped into this type
+// to implement the Unmarshal function, which is just a shorthand to
+// json.Unmarshal.
+type RequestData []byte
+
+// Unmarshal json-decodes Requestdata into a value. Basically a
+// shorthand to json.Unmarshal.
+func (r RequestData) Unmarshal(into interface{}) error {
+	return json.Unmarshal([]byte(r), into)
 }

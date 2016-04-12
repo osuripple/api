@@ -2,7 +2,6 @@ package v1
 
 import (
 	"database/sql"
-	"encoding/json"
 	"strconv"
 	"time"
 
@@ -149,7 +148,7 @@ type friendAddPOSTData struct {
 // FriendsAddPOST allows for adding friends. Yup. Easy as that.
 func FriendsAddPOST(md common.MethodData) (r common.Response) {
 	d := friendAddPOSTData{}
-	err := json.Unmarshal(md.RequestData, &d)
+	err := md.RequestData.Unmarshal(&d)
 	if err != nil {
 		md.Err(err)
 		r = Err500
@@ -220,7 +219,7 @@ func FriendsDelGET(md common.MethodData) common.Response {
 // FriendsDelPOST allows for deleting friends.
 func FriendsDelPOST(md common.MethodData) (r common.Response) {
 	d := friendAddPOSTData{}
-	err := json.Unmarshal(md.RequestData, &d)
+	err := md.RequestData.Unmarshal(&d)
 	if err != nil {
 		md.Err(err)
 		r = Err500
