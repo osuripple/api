@@ -45,7 +45,7 @@ SELECT users.id, users.username, register_datetime, rank,
 FROM users
 LEFT JOIN users_stats
 ON users.id=users_stats.id
-WHERE users.id=?
+WHERE users.id=? AND users.allowed='1'
 LIMIT 1`
 	r = userPuts(md, md.DB.QueryRow(query, uid))
 	return
@@ -62,7 +62,7 @@ SELECT users.id, users.username, register_datetime, rank,
 FROM users
 LEFT JOIN users_stats
 ON users.id=users_stats.id
-WHERE users.username=?
+WHERE users.username=? AND users.allowed='1'
 LIMIT 1`
 	r = userPuts(md, md.DB.QueryRow(query, username))
 	return

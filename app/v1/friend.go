@@ -150,8 +150,7 @@ func FriendsAddPOST(md common.MethodData) (r common.Response) {
 	d := friendAddPOSTData{}
 	err := md.RequestData.Unmarshal(&d)
 	if err != nil {
-		md.Err(err)
-		r = Err500
+		r = ErrBadJSON
 		return
 	}
 	return addFriend(md, d.UserID)
@@ -196,7 +195,7 @@ func addFriend(md common.MethodData, u int) (r common.Response) {
 
 // userExists makes sure an user exists.
 func userExists(md common.MethodData, u int) (r bool) {
-	err := md.DB.QueryRow("SELECT EXISTS(SELECT 1 FROM users WHERE id = ?)", u).Scan(&r)
+	err := md.DB.QueryRow("SELECT EXISTS(SELECT 1 FROM users WHERE id = ? AND users.allowed='1')", u).Scan(&r)
 	if err != nil && err != sql.ErrNoRows {
 		md.Err(err)
 	}
@@ -221,8 +220,7 @@ func FriendsDelPOST(md common.MethodData) (r common.Response) {
 	d := friendAddPOSTData{}
 	err := md.RequestData.Unmarshal(&d)
 	if err != nil {
-		md.Err(err)
-		r = Err500
+		r = ErrBadJSON
 		return
 	}
 	return delFriend(md, d.UserID)

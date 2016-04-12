@@ -46,6 +46,9 @@ func Start(conf common.Conf, db *sql.DB) *gin.Engine {
 			gv1.POST("/friends/del", Method(v1.FriendsDelPOST, db, common.PrivilegeWrite))
 			gv1.GET("/friends/del/:id", Method(v1.FriendsDelGET, db, common.PrivilegeWrite))
 
+			// Admin: user managing
+			gv1.POST("/users/manage/set_allowed", Method(v1.UserManageSetAllowedPOST, db, common.PrivilegeManageUser))
+
 			// M E T A
 			// E     T    "wow thats so meta"
 			// T     E                  -- the one who said "wow thats so meta"
