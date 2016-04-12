@@ -140,7 +140,7 @@ func UserWhatsTheIDGET(md common.MethodData) common.Response {
 		allowed int
 	)
 	err := md.DB.QueryRow("SELECT id, allowed FROM users WHERE username = ? LIMIT 1", md.C.Param("username")).Scan(&id, &allowed)
-	if err != nil || allowed != 1 {
+	if err != nil || (allowed != 1 && !md.User.Privileges.HasPrivilegeViewUserAdvanced()) {
 		return common.Response{
 			Code:    404,
 			Message: "That user could not be found!",
