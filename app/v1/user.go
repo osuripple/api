@@ -210,7 +210,7 @@ LEFT JOIN leaderboard_ctb
 ON users.id=leaderboard_ctb.user
 LEFT JOIN leaderboard_mania
 ON users.id=leaderboard_mania.user
-WHERE users.id=?
+WHERE users.id=? AND users.allowed = '1'
 LIMIT 1
 `
 	// Fuck.
