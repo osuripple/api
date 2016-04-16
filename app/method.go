@@ -10,13 +10,13 @@ import (
 )
 
 // Method wraps an API method to a HandlerFunc.
-func Method(f func(md common.MethodData) common.Response, db *sql.DB, privilegesNeeded ...int) gin.HandlerFunc {
+func Method(f func(md common.MethodData) common.CodeMessager, db *sql.DB, privilegesNeeded ...int) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		initialCaretaker(c, f, db, privilegesNeeded...)
 	}
 }
 
-func initialCaretaker(c *gin.Context, f func(md common.MethodData) common.Response, db *sql.DB, privilegesNeeded ...int) {
+func initialCaretaker(c *gin.Context, f func(md common.MethodData) common.CodeMessager, db *sql.DB, privilegesNeeded ...int) {
 	data, err := ioutil.ReadAll(c.Request.Body)
 	if err != nil {
 		c.Error(err)
@@ -52,22 +52,25 @@ func initialCaretaker(c *gin.Context, f func(md common.MethodData) common.Respon
 		}
 	}
 	if missingPrivileges != 0 {
-		c.IndentedJSON(401, common.Response{
-			Code:    401,
-			Message: "You don't have the privilege(s): " + common.Privileges(missingPrivileges).String() + ".",
-		})
+		c.IndentedJSON(401, common.SimpleResponse(401, "You don't have the privilege(s): "+common.Privileges(missingPrivileges).String()+"."))
 		return
 	}
 
 	resp := f(md)
-	if resp.Code == 0 {
-		resp.Code = 500
+	if resp.GetCode() == 0 {
+		// Dirty hack to set the code
+		type setCoder interface {
+			SetCode(int)
+		}
+		if newver, can := resp.(setCoder); can {
+			newver.SetCode(500)
+		}
 	}
 
 	if _, exists := c.GetQuery("pls200"); exists {
 		c.Writer.WriteHeader(200)
 	} else {
-		c.Writer.WriteHeader(resp.Code)
+		c.Writer.WriteHeader(resp.GetCode())
 	}
 
 	if _, exists := c.GetQuery("callback"); exists {

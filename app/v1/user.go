@@ -13,6 +13,7 @@ import (
 )
 
 type userData struct {
+	common.ResponseBase
 	ID             int       `json:"id"`
 	Username       string    `json:"username"`
 	UsernameAKA    string    `json:"username_aka"`
@@ -23,7 +24,7 @@ type userData struct {
 }
 
 // UserByIDGET is the API handler for GET /users/id/:id
-func UserByIDGET(md common.MethodData) (r common.Response) {
+func UserByIDGET(md common.MethodData) common.CodeMessager {
 	var err error
 	var uid int
 	uidStr := md.C.Param("id")
@@ -32,9 +33,7 @@ func UserByIDGET(md common.MethodData) (r common.Response) {
 	} else {
 		uid, err = strconv.Atoi(uidStr)
 		if err != nil {
-			r.Code = 400
-			r.Message = fmt.Sprintf("%s ain't a number", uidStr)
-			return
+			return common.SimpleResponse(400, fmt.Sprintf("%s ain't a number", uidStr))
 		}
 	}
 
@@ -47,12 +46,11 @@ LEFT JOIN users_stats
 ON users.id=users_stats.id
 WHERE users.id=? AND users.allowed='1'
 LIMIT 1`
-	r = userPuts(md, md.DB.QueryRow(query, uid))
-	return
+	return userPuts(md, md.DB.QueryRow(query, uid))
 }
 
 // UserByNameGET is the API handler for GET /users/name/:name
-func UserByNameGET(md common.MethodData) (r common.Response) {
+func UserByNameGET(md common.MethodData) common.CodeMessager {
 	username := md.C.Param("name")
 
 	query := `
@@ -64,11 +62,10 @@ LEFT JOIN users_stats
 ON users.id=users_stats.id
 WHERE users.username=? AND users.allowed='1'
 LIMIT 1`
-	r = userPuts(md, md.DB.QueryRow(query, username))
-	return
+	return userPuts(md, md.DB.QueryRow(query, username))
 }
 
-func userPuts(md common.MethodData, row *sql.Row) (r common.Response) {
+func userPuts(md common.MethodData, row *sql.Row) common.CodeMessager {
 	var err error
 	var user userData
 
@@ -80,13 +77,10 @@ func userPuts(md common.MethodData, row *sql.Row) (r common.Response) {
 	err = row.Scan(&user.ID, &user.Username, &registeredOn, &user.Rank, &latestActivity, &user.UsernameAKA, &user.Country, &showCountry)
 	switch {
 	case err == sql.ErrNoRows:
-		r.Code = 404
-		r.Message = "No such user was found!"
-		return
+		return common.SimpleResponse(404, "No such user was found!")
 	case err != nil:
 		md.Err(err)
-		r = Err500
-		return
+		return Err500
 	}
 
 	user.RegisteredOn = time.Unix(registeredOn, 0)
@@ -94,9 +88,8 @@ func userPuts(md common.MethodData, row *sql.Row) (r common.Response) {
 
 	user.Country = genCountry(md, user.ID, showCountry, user.Country)
 
-	r.Code = 200
-	r.Data = user
-	return
+	user.Code = 200
+	return user
 }
 
 func badgesToArray(badges string) []int {
@@ -125,7 +118,7 @@ func genCountry(md common.MethodData, uid int, showCountry bool, country string)
 }
 
 // UserSelfGET is a shortcut for /users/id/self. (/users/self)
-func UserSelfGET(md common.MethodData) common.Response {
+func UserSelfGET(md common.MethodData) common.CodeMessager {
 	md.C.Params = append(md.C.Params, gin.Param{
 		Key:   "id",
 		Value: "self",
@@ -133,23 +126,23 @@ func UserSelfGET(md common.MethodData) common.Response {
 	return UserByIDGET(md)
 }
 
+type whatIDResponse struct {
+	common.ResponseBase
+	ID int `json:"id"`
+}
+
 // UserWhatsTheIDGET is an API request that only returns an user's ID.
-func UserWhatsTheIDGET(md common.MethodData) common.Response {
+func UserWhatsTheIDGET(md common.MethodData) common.CodeMessager {
 	var (
-		id      int
+		r       whatIDResponse
 		allowed int
 	)
-	err := md.DB.QueryRow("SELECT id, allowed FROM users WHERE username = ? LIMIT 1", md.C.Param("username")).Scan(&id, &allowed)
+	err := md.DB.QueryRow("SELECT id, allowed FROM users WHERE username = ? LIMIT 1", md.C.Param("username")).Scan(&r.ID, &allowed)
 	if err != nil || (allowed != 1 && !md.User.Privileges.HasPrivilegeViewUserAdvanced()) {
-		return common.Response{
-			Code:    404,
-			Message: "That user could not be found!",
-		}
+		return common.SimpleResponse(404, "That user could not be found!")
 	}
-	return common.Response{
-		Code: 200,
-		Data: id,
-	}
+	r.Code = 200
+	return r
 }
 
 type modeData struct {
@@ -162,7 +155,8 @@ type modeData struct {
 	Accuracy              float64 `json:"accuracy"`
 	GlobalLeaderboardRank int     `json:"global_leaderboard_rank"`
 }
-type userFullData struct {
+type userFullResponse struct {
+	common.ResponseBase
 	userData
 	STD           modeData `json:"std"`
 	Taiko         modeData `json:"taiko"`
@@ -174,7 +168,7 @@ type userFullData struct {
 }
 
 // UserFullGET gets all of an user's information, with one exception: their userpage.
-func UserFullGET(md common.MethodData) (r common.Response) {
+func UserFullGET(md common.MethodData) common.CodeMessager {
 	// Hellest query I've ever done.
 	query := `
 SELECT
@@ -214,7 +208,7 @@ WHERE users.id=? AND users.allowed = '1'
 LIMIT 1
 `
 	// Fuck.
-	fd := userFullData{}
+	r := userFullResponse{}
 	var (
 		badges         string
 		country        string
@@ -223,63 +217,61 @@ LIMIT 1
 		latestActivity int64
 	)
 	err := md.DB.QueryRow(query, md.C.Param("id")).Scan(
-		&fd.ID, &fd.Username, &registeredOn, &fd.Rank, &latestActivity,
+		&r.ID, &r.Username, &registeredOn, &r.Rank, &latestActivity,
 
-		&fd.UsernameAKA, &badges, &country, &showCountry,
-		&fd.PlayStyle, &fd.FavouriteMode,
+		&r.UsernameAKA, &badges, &country, &showCountry,
+		&r.PlayStyle, &r.FavouriteMode,
 
-		&fd.STD.RankedScore, &fd.STD.TotalScore, &fd.STD.PlayCount,
-		&fd.STD.ReplaysWatched, &fd.STD.TotalHits, &fd.STD.Level,
-		&fd.STD.Accuracy, &fd.STD.GlobalLeaderboardRank,
+		&r.STD.RankedScore, &r.STD.TotalScore, &r.STD.PlayCount,
+		&r.STD.ReplaysWatched, &r.STD.TotalHits, &r.STD.Level,
+		&r.STD.Accuracy, &r.STD.GlobalLeaderboardRank,
 
-		&fd.Taiko.RankedScore, &fd.Taiko.TotalScore, &fd.Taiko.PlayCount,
-		&fd.Taiko.ReplaysWatched, &fd.Taiko.TotalHits, &fd.Taiko.Level,
-		&fd.Taiko.Accuracy, &fd.Taiko.GlobalLeaderboardRank,
+		&r.Taiko.RankedScore, &r.Taiko.TotalScore, &r.Taiko.PlayCount,
+		&r.Taiko.ReplaysWatched, &r.Taiko.TotalHits, &r.Taiko.Level,
+		&r.Taiko.Accuracy, &r.Taiko.GlobalLeaderboardRank,
 
-		&fd.CTB.RankedScore, &fd.CTB.TotalScore, &fd.CTB.PlayCount,
-		&fd.CTB.ReplaysWatched, &fd.CTB.TotalHits, &fd.CTB.Level,
-		&fd.CTB.Accuracy, &fd.CTB.GlobalLeaderboardRank,
+		&r.CTB.RankedScore, &r.CTB.TotalScore, &r.CTB.PlayCount,
+		&r.CTB.ReplaysWatched, &r.CTB.TotalHits, &r.CTB.Level,
+		&r.CTB.Accuracy, &r.CTB.GlobalLeaderboardRank,
 
-		&fd.Mania.RankedScore, &fd.Mania.TotalScore, &fd.Mania.PlayCount,
-		&fd.Mania.ReplaysWatched, &fd.Mania.TotalHits, &fd.Mania.Level,
-		&fd.Mania.Accuracy, &fd.Mania.GlobalLeaderboardRank,
+		&r.Mania.RankedScore, &r.Mania.TotalScore, &r.Mania.PlayCount,
+		&r.Mania.ReplaysWatched, &r.Mania.TotalHits, &r.Mania.Level,
+		&r.Mania.Accuracy, &r.Mania.GlobalLeaderboardRank,
 	)
 	switch {
 	case err == sql.ErrNoRows:
-		r.Code = 404
-		r.Message = "That user could not be found!"
-		return
+		return common.SimpleResponse(404, "That user could not be found!")
 	case err != nil:
 		md.Err(err)
-		r = Err500
-		return
+		return Err500
 	}
 
-	fd.Country = genCountry(md, fd.ID, showCountry, country)
-	fd.Badges = badgesToArray(badges)
+	r.Country = genCountry(md, r.ID, showCountry, country)
+	r.Badges = badgesToArray(badges)
 
-	fd.RegisteredOn = time.Unix(registeredOn, 0)
-	fd.LatestActivity = time.Unix(latestActivity, 0)
+	r.RegisteredOn = time.Unix(registeredOn, 0)
+	r.LatestActivity = time.Unix(latestActivity, 0)
 
 	r.Code = 200
-	r.Data = fd
-	return
+	return r
+}
+
+type userpageResponse struct {
+	common.ResponseBase
+	Userpage string `json:"userpage"`
 }
 
 // UserUserpageGET gets an user's userpage, as in the customisable thing.
-func UserUserpageGET(md common.MethodData) (r common.Response) {
-	var userpage string
-	err := md.DB.QueryRow("SELECT userpage_content FROM users_stats WHERE id = ? LIMIT 1", md.C.Param("id")).Scan(&userpage)
+func UserUserpageGET(md common.MethodData) common.CodeMessager {
+	var r userpageResponse
+	err := md.DB.QueryRow("SELECT userpage_content FROM users_stats WHERE id = ? LIMIT 1", md.C.Param("id")).Scan(&r.Userpage)
 	switch {
 	case err == sql.ErrNoRows:
-		r.Code = 404
-		r.Message = "No user with that user ID!"
+		return common.SimpleResponse(404, "No user with that user ID!")
 	case err != nil:
 		md.Err(err)
-		r = Err500
-		return
+		return Err500
 	}
 	r.Code = 200
-	r.Data = userpage
-	return
+	return r
 }

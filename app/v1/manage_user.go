@@ -8,22 +8,18 @@ type setAllowedData struct {
 }
 
 // UserManageSetAllowedPOST allows to set the allowed status of an user.
-func UserManageSetAllowedPOST(md common.MethodData) (r common.Response) {
+func UserManageSetAllowedPOST(md common.MethodData) common.CodeMessager {
 	data := setAllowedData{}
 	if err := md.RequestData.Unmarshal(&data); err != nil {
-		r = ErrBadJSON
-		return
+		return ErrBadJSON
 	}
 	if data.Allowed < 0 || data.Allowed > 2 {
-		r.Code = 400
-		r.Message = "Allowed status must be between 0 and 2"
-		return
+		return common.SimpleResponse(400, "Allowed status must be between 0 and 2")
 	}
 	_, err := md.DB.Exec("UPDATE users SET allowed = ? WHERE id = ?", data.Allowed, data.UserID)
 	if err != nil {
 		md.Err(err)
-		r = Err500
-		return
+		return Err500
 	}
 	query := `
 SELECT users.id, users.username, register_datetime, rank,
@@ -34,6 +30,5 @@ LEFT JOIN users_stats
 ON users.id=users_stats.id
 WHERE users.id=?
 LIMIT 1`
-	r = userPuts(md, md.DB.QueryRow(query, data.UserID))
-	return
+	return userPuts(md, md.DB.QueryRow(query, data.UserID))
 }

@@ -14,60 +14,59 @@ import (
 )
 
 // MetaRestartGET restarts the API with Zero Downtime™.
-func MetaRestartGET(md common.MethodData) (r common.Response) {
+func MetaRestartGET(md common.MethodData) common.CodeMessager {
 	proc, err := os.FindProcess(syscall.Getpid())
 	if err != nil {
-		r.Code = 500
-		r.Message = "couldn't find process. what the fuck?"
-		return
+		return common.SimpleResponse(500, "couldn't find process. what the fuck?")
 	}
-	r.Code = 200
-	r.Message = "brb"
 	go func() {
 		time.Sleep(time.Second)
 		proc.Signal(syscall.SIGUSR2)
 	}()
-	return
+	return common.SimpleResponse(200, "brb")
 }
 
 // MetaKillGET kills the API process. NOTE TO EVERYONE: NEVER. EVER. USE IN PROD.
 // Mainly created because I couldn't bother to fire up a terminal, do htop and kill the API each time.
-func MetaKillGET(md common.MethodData) (r common.Response) {
+func MetaKillGET(md common.MethodData) common.CodeMessager {
 	proc, err := os.FindProcess(syscall.Getpid())
 	if err != nil {
-		r.Code = 500
-		r.Message = "couldn't find process. what the fuck?"
-		return
+		return common.SimpleResponse(500, "couldn't find process. what the fuck?")
 	}
 	const form = "02/01/2006"
-	r.Code = 200
+	r := common.ResponseBase{
+		Code:    200,
+		Message: fmt.Sprintf("RIP ripple API %s - %s", upSince.Format(form), time.Now().Format(form)),
+	}
 	// yes
-	r.Message = fmt.Sprintf("RIP ripple API %s - %s", upSince.Format(form), time.Now().Format(form))
 	go func() {
 		time.Sleep(time.Second)
 		proc.Kill()
 	}()
-	return
+	return r
 }
 
 var upSince = time.Now()
 
+type metaUpSinceResponse struct {
+	common.ResponseBase
+	Code  int   `json:"code"`
+	Since int64 `json:"since"`
+}
+
 // MetaUpSinceGET retrieves the moment the API application was started.
 // Mainly used to get if the API was restarted.
-func MetaUpSinceGET(md common.MethodData) common.Response {
-	return common.Response{
-		Code: 200,
-		Data: upSince.UnixNano(),
+func MetaUpSinceGET(md common.MethodData) common.CodeMessager {
+	return metaUpSinceResponse{
+		Code:  200,
+		Since: int64(upSince.UnixNano()),
 	}
 }
 
 // MetaUpdateGET updates the API to the latest version, and restarts it.
-func MetaUpdateGET(md common.MethodData) common.Response {
+func MetaUpdateGET(md common.MethodData) common.CodeMessager {
 	if f, err := os.Stat(".git"); err == os.ErrNotExist || !f.IsDir() {
-		return common.Response{
-			Code:    500,
-			Message: "repo is not using git",
-		}
+		return common.SimpleResponse(500, "instance is not using git")
 	}
 	go func() {
 		// go get
@@ -87,10 +86,7 @@ func MetaUpdateGET(md common.MethodData) common.Response {
 		}
 		proc.Signal(syscall.SIGUSR2)
 	}()
-	return common.Response{
-		Code:    200,
-		Message: "Started updating! " + surpriseMe(),
-	}
+	return common.SimpleResponse(200, "Started updating! "+surpriseMe())
 }
 
 func execCommand(command string, args ...string) bool {

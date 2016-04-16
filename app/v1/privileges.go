@@ -5,6 +5,7 @@ import (
 )
 
 type privilegesData struct {
+	common.ResponseBase
 	Read             bool `json:"read"`
 	ReadConfidential bool `json:"read_confidential"`
 	Write            bool `json:"write"`
@@ -20,22 +21,21 @@ type privilegesData struct {
 }
 
 // PrivilegesGET returns an explaination for the privileges, telling the client what they can do with this token.
-func PrivilegesGET(md common.MethodData) (r common.Response) {
-	// This code sucks.
+func PrivilegesGET(md common.MethodData) common.CodeMessager {
+	r := privilegesData{}
 	r.Code = 200
-	r.Data = privilegesData{
-		Read:             md.User.Privileges.HasPrivilegeRead(),
-		ReadConfidential: md.User.Privileges.HasPrivilegeReadConfidential(),
-		Write:            md.User.Privileges.HasPrivilegeWrite(),
-		ManageBadges:     md.User.Privileges.HasPrivilegeManageBadges(),
-		BetaKeys:         md.User.Privileges.HasPrivilegeBetaKeys(),
-		ManageSettings:   md.User.Privileges.HasPrivilegeManageSettings(),
-		ViewUserAdvanced: md.User.Privileges.HasPrivilegeViewUserAdvanced(),
-		ManageUser:       md.User.Privileges.HasPrivilegeManageUser(),
-		ManageRoles:      md.User.Privileges.HasPrivilegeManageRoles(),
-		ManageAPIKeys:    md.User.Privileges.HasPrivilegeManageAPIKeys(),
-		Blog:             md.User.Privileges.HasPrivilegeBlog(),
-		APIMeta:          md.User.Privileges.HasPrivilegeAPIMeta(),
-	}
-	return
+	// This code sucks.
+	r.Read = md.User.Privileges.HasPrivilegeRead()
+	r.ReadConfidential = md.User.Privileges.HasPrivilegeReadConfidential()
+	r.Write = md.User.Privileges.HasPrivilegeWrite()
+	r.ManageBadges = md.User.Privileges.HasPrivilegeManageBadges()
+	r.BetaKeys = md.User.Privileges.HasPrivilegeBetaKeys()
+	r.ManageSettings = md.User.Privileges.HasPrivilegeManageSettings()
+	r.ViewUserAdvanced = md.User.Privileges.HasPrivilegeViewUserAdvanced()
+	r.ManageUser = md.User.Privileges.HasPrivilegeManageUser()
+	r.ManageRoles = md.User.Privileges.HasPrivilegeManageRoles()
+	r.ManageAPIKeys = md.User.Privileges.HasPrivilegeManageAPIKeys()
+	r.Blog = md.User.Privileges.HasPrivilegeBlog()
+	r.APIMeta = md.User.Privileges.HasPrivilegeAPIMeta()
+	return r
 }
