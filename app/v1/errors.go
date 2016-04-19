@@ -3,7 +3,7 @@ package v1
 import (
 	"strings"
 
-	"github.com/osuripple/api/common"
+	"git.zxq.co/ripple/rippleapi/common"
 )
 
 // Boilerplate errors

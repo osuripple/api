@@ -1,6 +1,6 @@
 package v1
 
-import "github.com/osuripple/api/common"
+import "git.zxq.co/ripple/rippleapi/common"
 
 type setAllowedData struct {
 	UserID  int `json:"user_id"`

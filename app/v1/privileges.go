@@ -1,7 +1,7 @@
 package v1
 
 import (
-	"github.com/osuripple/api/common"
+	"git.zxq.co/ripple/rippleapi/common"
 )
 
 type privilegesData struct {

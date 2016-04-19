@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"io/ioutil"
 
+	"git.zxq.co/ripple/rippleapi/common"
 	"github.com/gin-gonic/gin"
-	"github.com/osuripple/api/common"
 )
 
 // Method wraps an API method to a HandlerFunc.

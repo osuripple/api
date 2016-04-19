@@ -9,12 +9,11 @@ import (
 	"syscall"
 	"time"
 
+	"git.zxq.co/ripple/rippleapi/app"
+	"git.zxq.co/ripple/rippleapi/common"
+	"github.com/rcrowley/goagain"
 	// Golint pls dont break balls
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/osuripple/api/app"
-	"github.com/osuripple/api/common"
-
-	"github.com/rcrowley/goagain"
 )
 
 func init() {

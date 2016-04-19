@@ -1,8 +1,8 @@
 package v1
 
 import (
+	"git.zxq.co/ripple/rippleapi/common"
 	"github.com/gin-gonic/gin"
-	"github.com/osuripple/api/common"
 )
 
 type response404 struct {

@@ -3,11 +3,11 @@ package app
 import (
 	"database/sql"
 
+	"git.zxq.co/ripple/rippleapi/app/internals"
+	"git.zxq.co/ripple/rippleapi/app/v1"
+	"git.zxq.co/ripple/rippleapi/common"
 	"github.com/gin-gonic/contrib/gzip"
 	"github.com/gin-gonic/gin"
-	"github.com/osuripple/api/app/internals"
-	"github.com/osuripple/api/app/v1"
-	"github.com/osuripple/api/common"
 )
 
 // Start begins taking HTTP connections.

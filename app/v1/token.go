@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/osuripple/api/common"
+	"git.zxq.co/ripple/rippleapi/common"
 	"golang.org/x/crypto/bcrypt"
 )
 

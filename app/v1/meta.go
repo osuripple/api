@@ -10,7 +10,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/osuripple/api/common"
+	"git.zxq.co/ripple/rippleapi/common"
 )
 
 // MetaRestartGET restarts the API with Zero Downtime™.
@@ -69,13 +69,16 @@ func MetaUpdateGET(md common.MethodData) common.CodeMessager {
 		return common.SimpleResponse(500, "instance is not using git")
 	}
 	go func() {
+		if !execCommand("git", "pull", "origin", "master") {
+			return
+		}
 		// go get
-		//        -u: update all dependencies (including API source)
+		//        -u: update all dependencies
 		//        -d: stop after downloading deps
 		if !execCommand("go", "get", "-u", "-d") {
 			return
 		}
-		if !execCommand("go", "build") {
+		if !execCommand("go", "build", "-o", "-v", "api") {
 			return
 		}
 

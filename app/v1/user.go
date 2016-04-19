@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"git.zxq.co/ripple/rippleapi/common"
 	"github.com/gin-gonic/gin"
-	"github.com/osuripple/api/common"
 )
 
 type userData struct {

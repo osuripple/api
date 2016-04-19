@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/osuripple/api/common"
+	"git.zxq.co/ripple/rippleapi/common"
 )
 
 type friendData struct {
