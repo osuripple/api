@@ -16,6 +16,7 @@ const (
 	PrivilegeManageAPIKeys                // admin permission to manage user permission, not only self permissions. Only ever do this if you completely trust the application, because this essentially means to put the entire ripple database in the hands of a (potentially evil?) application.
 	PrivilegeBlog                         // can do pretty much anything to the blog, and the documentation.
 	PrivilegeAPIMeta                      // can do /meta API calls. basically means they can restart the API server.
+	PrivilegeBeatmap                      // rank/unrank beatmaps. also BAT when implemented
 )
 
 // Privileges is a bitwise enum of the privileges of an user's API key.
@@ -76,9 +77,14 @@ func (p Privileges) HasPrivilegeBlog() bool {
 	return p&PrivilegeBlog != 0
 }
 
-// HasPrivilegeAPIMeta returns whether the Blog privilege is included in the privileges.
+// HasPrivilegeAPIMeta returns whether the APIMeta privilege is included in the privileges.
 func (p Privileges) HasPrivilegeAPIMeta() bool {
 	return p&PrivilegeAPIMeta != 0
+}
+
+// HasPrivilegeBeatmap returns whether the Beatmap privilege is included in the privileges.
+func (p Privileges) HasPrivilegeBeatmap() bool {
+	return p&PrivilegeBeatmap != 0
 }
 
 var privilegeString = [...]string{
@@ -94,6 +100,7 @@ var privilegeString = [...]string{
 	"ManageAPIKeys",
 	"Blog",
 	"APIMeta",
+	"Beatmap",
 }
 
 func (p Privileges) String() string {
@@ -118,6 +125,7 @@ var privilegeMustBe = [...]int{
 	4,
 	4,
 	3,
+	4,
 	4,
 }
 
