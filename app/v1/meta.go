@@ -78,7 +78,7 @@ func MetaUpdateGET(md common.MethodData) common.CodeMessager {
 		if !execCommand("go", "get", "-u", "-d", "-v") {
 			return
 		}
-		if !execCommand("go", "build", "-o", "-v", "api") {
+		if !execCommand("go", "build", "-v", "-o", "api") {
 			return
 		}
 
