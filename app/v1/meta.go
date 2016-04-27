@@ -75,7 +75,7 @@ func MetaUpdateGET(md common.MethodData) common.CodeMessager {
 		// go get
 		//        -u: update all dependencies
 		//        -d: stop after downloading deps
-		if !execCommand("go", "get", "-u", "-d") {
+		if !execCommand("go", "get", "-u", "-d", "-v") {
 			return
 		}
 		if !execCommand("go", "build", "-o", "-v", "api") {
