@@ -18,6 +18,7 @@ type privilegesData struct {
 	ManageAPIKeys    bool `json:"manage_api_keys"`
 	Blog             bool `json:"blog"`
 	APIMeta          bool `json:"api_meta"`
+	Beatmap          bool `json:"beatmap"`
 }
 
 // PrivilegesGET returns an explaination for the privileges, telling the client what they can do with this token.
@@ -37,5 +38,6 @@ func PrivilegesGET(md common.MethodData) common.CodeMessager {
 	r.ManageAPIKeys = md.User.Privileges.HasPrivilegeManageAPIKeys()
 	r.Blog = md.User.Privileges.HasPrivilegeBlog()
 	r.APIMeta = md.User.Privileges.HasPrivilegeAPIMeta()
+	r.Beatmap = md.User.Privileges.HasPrivilegeBeatmap()
 	return r
 }
