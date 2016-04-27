@@ -48,8 +48,8 @@ func BeatmapSetStatusPOST(md common.MethodData) common.CodeMessager {
 	if req.Frozen != 0 && req.Frozen != 1 {
 		return common.SimpleResponse(400, "frozen status must be either 0 or 1")
 	}
-	if req.RankedStatus > 3 || -2 > req.RankedStatus {
-		return common.SimpleResponse(400, "ranked status must be 4 < x < -3")
+	if req.RankedStatus > 4 || -1 > req.RankedStatus {
+		return common.SimpleResponse(400, "ranked status must be 5 < x < -2")
 	}
 
 	md.DB.Exec("UPDATE beatmaps SET ranked = ?, ranked_status_freezed = ? WHERE beatmapset_id = ?", req.RankedStatus, req.Frozen, req.BeatmapSetID)
