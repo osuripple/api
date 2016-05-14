@@ -23,25 +23,9 @@ type userData struct {
 
 // UsersGET is the API handler for GET /users
 func UsersGET(md common.MethodData) common.CodeMessager {
-	var err error
-	var whereClause string
-	var param interface{}
-
-	switch {
-	case md.C.Query("id") == "self":
-		param = md.ID()
-		whereClause = "users.id = ?"
-	case md.C.Query("id") != "":
-		param, err = strconv.Atoi(md.C.Query("id"))
-		if err != nil {
-			return common.SimpleResponse(400, "passed user ID is not a valid number")
-		}
-		whereClause = "users.id = ?"
-	case md.C.Query("name") != "":
-		param = md.C.Query("name")
-		whereClause = "users.username = ?"
-	default:
-		return common.SimpleResponse(400, "must provide either querystring param id or param name")
+	shouldRet, whereClause, param := whereClauseUser(md)
+	if shouldRet != nil {
+		return *shouldRet
 	}
 
 	query := `
@@ -157,6 +141,11 @@ type userFullResponse struct {
 
 // UserFullGET gets all of an user's information, with one exception: their userpage.
 func UserFullGET(md common.MethodData) common.CodeMessager {
+	shouldRet, whereClause, param := whereClauseUser(md)
+	if shouldRet != nil {
+		return *shouldRet
+	}
+
 	// Hellest query I've ever done.
 	query := `
 SELECT
@@ -192,7 +181,7 @@ LEFT JOIN leaderboard_ctb
 ON users.id=leaderboard_ctb.user
 LEFT JOIN leaderboard_mania
 ON users.id=leaderboard_mania.user
-WHERE users.id=? AND users.allowed = '1'
+WHERE ` + whereClause + ` AND users.allowed = '1'
 LIMIT 1
 `
 	// Fuck.
@@ -204,7 +193,7 @@ LIMIT 1
 		registeredOn   int64
 		latestActivity int64
 	)
-	err := md.DB.QueryRow(query, md.C.Param("id")).Scan(
+	err := md.DB.QueryRow(query, param).Scan(
 		&r.ID, &r.Username, &registeredOn, &r.Rank, &latestActivity,
 
 		&r.UsernameAKA, &badges, &country, &showCountry,
@@ -262,4 +251,22 @@ func UserUserpageGET(md common.MethodData) common.CodeMessager {
 	}
 	r.Code = 200
 	return r
+}
+
+func whereClauseUser(md common.MethodData) (*common.CodeMessager, string, interface{}) {
+	switch {
+	case md.C.Query("id") == "self":
+		return nil, "users.id = ?", md.ID()
+	case md.C.Query("id") != "":
+		id, err := strconv.Atoi(md.C.Query("id"))
+		if err != nil {
+			a := common.SimpleResponse(400, "please pass a valid user ID")
+			return &a, "", nil
+		}
+		return nil, "users.id = ?", id
+	case md.C.Query("name") != "":
+		return nil, "users.username = ?", md.C.Query("name")
+	}
+	a := common.SimpleResponse(400, "you need to pass either querystring parameters name or id")
+	return &a, "", nil
 }
