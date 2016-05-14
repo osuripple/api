@@ -125,7 +125,7 @@ func UserWhatsTheIDGET(md common.MethodData) common.CodeMessager {
 		r       whatIDResponse
 		allowed int
 	)
-	err := md.DB.QueryRow("SELECT id, allowed FROM users WHERE username = ? LIMIT 1", md.C.Param("username")).Scan(&r.ID, &allowed)
+	err := md.DB.QueryRow("SELECT id, allowed FROM users WHERE username = ? LIMIT 1", md.C.Query("name")).Scan(&r.ID, &allowed)
 	if err != nil || (allowed != 1 && !md.User.Privileges.HasPrivilegeViewUserAdvanced()) {
 		return common.SimpleResponse(404, "That user could not be found!")
 	}

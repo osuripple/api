@@ -29,7 +29,7 @@ func Start(conf common.Conf, db *sql.DB) *gin.Engine {
 			// Read privilege required
 			gv1.GET("/users", Method(v1.UsersGET, db, common.PrivilegeRead))
 			gv1.GET("/users/self", Method(v1.UserSelfGET, db, common.PrivilegeRead))
-			gv1.GET("/users/whatid/:username", Method(v1.UserWhatsTheIDGET, db, common.PrivilegeRead))
+			gv1.GET("/users/whatid", Method(v1.UserWhatsTheIDGET, db, common.PrivilegeRead))
 			gv1.GET("/users/full/:id", Method(v1.UserFullGET, db, common.PrivilegeRead))
 			gv1.GET("/users/userpage/:id", Method(v1.UserUserpageGET, db, common.PrivilegeRead))
 			gv1.GET("/badges", Method(v1.BadgesGET, db, common.PrivilegeRead))
