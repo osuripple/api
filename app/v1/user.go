@@ -23,7 +23,7 @@ type userData struct {
 
 // UsersGET is the API handler for GET /users
 func UsersGET(md common.MethodData) common.CodeMessager {
-	shouldRet, whereClause, param := whereClauseUser(md)
+	shouldRet, whereClause, param := whereClauseUser(md, "users")
 	if shouldRet != nil {
 		return *shouldRet
 	}
@@ -141,7 +141,7 @@ type userFullResponse struct {
 
 // UserFullGET gets all of an user's information, with one exception: their userpage.
 func UserFullGET(md common.MethodData) common.CodeMessager {
-	shouldRet, whereClause, param := whereClauseUser(md)
+	shouldRet, whereClause, param := whereClauseUser(md, "users")
 	if shouldRet != nil {
 		return *shouldRet
 	}
@@ -240,11 +240,15 @@ type userpageResponse struct {
 
 // UserUserpageGET gets an user's userpage, as in the customisable thing.
 func UserUserpageGET(md common.MethodData) common.CodeMessager {
+	shouldRet, whereClause, param := whereClauseUser(md, "users_stats")
+	if shouldRet != nil {
+		return *shouldRet
+	}
 	var r userpageResponse
-	err := md.DB.QueryRow("SELECT userpage_content FROM users_stats WHERE id = ? LIMIT 1", md.C.Param("id")).Scan(&r.Userpage)
+	err := md.DB.QueryRow("SELECT userpage_content FROM users_stats WHERE "+whereClause+" LIMIT 1", param).Scan(&r.Userpage)
 	switch {
 	case err == sql.ErrNoRows:
-		return common.SimpleResponse(404, "No user with that user ID!")
+		return common.SimpleResponse(404, "No such user!")
 	case err != nil:
 		md.Err(err)
 		return Err500
@@ -253,19 +257,19 @@ func UserUserpageGET(md common.MethodData) common.CodeMessager {
 	return r
 }
 
-func whereClauseUser(md common.MethodData) (*common.CodeMessager, string, interface{}) {
+func whereClauseUser(md common.MethodData, tableName string) (*common.CodeMessager, string, interface{}) {
 	switch {
 	case md.C.Query("id") == "self":
-		return nil, "users.id = ?", md.ID()
+		return nil, tableName + ".id = ?", md.ID()
 	case md.C.Query("id") != "":
 		id, err := strconv.Atoi(md.C.Query("id"))
 		if err != nil {
 			a := common.SimpleResponse(400, "please pass a valid user ID")
 			return &a, "", nil
 		}
-		return nil, "users.id = ?", id
+		return nil, tableName + ".id = ?", id
 	case md.C.Query("name") != "":
-		return nil, "users.username = ?", md.C.Query("name")
+		return nil, tableName + ".username = ?", md.C.Query("name")
 	}
 	a := common.SimpleResponse(400, "you need to pass either querystring parameters name or id")
 	return &a, "", nil
