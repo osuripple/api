@@ -125,6 +125,7 @@ type modeData struct {
 	TotalHits             int     `json:"total_hits"`
 	Level                 float64 `json:"level"`
 	Accuracy              float64 `json:"accuracy"`
+	PP                    int     `json:"pp"`
 	GlobalLeaderboardRank int     `json:"global_leaderboard_rank"`
 }
 type userFullResponse struct {
@@ -156,19 +157,19 @@ SELECT
 	
 	users_stats.ranked_score_std, users_stats.total_score_std, users_stats.playcount_std,
 	users_stats.replays_watched_std, users_stats.total_hits_std, users_stats.level_std,
-	users_stats.avg_accuracy_std, leaderboard_std.position as std_position,
+	users_stats.avg_accuracy_std, users_stats.pp_std, leaderboard_std.position as std_position,
 	
 	users_stats.ranked_score_taiko, users_stats.total_score_taiko, users_stats.playcount_taiko,
 	users_stats.replays_watched_taiko, users_stats.total_hits_taiko, users_stats.level_taiko,
-	users_stats.avg_accuracy_taiko, leaderboard_taiko.position as taiko_position,
+	users_stats.avg_accuracy_taiko, users_stats.pp_taiko, leaderboard_taiko.position as taiko_position,
 
 	users_stats.ranked_score_ctb, users_stats.total_score_ctb, users_stats.playcount_ctb,
 	users_stats.replays_watched_ctb, users_stats.total_hits_ctb, users_stats.level_ctb,
-	users_stats.avg_accuracy_ctb, leaderboard_ctb.position as ctb_position,
+	users_stats.avg_accuracy_ctb, users_stats.pp_ctb, leaderboard_ctb.position as ctb_position,
 
 	users_stats.ranked_score_mania, users_stats.total_score_mania, users_stats.playcount_mania,
 	users_stats.replays_watched_mania, users_stats.total_hits_mania, users_stats.level_mania,
-	users_stats.avg_accuracy_mania, leaderboard_mania.position as mania_position
+	users_stats.avg_accuracy_mania, users_stats.pp_mania, leaderboard_mania.position as mania_position
 
 FROM users
 LEFT JOIN users_stats
@@ -201,19 +202,19 @@ LIMIT 1
 
 		&r.STD.RankedScore, &r.STD.TotalScore, &r.STD.PlayCount,
 		&r.STD.ReplaysWatched, &r.STD.TotalHits, &r.STD.Level,
-		&r.STD.Accuracy, &r.STD.GlobalLeaderboardRank,
+		&r.STD.Accuracy, &r.STD.PP, &r.STD.GlobalLeaderboardRank,
 
 		&r.Taiko.RankedScore, &r.Taiko.TotalScore, &r.Taiko.PlayCount,
 		&r.Taiko.ReplaysWatched, &r.Taiko.TotalHits, &r.Taiko.Level,
-		&r.Taiko.Accuracy, &r.Taiko.GlobalLeaderboardRank,
+		&r.Taiko.Accuracy, &r.Taiko.PP, &r.Taiko.GlobalLeaderboardRank,
 
 		&r.CTB.RankedScore, &r.CTB.TotalScore, &r.CTB.PlayCount,
 		&r.CTB.ReplaysWatched, &r.CTB.TotalHits, &r.CTB.Level,
-		&r.CTB.Accuracy, &r.CTB.GlobalLeaderboardRank,
+		&r.CTB.Accuracy, &r.CTB.PP, &r.CTB.GlobalLeaderboardRank,
 
 		&r.Mania.RankedScore, &r.Mania.TotalScore, &r.Mania.PlayCount,
 		&r.Mania.ReplaysWatched, &r.Mania.TotalHits, &r.Mania.Level,
-		&r.Mania.Accuracy, &r.Mania.GlobalLeaderboardRank,
+		&r.Mania.Accuracy, &r.Mania.PP, &r.Mania.GlobalLeaderboardRank,
 	)
 	switch {
 	case err == sql.ErrNoRows:
