@@ -275,3 +275,44 @@ func whereClauseUser(md common.MethodData, tableName string) (*common.CodeMessag
 	a := common.SimpleResponse(400, "you need to pass either querystring parameters name or id")
 	return &a, "", nil
 }
+
+type userLookupResponse struct {
+	common.ResponseBase
+	Users []lookupUser `json:"users"`
+}
+type lookupUser struct {
+	ID       int    `json:"id"`
+	Username string `json:"username"`
+}
+
+// UserLookupGET does a quick lookup of users beginning with the passed
+// querystring value name.
+func UserLookupGET(md common.MethodData) common.CodeMessager {
+	name := strings.NewReplacer(
+		"%", "\\%",
+		"_", "\\_",
+	).Replace(md.C.Query("name"))
+	if name == "" {
+		return common.SimpleResponse(400, "please provide an username to start searching")
+	}
+	name += "%"
+	rows, err := md.DB.Query("SELECT users.id, users.username FROM users WHERE username LIKE ? AND allowed = '1' LIMIT 25", name)
+	if err != nil {
+		md.Err(err)
+		return Err500
+	}
+
+	var r userLookupResponse
+
+	for rows.Next() {
+		var l lookupUser
+		err := rows.Scan(&l.ID, &l.Username)
+		if err != nil {
+			continue // can't be bothered to handle properly
+		}
+		r.Users = append(r.Users, l)
+	}
+
+	r.Code = 200
+	return r
+}
