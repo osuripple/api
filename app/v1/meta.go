@@ -75,7 +75,7 @@ func MetaUpdateGET(md common.MethodData) common.CodeMessager {
 		// go get
 		//        -u: update all dependencies
 		//        -d: stop after downloading deps
-		if !execCommand("go", "get", "-u", "-d", "-v") {
+		if !execCommand("go", "get", "-v", "-u", "-d") {
 			return
 		}
 		if !execCommand("go", "build", "-v", "-o", "api") {
@@ -117,7 +117,6 @@ func execCommand(command string, args ...string) bool {
 	// Bob. We got a problem.
 	if len(data) != 0 {
 		log.Println(string(data))
-		return false
 	}
 	io.Copy(os.Stdout, stdout)
 	cmd.Wait()
