@@ -118,7 +118,7 @@ type friendsWithResponse struct {
 func FriendsWithGET(md common.MethodData) common.CodeMessager {
 	r := friendsWithResponse{}
 	r.Code = 200
-	uid, err := strconv.Atoi(md.C.Param("id"))
+	uid, err := strconv.Atoi(md.C.Query("id"))
 	if err != nil {
 		return common.SimpleResponse(400, "That is not a number!")
 	}
@@ -135,26 +135,12 @@ func FriendsWithGET(md common.MethodData) common.CodeMessager {
 
 // FriendsAddGET is the GET version of FriendsAddPOST.
 func FriendsAddGET(md common.MethodData) common.CodeMessager {
-	uidS := md.C.Param("id")
+	uidS := md.C.Query("id")
 	uid, err := strconv.Atoi(uidS)
 	if err != nil {
 		return common.SimpleResponse(400, "Nope. That's not a number.")
 	}
 	return addFriend(md, uid)
-}
-
-type friendAddPOSTData struct {
-	UserID int `json:"user_id"`
-}
-
-// FriendsAddPOST allows for adding friends. Yup. Easy as that.
-func FriendsAddPOST(md common.MethodData) common.CodeMessager {
-	d := friendAddPOSTData{}
-	err := md.RequestData.Unmarshal(&d)
-	if err != nil {
-		return ErrBadJSON
-	}
-	return addFriend(md, d.UserID)
 }
 
 func addFriend(md common.MethodData, u int) common.CodeMessager {
@@ -198,22 +184,12 @@ func userExists(md common.MethodData, u int) (r bool) {
 
 // FriendsDelGET is the GET version of FriendDelPOST.
 func FriendsDelGET(md common.MethodData) common.CodeMessager {
-	uidS := md.C.Param("id")
+	uidS := md.C.Query("id")
 	uid, err := strconv.Atoi(uidS)
 	if err != nil {
 		return common.SimpleResponse(400, "Nope. That's not a number.")
 	}
 	return delFriend(md, uid)
-}
-
-// FriendsDelPOST allows for deleting friends.
-func FriendsDelPOST(md common.MethodData) common.CodeMessager {
-	d := friendAddPOSTData{}
-	err := md.RequestData.Unmarshal(&d)
-	if err != nil {
-		return ErrBadJSON
-	}
-	return delFriend(md, d.UserID)
 }
 
 func delFriend(md common.MethodData, u int) common.CodeMessager {

@@ -36,13 +36,11 @@ func Start(conf common.Conf, db *sql.DB) *gin.Engine {
 
 			// ReadConfidential privilege required
 			gv1.GET("/friends", Method(v1.FriendsGET, db, common.PrivilegeReadConfidential))
-			gv1.GET("/friends/with/:id", Method(v1.FriendsWithGET, db, common.PrivilegeReadConfidential))
+			gv1.GET("/friends/with", Method(v1.FriendsWithGET, db, common.PrivilegeReadConfidential))
 
 			// Write privilege required
-			gv1.POST("/friends/add", Method(v1.FriendsAddPOST, db, common.PrivilegeWrite))
-			gv1.GET("/friends/add/:id", Method(v1.FriendsAddGET, db, common.PrivilegeWrite))
-			gv1.POST("/friends/del", Method(v1.FriendsDelPOST, db, common.PrivilegeWrite))
-			gv1.GET("/friends/del/:id", Method(v1.FriendsDelGET, db, common.PrivilegeWrite))
+			gv1.GET("/friends/add", Method(v1.FriendsAddGET, db, common.PrivilegeWrite))
+			gv1.GET("/friends/del", Method(v1.FriendsDelGET, db, common.PrivilegeWrite))
 
 			// Admin: beatmap
 			gv1.POST("/beatmaps/set_status", Method(v1.BeatmapSetStatusPOST, db, common.PrivilegeBeatmap))
