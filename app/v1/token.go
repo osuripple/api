@@ -114,7 +114,7 @@ func TokenNewPOST(md common.MethodData) common.CodeMessager {
 			return Err500
 		}
 	}
-	_, err = md.DB.Exec("INSERT INTO tokens(user, privileges, description, token) VALUES (?, ?, ?, ?)", r.ID, r.Privileges, data.Description, tokenMD5)
+	_, err = md.DB.Exec("INSERT INTO tokens(user, privileges, description, token, private) VALUES (?, ?, ?, ?, '0')", r.ID, r.Privileges, data.Description, tokenMD5)
 	if err != nil {
 		md.Err(err)
 		return Err500
