@@ -3,13 +3,11 @@ package v1
 
 import (
 	"database/sql"
-	"fmt"
 	"strconv"
 	"strings"
 	"time"
 
 	"git.zxq.co/ripple/rippleapi/common"
-	"github.com/gin-gonic/gin"
 )
 
 type userData struct {
@@ -23,18 +21,27 @@ type userData struct {
 	Country        string    `json:"country"`
 }
 
-// UserByIDGET is the API handler for GET /users/id/:id
-func UserByIDGET(md common.MethodData) common.CodeMessager {
+// UsersGET is the API handler for GET /users
+func UsersGET(md common.MethodData) common.CodeMessager {
 	var err error
-	var uid int
-	uidStr := md.C.Param("id")
-	if uidStr == "self" {
-		uid = md.ID()
-	} else {
-		uid, err = strconv.Atoi(uidStr)
+	var whereClause string
+	var param interface{}
+
+	switch {
+	case md.C.Query("id") == "self":
+		param = md.ID()
+		whereClause = "users.id = ?"
+	case md.C.Query("id") != "":
+		param, err = strconv.Atoi(md.C.Query("id"))
 		if err != nil {
-			return common.SimpleResponse(400, fmt.Sprintf("%s ain't a number", uidStr))
+			return common.SimpleResponse(400, "passed user ID is not a valid number")
 		}
+		whereClause = "users.id = ?"
+	case md.C.Query("name") != "":
+		param = md.C.Query("name")
+		whereClause = "users.username = ?"
+	default:
+		return common.SimpleResponse(400, "must provide either querystring param id or param name")
 	}
 
 	query := `
@@ -44,25 +51,9 @@ SELECT users.id, users.username, register_datetime, rank,
 FROM users
 LEFT JOIN users_stats
 ON users.id=users_stats.id
-WHERE users.id=? AND users.allowed='1'
+WHERE ` + whereClause + ` AND users.allowed='1'
 LIMIT 1`
-	return userPuts(md, md.DB.QueryRow(query, uid))
-}
-
-// UserByNameGET is the API handler for GET /users/name/:name
-func UserByNameGET(md common.MethodData) common.CodeMessager {
-	username := md.C.Param("name")
-
-	query := `
-SELECT users.id, users.username, register_datetime, rank,
-	latest_activity, users_stats.username_aka,
-	users_stats.country, users_stats.show_country
-FROM users
-LEFT JOIN users_stats
-ON users.id=users_stats.id
-WHERE users.username=? AND users.allowed='1'
-LIMIT 1`
-	return userPuts(md, md.DB.QueryRow(query, username))
+	return userPuts(md, md.DB.QueryRow(query, param))
 }
 
 func userPuts(md common.MethodData, row *sql.Row) common.CodeMessager {
@@ -119,11 +110,8 @@ func genCountry(md common.MethodData, uid int, showCountry bool, country string)
 
 // UserSelfGET is a shortcut for /users/id/self. (/users/self)
 func UserSelfGET(md common.MethodData) common.CodeMessager {
-	md.C.Params = append(md.C.Params, gin.Param{
-		Key:   "id",
-		Value: "self",
-	})
-	return UserByIDGET(md)
+	md.C.Request.URL.RawQuery = "id=self&" + md.C.Request.URL.RawQuery
+	return UsersGET(md)
 }
 
 type whatIDResponse struct {
