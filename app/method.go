@@ -1,7 +1,6 @@
 package app
 
 import (
-	"database/sql"
 	"encoding/json"
 	"io/ioutil"
 
@@ -10,13 +9,13 @@ import (
 )
 
 // Method wraps an API method to a HandlerFunc.
-func Method(f func(md common.MethodData) common.CodeMessager, db *sql.DB, privilegesNeeded ...int) gin.HandlerFunc {
+func Method(f func(md common.MethodData) common.CodeMessager, privilegesNeeded ...int) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		initialCaretaker(c, f, db, privilegesNeeded...)
+		initialCaretaker(c, f, privilegesNeeded...)
 	}
 }
 
-func initialCaretaker(c *gin.Context, f func(md common.MethodData) common.CodeMessager, db *sql.DB, privilegesNeeded ...int) {
+func initialCaretaker(c *gin.Context, f func(md common.MethodData) common.CodeMessager, privilegesNeeded ...int) {
 	data, err := ioutil.ReadAll(c.Request.Body)
 	if err != nil {
 		c.Error(err)
