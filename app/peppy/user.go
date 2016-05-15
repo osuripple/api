@@ -20,8 +20,6 @@ func GetUser(c *gin.Context, db *sql.DB) {
 
 	mode := genmode(c.Query("m"))
 
-	fmt.Println(whereClause, p)
-
 	var display bool
 	err := db.QueryRow(fmt.Sprintf(
 		`SELECT
