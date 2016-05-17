@@ -291,6 +291,7 @@ func UserLookupGET(md common.MethodData) common.CodeMessager {
 	name := strings.NewReplacer(
 		"%", "\\%",
 		"_", "\\_",
+		"\\", "\\\\",
 	).Replace(md.C.Query("name"))
 	if name == "" {
 		return common.SimpleResponse(400, "please provide an username to start searching")
