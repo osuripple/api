@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 
+	"git.zxq.co/ripple/ocl"
 	"github.com/gin-gonic/gin"
 	"github.com/thehowl/go-osuapi"
 )
@@ -46,6 +47,7 @@ func GetUser(c *gin.Context, db *sql.DB) {
 	if !display {
 		user.Country = "XX"
 	}
+	user.Level = ocl.GetLevelPrecise(user.TotalScore)
 
 	c.JSON(200, []osuapi.User{user})
 }
