@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"git.zxq.co/ripple/ocl"
 	"git.zxq.co/ripple/rippleapi/common"
 )
 
@@ -156,19 +157,19 @@ SELECT
 	users_stats.play_style, users_stats.favourite_mode,
 	
 	users_stats.ranked_score_std, users_stats.total_score_std, users_stats.playcount_std,
-	users_stats.replays_watched_std, users_stats.total_hits_std, users_stats.level_std,
+	users_stats.replays_watched_std, users_stats.total_hits_std,
 	users_stats.avg_accuracy_std, users_stats.pp_std, leaderboard_std.position as std_position,
 	
 	users_stats.ranked_score_taiko, users_stats.total_score_taiko, users_stats.playcount_taiko,
-	users_stats.replays_watched_taiko, users_stats.total_hits_taiko, users_stats.level_taiko,
+	users_stats.replays_watched_taiko, users_stats.total_hits_taiko,
 	users_stats.avg_accuracy_taiko, users_stats.pp_taiko, leaderboard_taiko.position as taiko_position,
 
 	users_stats.ranked_score_ctb, users_stats.total_score_ctb, users_stats.playcount_ctb,
-	users_stats.replays_watched_ctb, users_stats.total_hits_ctb, users_stats.level_ctb,
+	users_stats.replays_watched_ctb, users_stats.total_hits_ctb,
 	users_stats.avg_accuracy_ctb, users_stats.pp_ctb, leaderboard_ctb.position as ctb_position,
 
 	users_stats.ranked_score_mania, users_stats.total_score_mania, users_stats.playcount_mania,
-	users_stats.replays_watched_mania, users_stats.total_hits_mania, users_stats.level_mania,
+	users_stats.replays_watched_mania, users_stats.total_hits_mania,
 	users_stats.avg_accuracy_mania, users_stats.pp_mania, leaderboard_mania.position as mania_position
 
 FROM users
@@ -201,19 +202,19 @@ LIMIT 1
 		&r.PlayStyle, &r.FavouriteMode,
 
 		&r.STD.RankedScore, &r.STD.TotalScore, &r.STD.PlayCount,
-		&r.STD.ReplaysWatched, &r.STD.TotalHits, &r.STD.Level,
+		&r.STD.ReplaysWatched, &r.STD.TotalHits,
 		&r.STD.Accuracy, &r.STD.PP, &r.STD.GlobalLeaderboardRank,
 
 		&r.Taiko.RankedScore, &r.Taiko.TotalScore, &r.Taiko.PlayCount,
-		&r.Taiko.ReplaysWatched, &r.Taiko.TotalHits, &r.Taiko.Level,
+		&r.Taiko.ReplaysWatched, &r.Taiko.TotalHits,
 		&r.Taiko.Accuracy, &r.Taiko.PP, &r.Taiko.GlobalLeaderboardRank,
 
 		&r.CTB.RankedScore, &r.CTB.TotalScore, &r.CTB.PlayCount,
-		&r.CTB.ReplaysWatched, &r.CTB.TotalHits, &r.CTB.Level,
+		&r.CTB.ReplaysWatched, &r.CTB.TotalHits,
 		&r.CTB.Accuracy, &r.CTB.PP, &r.CTB.GlobalLeaderboardRank,
 
 		&r.Mania.RankedScore, &r.Mania.TotalScore, &r.Mania.PlayCount,
-		&r.Mania.ReplaysWatched, &r.Mania.TotalHits, &r.Mania.Level,
+		&r.Mania.ReplaysWatched, &r.Mania.TotalHits,
 		&r.Mania.Accuracy, &r.Mania.PP, &r.Mania.GlobalLeaderboardRank,
 	)
 	switch {
@@ -229,6 +230,10 @@ LIMIT 1
 
 	r.RegisteredOn = time.Unix(registeredOn, 0)
 	r.LatestActivity = time.Unix(latestActivity, 0)
+
+	for _, m := range []*modeData{&r.STD, &r.Taiko, &r.CTB, &r.Mania} {
+		m.Level = ocl.GetLevelPrecise(int64(m.TotalScore))
+	}
 
 	r.Code = 200
 	return r
