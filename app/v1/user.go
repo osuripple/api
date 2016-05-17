@@ -301,7 +301,7 @@ func UserLookupGET(md common.MethodData) common.CodeMessager {
 	if name == "" {
 		return common.SimpleResponse(400, "please provide an username to start searching")
 	}
-	name += "%"
+	name = "%" + name + "%"
 	rows, err := md.DB.Query("SELECT users.id, users.username FROM users WHERE username LIKE ? AND allowed = '1' LIMIT 25", name)
 	if err != nil {
 		md.Err(err)
