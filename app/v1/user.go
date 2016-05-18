@@ -231,11 +231,6 @@ LIMIT 1
 	r.RegisteredOn = time.Unix(registeredOn, 0)
 	r.LatestActivity = time.Unix(latestActivity, 0)
 
-	r.STD = r.STD.Normalise()
-	r.Taiko = r.Taiko.Normalise()
-	r.CTB = r.CTB.Normalise()
-	r.Mania = r.Mania.Normalise()
-
 	for _, m := range []*modeData{&r.STD, &r.Taiko, &r.CTB, &r.Mania} {
 		m.Level = ocl.GetLevelPrecise(int64(m.TotalScore))
 	}
