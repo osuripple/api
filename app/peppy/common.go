@@ -31,7 +31,7 @@ func genUser(c *gin.Context, db *sql.DB) (string, string) {
 	switch {
 	// We know for sure that it's an username.
 	case c.Query("type") == "string":
-		whereClause = "WHERE users.username = ?"
+		whereClause = "users.username = ?"
 		p = c.Query("u")
 	// It could be an user ID, so we look for an user with that username first.
 	case err == nil:
@@ -39,15 +39,15 @@ func genUser(c *gin.Context, db *sql.DB) (string, string) {
 		if err == sql.ErrNoRows {
 			// If no user with that userID were found, assume username.
 			p = c.Query("u")
-			whereClause = "WHERE users.username = ?"
+			whereClause = "users.username = ?"
 		} else {
 			// An user with that userID was found. Thus it's an userID.
-			whereClause = "WHERE users.id = ?"
+			whereClause = "users.id = ?"
 		}
 	// u contains letters, so it's an username.
 	default:
 		p = c.Query("u")
-		whereClause = "WHERE users.username = ?"
+		whereClause = "users.username = ?"
 	}
 	return whereClause, p
 }

@@ -18,6 +18,7 @@ func GetUser(c *gin.Context, db *sql.DB) {
 	}
 	var user osuapi.User
 	whereClause, p := genUser(c, db)
+	whereClause = "WHERE " + whereClause
 
 	mode := genmode(c.Query("m"))
 
