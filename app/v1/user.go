@@ -3,7 +3,6 @@ package v1
 
 import (
 	"database/sql"
-	"math"
 	"strconv"
 	"strings"
 	"time"
@@ -130,17 +129,6 @@ type modeData struct {
 	PP                    int     `json:"pp"`
 	GlobalLeaderboardRank int     `json:"global_leaderboard_rank"`
 }
-
-func (m modeData) Normalise() modeData {
-	if math.IsInf(m.Level, 0) {
-		m.Level = 0
-	}
-	if math.IsInf(m.Accuracy, 0) {
-		m.Accuracy = 0
-	}
-	return m
-}
-
 type userFullResponse struct {
 	common.ResponseBase
 	userData

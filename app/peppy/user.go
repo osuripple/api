@@ -4,7 +4,6 @@ package peppy
 import (
 	"database/sql"
 	"fmt"
-	"math"
 
 	"git.zxq.co/ripple/ocl"
 	"github.com/gin-gonic/gin"
@@ -49,13 +48,6 @@ func GetUser(c *gin.Context, db *sql.DB) {
 		user.Country = "XX"
 	}
 	user.Level = ocl.GetLevelPrecise(user.TotalScore)
-
-	if math.IsInf(user.Accuracy, 0) {
-		user.Accuracy = 0
-	}
-	if math.IsInf(user.Level, 0) {
-		user.Level = 0
-	}
 
 	c.JSON(200, []osuapi.User{user})
 }
