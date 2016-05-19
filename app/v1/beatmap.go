@@ -5,18 +5,53 @@ import "git.zxq.co/ripple/rippleapi/common"
 type beatmap struct {
 	BeatmapID          int     `json:"beatmap_id"`
 	BeatmapsetID       int     `json:"beatmapset_id"`
-	BeatmapMD5         int     `json:"beatmap_md5"`
-	SongName           int     `json:"song_name"`
+	BeatmapMD5         string  `json:"beatmap_md5"`
+	SongName           string  `json:"song_name"`
 	AR                 float32 `json:"ar"`
 	OD                 float32 `json:"od"`
 	Difficulty         float64 `json:"difficulty"`
 	MaxCombo           int     `json:"max_combo"`
 	HitLength          int     `json:"hit_length"`
-	BPM                float64 `json:"bpm"`
 	Ranked             int     `json:"ranked"`
 	RankedStatusFrozen int     `json:"ranked_status_frozen"`
 	LatestUpdate       int     `json:"latest_update"`
 }
+
+type beatmapMayOrMayNotExist struct {
+	BeatmapID          *int
+	BeatmapsetID       *int
+	BeatmapMD5         *string
+	SongName           *string
+	AR                 *float32
+	OD                 *float32
+	Difficulty         *float64
+	MaxCombo           *int
+	HitLength          *int
+	Ranked             *int
+	RankedStatusFrozen *int
+	LatestUpdate       *int
+}
+
+func (b *beatmapMayOrMayNotExist) toBeatmap() *beatmap {
+	if b.BeatmapID == nil {
+		return nil
+	}
+	return &beatmap{
+		BeatmapID:          *b.BeatmapID,
+		BeatmapsetID:       *b.BeatmapsetID,
+		BeatmapMD5:         *b.BeatmapMD5,
+		SongName:           *b.SongName,
+		AR:                 *b.AR,
+		OD:                 *b.OD,
+		Difficulty:         *b.Difficulty,
+		MaxCombo:           *b.MaxCombo,
+		HitLength:          *b.HitLength,
+		Ranked:             *b.Ranked,
+		RankedStatusFrozen: *b.RankedStatusFrozen,
+		LatestUpdate:       *b.LatestUpdate,
+	}
+}
+
 type beatmapResponse struct {
 	common.ResponseBase
 	beatmap

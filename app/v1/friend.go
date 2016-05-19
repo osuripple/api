@@ -56,7 +56,7 @@ ON users_relationships.user2=users_stats.id
 WHERE users_relationships.user1=?
 ORDER BY users_relationships.id`
 
-	results, err := md.DB.Query(myFriendsQuery+common.Paginate(md.C.Query("p"), md.C.Query("l")), md.ID())
+	results, err := md.DB.Query(myFriendsQuery+common.Paginate(md.C.Query("p"), md.C.Query("l"), 50), md.ID())
 	if err != nil {
 		md.Err(err)
 		return Err500

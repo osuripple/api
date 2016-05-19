@@ -6,7 +6,7 @@ import (
 )
 
 // Paginate creates an additional SQL LIMIT clause for paginating.
-func Paginate(page, limit string) string {
+func Paginate(page, limit string, maxLimit int) string {
 	var (
 		pInt int
 		lInt int
@@ -33,6 +33,9 @@ func Paginate(page, limit string) string {
 	}
 	if lInt < 1 {
 		lInt = 50
+	}
+	if lInt > maxLimit {
+		lInt = maxLimit
 	}
 	start := (pInt - 1) * lInt
 	return fmt.Sprintf(" LIMIT %d,%d ", start, lInt)

@@ -37,6 +37,7 @@ func Start(conf common.Conf, dbO *sql.DB) *gin.Engine {
 			gv1.GET("/users/full", Method(v1.UserFullGET, common.PrivilegeRead))
 			gv1.GET("/users/userpage", Method(v1.UserUserpageGET, common.PrivilegeRead))
 			gv1.GET("/users/lookup", Method(v1.UserLookupGET, common.PrivilegeRead))
+			gv1.GET("/users/scores/best", Method(v1.UserScoresBestGET, common.PrivilegeRead))
 			gv1.GET("/badges", Method(v1.BadgesGET, common.PrivilegeRead))
 
 			// ReadConfidential privilege required
