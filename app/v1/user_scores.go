@@ -61,13 +61,6 @@ func UserScoresBestGET(md common.MethodData) common.CodeMessager {
 	if cm != nil {
 		return *cm
 	}
-	var modeClause string
-	if md.C.Query("mode") != "" {
-		m, err := strconv.Atoi(md.C.Query("mode"))
-		if err == nil && m >= 0 && m <= 3 {
-			modeClause = fmt.Sprintf("AND scores.play_mode = '%d'", m)
-		}
-	}
 	return scoresPuts(md, fmt.Sprintf(
 		`WHERE
 			scores.completed = '3' 
@@ -75,7 +68,23 @@ func UserScoresBestGET(md common.MethodData) common.CodeMessager {
 			%s
 			AND users.allowed = '1'
 		ORDER BY scores.pp DESC, scores.score DESC %s`,
-		wc, modeClause, common.Paginate(md.C.Query("p"), md.C.Query("l"), 100),
+		wc, genModeClause(md), common.Paginate(md.C.Query("p"), md.C.Query("l"), 100),
+	), param)
+}
+
+// UserScoresRecentGET retrieves an user's latest scores.
+func UserScoresRecentGET(md common.MethodData) common.CodeMessager {
+	cm, wc, param := whereClauseUser(md, "users")
+	if cm != nil {
+		return *cm
+	}
+	return scoresPuts(md, fmt.Sprintf(
+		`WHERE
+			%s
+			%s
+			AND users.allowed = '1'
+		ORDER BY scores.time DESC %s`,
+		wc, genModeClause(md), common.Paginate(md.C.Query("p"), md.C.Query("l"), 100),
 	), param)
 }
 
@@ -90,6 +99,17 @@ func getMode(m string) string {
 	default:
 		return "std"
 	}
+}
+
+func genModeClause(md common.MethodData) string {
+	var modeClause string
+	if md.C.Query("mode") != "" {
+		m, err := strconv.Atoi(md.C.Query("mode"))
+		if err == nil && m >= 0 && m <= 3 {
+			modeClause = fmt.Sprintf("AND scores.play_mode = '%d'", m)
+		}
+	}
+	return modeClause
 }
 
 func scoresPuts(md common.MethodData, whereClause string, params ...interface{}) common.CodeMessager {
