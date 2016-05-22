@@ -1,6 +1,9 @@
 package app
 
 import (
+	"fmt"
+
+	"git.zxq.co/ripple/schiavolib"
 	"github.com/fatih/color"
 	"github.com/gin-gonic/gin"
 )
@@ -12,10 +15,13 @@ func ErrorHandler() gin.HandlerFunc {
 		errs := c.Errors.Errors()
 		if len(errs) != 0 {
 			color.Red("!!! ERRORS OCCURRED !!!")
-			color.Red("==> %s %s", c.Request.Method, c.Request.URL.Path)
+			var out string
+			out += fmt.Sprintf("==> %s %s\n", c.Request.Method, c.Request.URL.Path)
 			for _, err := range errs {
-				color.Red("===> %s", err)
+				out += fmt.Sprintf("===> %s\n", err)
 			}
+			color.Red(out)
+			schiavo.Bunker.Send("Errors occurred:\n```\n" + out + "```")
 		}
 	}
 }

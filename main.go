@@ -11,6 +11,7 @@ import (
 
 	"git.zxq.co/ripple/rippleapi/app"
 	"git.zxq.co/ripple/rippleapi/common"
+	"git.zxq.co/ripple/schiavolib"
 	"github.com/rcrowley/goagain"
 	// Golint pls dont break balls
 	_ "github.com/go-sql-driver/mysql"
@@ -26,9 +27,13 @@ func main() {
 	if halt {
 		return
 	}
+
+	schiavo.Prefix = "Ripple API"
+
 	db, err := sql.Open(conf.DatabaseType, conf.DSN)
 	if err != nil {
-		log.Fatal(err)
+		schiavo.Bunker.Send(err.Error())
+		log.Fatalln(err)
 	}
 	engine := app.Start(conf, db)
 
@@ -43,10 +48,11 @@ func main() {
 			l, err = net.Listen("tcp", conf.ListenTo)
 		}
 		if nil != err {
+			schiavo.Bunker.Send(err.Error())
 			log.Fatalln(err)
 		}
 
-		log.Println("LISTENINGU STARTUATO ON", l.Addr())
+		schiavo.Bunker.Send(fmt.Sprint("LISTENINGU STARTUATO ON", l.Addr()))
 
 		// Accept connections in a new goroutine.
 		go http.Serve(l, engine)
@@ -54,11 +60,12 @@ func main() {
 	} else {
 
 		// Resume accepting connections in a new goroutine.
-		log.Println("LISTENINGU RESUMINGU ON", l.Addr())
+		schiavo.Bunker.Send(fmt.Sprint("LISTENINGU RESUMINGU ON", l.Addr()))
 		go http.Serve(l, engine)
 
 		// Kill the parent, now that the child has started successfully.
 		if err := goagain.Kill(); nil != err {
+			schiavo.Bunker.Send(err.Error())
 			log.Fatalln(err)
 		}
 
@@ -66,6 +73,7 @@ func main() {
 
 	// Block the main goroutine awaiting signals.
 	if _, err := goagain.Wait(l); nil != err {
+		schiavo.Bunker.Send(err.Error())
 		log.Fatalln(err)
 	}
 
@@ -74,9 +82,11 @@ func main() {
 	//
 	// In this case, we'll simply stop listening and wait one second.
 	if err := l.Close(); nil != err {
+		schiavo.Bunker.Send(err.Error())
 		log.Fatalln(err)
 	}
 	if err := db.Close(); err != nil {
+		schiavo.Bunker.Send(err.Error())
 		log.Fatalln(err)
 	}
 	time.Sleep(time.Second * 1)
