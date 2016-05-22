@@ -25,6 +25,7 @@ type score struct {
 	PlayMode   int       `json:"play_mode"`
 	Accuracy   float64   `json:"accuracy"`
 	PP         float32   `json:"pp"`
+	Completed  int       `json:"completed"`
 }
 
 type userScore struct {
@@ -44,6 +45,7 @@ SELECT
 	scores.300_count, scores.100_count, scores.50_count,
 	scores.gekis_count, scores.katus_count, scores.misses_count,
 	scores.time, scores.play_mode, scores.accuracy, scores.pp,
+	scores.completed,
 	
 	beatmaps.beatmap_id, beatmaps.beatmapset_id, beatmaps.beatmap_md5,
 	beatmaps.song_name, beatmaps.ar, beatmaps.od, beatmaps.difficulty,
@@ -131,6 +133,7 @@ func scoresPuts(md common.MethodData, whereClause string, params ...interface{})
 			&us.Count300, &us.Count100, &us.Count50,
 			&us.CountGeki, &us.CountKatu, &us.CountMiss,
 			&t, &us.PlayMode, &us.Accuracy, &us.PP,
+			&us.Completed,
 
 			&b.BeatmapID, &b.BeatmapsetID, &b.BeatmapMD5,
 			&b.SongName, &b.AR, &b.OD, &b.Difficulty,
