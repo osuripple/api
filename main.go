@@ -52,7 +52,7 @@ func main() {
 			log.Fatalln(err)
 		}
 
-		schiavo.Bunker.Send(fmt.Sprint("LISTENINGU STARTUATO ON", l.Addr()))
+		schiavo.Bunker.Send(fmt.Sprint("LISTENINGU STARTUATO ON ", l.Addr()))
 
 		// Accept connections in a new goroutine.
 		go http.Serve(l, engine)
@@ -60,7 +60,7 @@ func main() {
 	} else {
 
 		// Resume accepting connections in a new goroutine.
-		schiavo.Bunker.Send(fmt.Sprint("LISTENINGU RESUMINGU ON", l.Addr()))
+		schiavo.Bunker.Send(fmt.Sprint("LISTENINGU RESUMINGU ON ", l.Addr()))
 		go http.Serve(l, engine)
 
 		// Kill the parent, now that the child has started successfully.
