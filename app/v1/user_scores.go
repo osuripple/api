@@ -63,6 +63,11 @@ func UserScoresBestGET(md common.MethodData) common.CodeMessager {
 	if cm != nil {
 		return *cm
 	}
+	mc := genModeClause(md)
+	// Do not print 0pp scores on std
+	if getMode(md.C.Query("mode")) == "std" {
+		mc += " AND scores.pp > 0"
+	}
 	return scoresPuts(md, fmt.Sprintf(
 		`WHERE
 			scores.completed = '3' 
