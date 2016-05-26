@@ -75,7 +75,7 @@ func UserScoresBestGET(md common.MethodData) common.CodeMessager {
 			%s
 			AND users.allowed = '1'
 		ORDER BY scores.pp DESC, scores.score DESC %s`,
-		wc, genModeClause(md), common.Paginate(md.C.Query("p"), md.C.Query("l"), 100),
+		wc, mc, common.Paginate(md.C.Query("p"), md.C.Query("l"), 100),
 	), param)
 }
 
