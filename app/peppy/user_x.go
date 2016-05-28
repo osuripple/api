@@ -25,7 +25,7 @@ func GetUserBest(c *gin.Context, db *sql.DB) {
 	} else {
 		sb = "scores.score"
 	}
-	getUserX(c, db, "ORDER BY "+sb+" DESC", common.InString(1, c.Query("limit"), 100, 10))
+	getUserX(c, db, "AND completed = '3' ORDER BY "+sb+" DESC", common.InString(1, c.Query("limit"), 100, 10))
 }
 
 func getUserX(c *gin.Context, db *sql.DB, orderBy string, limit int) {
@@ -59,9 +59,10 @@ func getUserX(c *gin.Context, db *sql.DB, orderBy string, limit int) {
 			acc      float64
 			fc       bool
 			mods     int
+			bid      *int
 		)
 		err := rows.Scan(
-			&curscore.BeatmapID, &curscore.Score.Score, &curscore.MaxCombo,
+			&bid, &curscore.Score.Score, &curscore.MaxCombo,
 			&curscore.Count300, &curscore.Count100, &curscore.Count50,
 			&curscore.CountGeki, &curscore.CountKatu, &curscore.CountMiss,
 			&fc, &mods, &curscore.UserID, &rawTime,
@@ -71,6 +72,11 @@ func getUserX(c *gin.Context, db *sql.DB, orderBy string, limit int) {
 			c.JSON(200, defaultResponse)
 			c.Error(err)
 			return
+		}
+		if bid == nil {
+			curscore.BeatmapID = 0
+		} else {
+			curscore.BeatmapID = *bid
 		}
 		curscore.FullCombo = osuapi.OsuBool(fc)
 		curscore.Mods = osuapi.Mods(mods)
