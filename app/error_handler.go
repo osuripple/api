@@ -21,7 +21,7 @@ func ErrorHandler() gin.HandlerFunc {
 				out += fmt.Sprintf("===> %s\n", err)
 			}
 			color.Red(out)
-			schiavo.Bunker.Send("Errors occurred:\n```\n" + out + "```")
+			go schiavo.Bunker.Send("Errors occurred:\n```\n" + out + "```")
 		}
 	}
 }
