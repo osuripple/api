@@ -9,5 +9,5 @@ import (
 
 // GetMatch retrieves general match information.
 func GetMatch(c *gin.Context, db *sql.DB) {
-	c.JSON(200, []struct{}{})
+	c.JSON(200, defaultResponse)
 }

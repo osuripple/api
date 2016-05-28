@@ -70,6 +70,8 @@ func Start(conf common.Conf, dbO *sql.DB) *gin.Engine {
 		// peppyapi
 		api.GET("/get_user", PeppyMethod(peppy.GetUser))
 		api.GET("/get_match", PeppyMethod(peppy.GetMatch))
+		api.GET("/get_user_recent", PeppyMethod(peppy.GetUserRecent))
+		api.GET("/get_user_best", PeppyMethod(peppy.GetUserBest))
 	}
 
 	r.NoRoute(v1.Handle404)

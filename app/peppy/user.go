@@ -13,7 +13,7 @@ import (
 // GetUser retrieves general user information.
 func GetUser(c *gin.Context, db *sql.DB) {
 	if c.Query("u") == "" {
-		c.JSON(200, []struct{}{})
+		c.JSON(200, defaultResponse)
 		return
 	}
 	var user osuapi.User
@@ -42,7 +42,8 @@ func GetUser(c *gin.Context, db *sql.DB) {
 		&user.Country, &display,
 	)
 	if err != nil {
-		c.JSON(200, []struct{}{})
+		c.JSON(200, defaultResponse)
+		c.Error(err)
 		return
 	}
 	if !display {

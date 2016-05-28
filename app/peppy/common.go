@@ -7,6 +7,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+var defaultResponse = []struct{}{}
+
 func genmode(m string) string {
 	switch m {
 	case "1":
@@ -19,6 +21,13 @@ func genmode(m string) string {
 		m = "std"
 	}
 	return m
+}
+func genmodei(m string) int {
+	v, _ := strconv.Atoi(m)
+	if v > 3 || v < 0 {
+		v = 0
+	}
+	return v
 }
 
 func genUser(c *gin.Context, db *sql.DB) (string, string) {

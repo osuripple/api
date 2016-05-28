@@ -150,7 +150,7 @@ func scoresPuts(md common.MethodData, whereClause string, params ...interface{})
 			return Err500
 		}
 		// puck feppy
-		us.Time, err = time.Parse("060102150405", t)
+		us.Time, err = time.Parse(common.OsuTimeFormat, t)
 		if err != nil {
 			md.Err(err)
 			return Err500
