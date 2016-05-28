@@ -53,7 +53,7 @@ SELECT
 	beatmaps.ranked_status_freezed, beatmaps.latest_update
 FROM scores
 LEFT JOIN beatmaps ON beatmaps.beatmap_md5 = scores.beatmap_md5
-LEFT JOIN users ON users.username = scores.username
+LEFT JOIN users ON users.id = scores.userid
 `
 
 // UserScoresBestGET retrieves the best scores of an user, sorted by PP if
