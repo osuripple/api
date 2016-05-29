@@ -40,7 +40,7 @@ func getUserX(c *gin.Context, db *sql.DB, orderBy string, limit int) {
 		FROM scores
 		LEFT JOIN beatmaps ON beatmaps.beatmap_md5 = scores.beatmap_md5
 		LEFT JOIN users ON scores.userid = users.id
-		WHERE %s AND scores.play_mode = ?
+		WHERE %s AND scores.play_mode = ? AND users.allowed = '1'
 		%s
 		LIMIT %d`, whereClause, orderBy, limit,
 	)
