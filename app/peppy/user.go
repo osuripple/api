@@ -43,7 +43,9 @@ func GetUser(c *gin.Context, db *sql.DB) {
 	)
 	if err != nil {
 		c.JSON(200, defaultResponse)
-		c.Error(err)
+		if err != sql.ErrNoRows {
+			c.Error(err)
+		}
 		return
 	}
 	if !display {
