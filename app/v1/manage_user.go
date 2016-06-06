@@ -1,6 +1,10 @@
 package v1
 
-import "git.zxq.co/ripple/rippleapi/common"
+import (
+	"time"
+
+	"git.zxq.co/ripple/rippleapi/common"
+)
 
 type setAllowedData struct {
 	UserID  int `json:"user_id"`
@@ -16,7 +20,11 @@ func UserManageSetAllowedPOST(md common.MethodData) common.CodeMessager {
 	if data.Allowed < 0 || data.Allowed > 2 {
 		return common.SimpleResponse(400, "Allowed status must be between 0 and 2")
 	}
-	_, err := md.DB.Exec("UPDATE users SET allowed = ? WHERE id = ?", data.Allowed, data.UserID)
+	var banDatetime int64
+	if data.Allowed == 0 {
+		banDatetime = time.Now().Unix()
+	}
+	_, err := md.DB.Exec("UPDATE users SET allowed = ?, ban_datetime = ? WHERE id = ?", data.Allowed, banDatetime, data.UserID)
 	if err != nil {
 		md.Err(err)
 		return Err500
