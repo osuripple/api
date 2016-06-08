@@ -30,6 +30,8 @@ func initialCaretaker(c *gin.Context, f func(md common.MethodData) common.CodeMe
 		token = c.Query("token")
 	case c.Query("k") != "":
 		token = c.Query("k")
+	default:
+		token, _ = c.Cookie("X-Ripple-Token")
 	}
 
 	md := common.MethodData{
