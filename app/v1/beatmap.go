@@ -95,23 +95,20 @@ func BeatmapSetStatusPOST(md common.MethodData) common.CodeMessager {
 		return common.SimpleResponse(400, "ranked status must be 5 < x < -2")
 	}
 
-	var (
-		whereClause = "beatmapset_id"
-		param       = req.BeatmapsetID
-	)
+	param := req.BeatmapsetID
 	if req.BeatmapID != 0 {
-		whereClause = "beatmap_id"
-		param = req.BeatmapID
+		err := md.DB.QueryRow("SELECT beatmapset_id FROM beatmaps WHERE beatmap_id = ? LIMIT 1", req.BeatmapID).Scan(&param)
+		if err != nil {
+			md.Err(err)
+			return Err500
+		}
 	}
 
 	md.DB.Exec(`UPDATE beatmaps 
 		SET ranked = ?, ranked_status_freezed = ?
-		WHERE `+whereClause+` = ?`, req.RankedStatus, req.Frozen, param)
+		WHERE beatmapset_id = ?`, req.RankedStatus, req.Frozen, param)
 
-	if whereClause == "beatmapset_id" {
-		return getSet(md, param)
-	}
-	return getBeatmap(md, param)
+	return getSet(md, param)
 }
 
 // BeatmapGET retrieves a beatmap.
