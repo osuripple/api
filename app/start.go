@@ -52,6 +52,7 @@ func Start(conf common.Conf, dbO *sql.DB) *gin.Engine {
 
 			// Admin: beatmap
 			gv1.POST("/beatmaps/set_status", Method(v1.BeatmapSetStatusPOST, common.PrivilegeBeatmap))
+			gv1.GET("/beatmaps/ranked_frozen_full", Method(v1.BeatmapRankedFrozenFullGET, common.PrivilegeBeatmap))
 
 			// Admin: user managing
 			gv1.POST("/users/manage/set_allowed", Method(v1.UserManageSetAllowedPOST, common.PrivilegeManageUser))

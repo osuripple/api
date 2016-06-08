@@ -192,3 +192,42 @@ func getBeatmap(md common.MethodData, beatmapID int) common.CodeMessager {
 	r.beatmap = b
 	return r
 }
+
+type beatmapReduced struct {
+	BeatmapID          int    `json:"beatmap_id"`
+	BeatmapsetID       int    `json:"beatmapset_id"`
+	BeatmapMD5         string `json:"beatmap_md5"`
+	Ranked             int    `json:"ranked"`
+	RankedStatusFrozen int    `json:"ranked_status_frozen"`
+}
+
+type beatmapRankedFrozenFullResponse struct {
+	common.ResponseBase
+	Beatmaps []beatmapReduced `json:"beatmaps"`
+}
+
+// BeatmapRankedFrozenFullGET retrieves all beatmaps with a certain
+// ranked_status_freezed
+func BeatmapRankedFrozenFullGET(md common.MethodData) common.CodeMessager {
+	rows, err := md.DB.Query(`
+	SELECT beatmap_id, beatmapset_id, beatmap_md5, ranked, ranked_status_freezed
+	FROM beatmaps
+	WHERE ranked_status_freezed = '1'
+	`)
+	if err != nil {
+		md.Err(err)
+		return Err500
+	}
+	var r beatmapRankedFrozenFullResponse
+	for rows.Next() {
+		var b beatmapReduced
+		err = rows.Scan(&b.BeatmapID, &b.BeatmapsetID, &b.BeatmapMD5, &b.Ranked, &b.RankedStatusFrozen)
+		if err != nil {
+			md.Err(err)
+			continue
+		}
+		r.Beatmaps = append(r.Beatmaps, b)
+	}
+	r.Code = 200
+	return r
+}
