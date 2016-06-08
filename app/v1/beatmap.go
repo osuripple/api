@@ -63,18 +63,20 @@ type beatmapSetResponse struct {
 
 type beatmapSetStatusData struct {
 	BeatmapSetID int `json:"beatmapset_id"`
+	BeatmapID    int `json:"beatmap_id"`
 	RankedStatus int `json:"ranked_status"`
 	Frozen       int `json:"frozen"`
 }
 
-// BeatmapSetStatusPOST changes the ranked status of a beatmap, and whether the beatmap ranked status is frozen. Or freezed. Freezed best meme 2k16
+// BeatmapSetStatusPOST changes the ranked status of a beatmap, and whether
+// the beatmap ranked status is frozen. Or freezed. Freezed best meme 2k16
 func BeatmapSetStatusPOST(md common.MethodData) common.CodeMessager {
 	var req beatmapSetStatusData
 	md.RequestData.Unmarshal(&req)
 
 	var miss []string
-	if req.BeatmapSetID == 0 {
-		miss = append(miss, "beatmapset_id")
+	if req.BeatmapSetID == 0 && req.BeatmapID == 0 {
+		miss = append(miss, "beatmapset_id or beatmap_id")
 	}
 	if len(miss) != 0 {
 		return ErrMissingField(miss...)
@@ -87,7 +89,18 @@ func BeatmapSetStatusPOST(md common.MethodData) common.CodeMessager {
 		return common.SimpleResponse(400, "ranked status must be 5 < x < -2")
 	}
 
-	md.DB.Exec("UPDATE beatmaps SET ranked = ?, ranked_status_freezed = ? WHERE beatmapset_id = ?", req.RankedStatus, req.Frozen, req.BeatmapSetID)
+	var (
+		whereClause = "beatmapset_id"
+		param       = req.BeatmapSetID
+	)
+	if req.BeatmapID != 0 {
+		whereClause = "beatmap_id"
+		param = req.BeatmapID
+	}
+
+	md.DB.Exec(`UPDATE beatmaps 
+		SET ranked = ?, ranked_status_freezed = ?
+		WHERE `+whereClause+` = ?`, req.RankedStatus, req.Frozen, param)
 
 	// TODO: replace with beatmapSetResponse when implemented
 	return common.ResponseBase{
