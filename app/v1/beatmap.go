@@ -98,7 +98,10 @@ func BeatmapSetStatusPOST(md common.MethodData) common.CodeMessager {
 	param := req.BeatmapsetID
 	if req.BeatmapID != 0 {
 		err := md.DB.QueryRow("SELECT beatmapset_id FROM beatmaps WHERE beatmap_id = ? LIMIT 1", req.BeatmapID).Scan(&param)
-		if err != nil {
+		switch {
+		case err == sql.ErrNoRows:
+			return common.SimpleResponse(404, "That beatmap could not be found!")
+		case err != nil:
 			md.Err(err)
 			return Err500
 		}
