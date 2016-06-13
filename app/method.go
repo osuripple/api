@@ -3,6 +3,7 @@ package app
 import (
 	"encoding/json"
 	"io/ioutil"
+	"regexp"
 
 	"git.zxq.co/ripple/rippleapi/common"
 	"github.com/gin-gonic/gin"
@@ -83,6 +84,9 @@ func initialCaretaker(c *gin.Context, f func(md common.MethodData) common.CodeMe
 	mkjson(c, resp)
 }
 
+// Very restrictive, but this way it shouldn't completely fuck up.
+var callbackJSONP = regexp.MustCompile(`^[a-zA-Z_\$][a-zA-Z0-9_\$]*$`)
+
 // mkjson auto indents json, and wraps json into a jsonp callback if specified by the request.
 // then writes to the gin.Context the data.
 func mkjson(c *gin.Context, data interface{}) {
@@ -92,7 +96,9 @@ func mkjson(c *gin.Context, data interface{}) {
 		exported = []byte(`{ "code": 500, "message": "something has gone really really really really really really wrong.", "data": null }`)
 	}
 	cb := c.Query("callback")
-	willcb := cb != "" && len(cb) < 100
+	willcb := cb != "" &&
+		len(cb) < 100 &&
+		callbackJSONP.MatchString(cb)
 	if willcb {
 		c.Writer.Write([]byte("/**/ typeof " + cb + " === 'function' && " + cb + "("))
 	}
