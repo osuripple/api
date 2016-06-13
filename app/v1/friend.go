@@ -121,7 +121,7 @@ func FriendsWithGET(md common.MethodData) common.CodeMessager {
 	if uid == 0 {
 		return r
 	}
-	err = md.DB.QueryRow("SELECT EXISTS(SELECT 1 FROM users_relationships WHERE user1 = ? AND user2 = ? LIMIT 1), EXISTS(SELECT 1 FROM users_relationships WHERE user2 = ? AND user1 = ? LIMIT 1)", md.ID(), uid, md.ID(), uid).Scan(&r.Friends, &r.Mutual)
+	err := md.DB.QueryRow("SELECT EXISTS(SELECT 1 FROM users_relationships WHERE user1 = ? AND user2 = ? LIMIT 1), EXISTS(SELECT 1 FROM users_relationships WHERE user2 = ? AND user1 = ? LIMIT 1)", md.ID(), uid, md.ID(), uid).Scan(&r.Friends, &r.Mutual)
 	if err != sql.ErrNoRows && err != nil {
 		md.Err(err)
 		return Err500
