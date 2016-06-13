@@ -2,7 +2,6 @@ package v1
 
 import (
 	"database/sql"
-	"strconv"
 	"time"
 
 	"git.zxq.co/ripple/rippleapi/common"
@@ -119,11 +118,11 @@ func BeatmapGET(md common.MethodData) common.CodeMessager {
 	if md.C.Query("s") == "" && md.C.Query("b") == "" {
 		return common.SimpleResponse(400, "Must pass either querystring param 'b' or 's'")
 	}
-	setID, _ := strconv.Atoi(md.C.Query("s"))
+	setID := common.Int(md.C.Query("s"))
 	if setID != 0 {
 		return getSet(md, setID)
 	}
-	beatmapID, _ := strconv.Atoi(md.C.Query("b"))
+	beatmapID := common.Int(md.C.Query("b"))
 	if beatmapID != 0 {
 		return getBeatmap(md, beatmapID)
 	}

@@ -73,10 +73,8 @@ func badgesToArray(badges string) []int {
 	badgesSl := strings.Split(badges, ",")
 	for _, badge := range badgesSl {
 		if badge != "" && badge != "0" {
-			// We are ignoring errors because who really gives a shit if something's gone wrong on our end in this
-			// particular thing, we can just silently ignore this.
-			nb, err := strconv.Atoi(badge)
-			if err == nil && nb != 0 {
+			nb := common.Int(badge)
+			if nb != 0 {
 				end = append(end, nb)
 			}
 		}

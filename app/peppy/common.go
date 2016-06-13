@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"strconv"
 
+	"git.zxq.co/ripple/rippleapi/common"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -23,7 +25,7 @@ func genmode(m string) string {
 	return m
 }
 func genmodei(m string) int {
-	v, _ := strconv.Atoi(m)
+	v := common.Int(m)
 	if v > 3 || v < 0 {
 		v = 0
 	}

@@ -2,7 +2,6 @@ package v1
 
 import (
 	"database/sql"
-	"strconv"
 	"time"
 
 	"git.zxq.co/ripple/rippleapi/common"
@@ -116,11 +115,11 @@ type friendsWithResponse struct {
 
 // FriendsWithGET checks the current user is friends with the one passed in the request path.
 func FriendsWithGET(md common.MethodData) common.CodeMessager {
-	r := friendsWithResponse{}
+	var r friendsWithResponse
 	r.Code = 200
-	uid, err := strconv.Atoi(md.C.Query("id"))
-	if err != nil {
-		return common.SimpleResponse(400, "That is not a number!")
+	uid := common.Int(md.C.Query("id"))
+	if uid == 0 {
+		return r
 	}
 	err = md.DB.QueryRow("SELECT EXISTS(SELECT 1 FROM users_relationships WHERE user1 = ? AND user2 = ? LIMIT 1), EXISTS(SELECT 1 FROM users_relationships WHERE user2 = ? AND user1 = ? LIMIT 1)", md.ID(), uid, md.ID(), uid).Scan(&r.Friends, &r.Mutual)
 	if err != sql.ErrNoRows && err != nil {
@@ -135,12 +134,7 @@ func FriendsWithGET(md common.MethodData) common.CodeMessager {
 
 // FriendsAddGET is the GET version of FriendsAddPOST.
 func FriendsAddGET(md common.MethodData) common.CodeMessager {
-	uidS := md.C.Query("id")
-	uid, err := strconv.Atoi(uidS)
-	if err != nil {
-		return common.SimpleResponse(400, "Nope. That's not a number.")
-	}
-	return addFriend(md, uid)
+	return addFriend(md, common.Int(md.C.Query("id")))
 }
 
 func addFriend(md common.MethodData, u int) common.CodeMessager {
@@ -184,12 +178,7 @@ func userExists(md common.MethodData, u int) (r bool) {
 
 // FriendsDelGET is the GET version of FriendDelPOST.
 func FriendsDelGET(md common.MethodData) common.CodeMessager {
-	uidS := md.C.Query("id")
-	uid, err := strconv.Atoi(uidS)
-	if err != nil {
-		return common.SimpleResponse(400, "Nope. That's not a number.")
-	}
-	return delFriend(md, uid)
+	return delFriend(md, common.Int(md.C.Query("id")))
 }
 
 func delFriend(md common.MethodData, u int) common.CodeMessager {
