@@ -14,8 +14,7 @@ type response404 struct {
 func Handle404(c *gin.Context) {
 	c.IndentedJSON(404, response404{
 		ResponseBase: common.ResponseBase{
-			Code:    404,
-			Message: "Oh dear... that API request could not be found! Perhaps the API is not up-to-date? Either way, have a surprise!",
+			Code: 404,
 		},
 		Cats: surpriseMe(),
 	})
