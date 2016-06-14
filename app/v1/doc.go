@@ -35,7 +35,7 @@ func DocGET(md common.MethodData) common.CodeMessager {
 		err := rows.Scan(&f.ID, &f.DocName, &f.Public, &f.IsRule)
 		if err != nil {
 			md.Err(err)
-			return Err500
+			continue
 		}
 		r.Files = append(r.Files, f)
 	}

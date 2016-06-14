@@ -12,7 +12,6 @@ import (
 )
 
 type userData struct {
-	common.ResponseBase
 	ID             int       `json:"id"`
 	Username       string    `json:"username"`
 	UsernameAKA    string    `json:"username_aka"`
@@ -41,9 +40,14 @@ LIMIT 1`
 	return userPuts(md, md.DB.QueryRow(query, param))
 }
 
+type userPutsUserData struct {
+	common.ResponseBase
+	userData
+}
+
 func userPuts(md common.MethodData, row *sql.Row) common.CodeMessager {
 	var err error
-	var user userData
+	var user userPutsUserData
 
 	var (
 		registeredOn   int64
