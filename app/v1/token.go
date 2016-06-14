@@ -169,6 +169,26 @@ func TokenGET(md common.MethodData) common.CodeMessager {
 	return r
 }
 
+type tokenSingleResponse struct {
+	common.ResponseBase
+	token
+}
+
+// TokenSelfGET retrieves information about the token the user is connecting with.
+func TokenSelfGET(md common.MethodData) common.CodeMessager {
+	var r tokenSingleResponse
+	// md.User.ID = token id, userid would have been md.User.UserID. what a clusterfuck
+	err := md.DB.QueryRow("SELECT id, privileges, description FROM tokens WHERE id = ?", md.User.ID).Scan(
+		&r.ID, &r.Privileges, &r.Description,
+	)
+	if err != nil {
+		md.Err(err)
+		return Err500
+	}
+	r.Code = 200
+	return r
+}
+
 // TokenFixPrivilegesGET fixes the privileges on the token of the given user,
 // or of all the users if no user is given.
 func TokenFixPrivilegesGET(md common.MethodData) common.CodeMessager {

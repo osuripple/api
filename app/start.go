@@ -47,6 +47,7 @@ func Start(conf common.Conf, dbO *sql.DB) *gin.Engine {
 			gv1.GET("/beatmaps", Method(v1.BeatmapGET, common.PrivilegeRead))
 			gv1.GET("/leaderboard", Method(v1.LeaderboardGET, common.PrivilegeRead))
 			gv1.GET("/tokens", Method(v1.TokenGET, common.PrivilegeRead))
+			gv1.GET("/tokens/self", Method(v1.TokenSelfGET, common.PrivilegeRead))
 
 			// ReadConfidential privilege required
 			gv1.GET("/friends", Method(v1.FriendsGET, common.PrivilegeReadConfidential))
