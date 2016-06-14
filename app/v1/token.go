@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"git.zxq.co/ripple/rippleapi/common"
+	"git.zxq.co/ripple/schiavolib"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -136,4 +137,86 @@ func TokenSelfDeleteGET(md common.MethodData) common.CodeMessager {
 		return Err500
 	}
 	return common.SimpleResponse(200, "Bye!")
+}
+
+type token struct {
+	ID          int    `json:"id"`
+	Privileges  uint64 `json:"privileges"`
+	Description string `json:"description"`
+}
+type tokenResponse struct {
+	common.ResponseBase
+	Tokens []token `json:"token"`
+}
+
+// TokenGET retrieves a list listing all the user's public tokens.
+func TokenGET(md common.MethodData) common.CodeMessager {
+	rows, err := md.DB.Query("SELECT id, privileges, description FROM tokens WHERE user = ? AND private = '0'", md.ID())
+	if err != nil {
+		return Err500
+	}
+	var r tokenResponse
+	for rows.Next() {
+		var t token
+		err = rows.Scan(&t.ID, &t.Privileges, &t.Description)
+		if err != nil {
+			md.Err(err)
+			continue
+		}
+		r.Tokens = append(r.Tokens, t)
+	}
+	r.Code = 200
+	return r
+}
+
+// TokenFixPrivilegesGET fixes the privileges on the token of the given user,
+// or of all the users if no user is given.
+func TokenFixPrivilegesGET(md common.MethodData) common.CodeMessager {
+	id := common.Int(md.C.Query("id"))
+	if md.C.Query("id") == "self" {
+		id = md.ID()
+	}
+	go fixPrivileges(id, md.DB)
+	return common.SimpleResponse(200, "Privilege fixing started!")
+}
+
+func fixPrivileges(user int, db *sql.DB) {
+	var wc string
+	var params = make([]interface{}, 0, 1)
+	if user != 0 {
+		// dirty, but who gives a shit
+		wc = "WHERE user = ?"
+		params = append(params, user)
+	}
+	rows, err := db.Query(`
+SELECT
+	tokens.id, tokens.privileges, users.rank
+FROM tokens
+LEFT JOIN users ON users.id = tokens.user
+`+wc, params...)
+	if err != nil {
+		fmt.Println(err)
+		schiavo.Bunker.Send(err.Error())
+		return
+	}
+	for rows.Next() {
+		var (
+			id       int
+			privsRaw uint64
+			privs    common.Privileges
+			newPrivs common.Privileges
+			rank     int
+		)
+		rows.Scan(&id, &privsRaw, &rank)
+		privs = common.Privileges(privsRaw)
+		newPrivs = privs.CanOnly(rank)
+		if newPrivs != privs {
+			_, err := db.Exec("UPDATE tokens SET privileges = ? WHERE id = ? LIMIT 1", uint64(newPrivs), id)
+			if err != nil {
+				fmt.Println(err)
+				schiavo.Bunker.Send(err.Error())
+				continue
+			}
+		}
+	}
 }

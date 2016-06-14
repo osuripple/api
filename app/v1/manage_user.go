@@ -29,6 +29,7 @@ func UserManageSetAllowedPOST(md common.MethodData) common.CodeMessager {
 		md.Err(err)
 		return Err500
 	}
+	go fixPrivileges(data.UserID, md.DB)
 	query := `
 SELECT users.id, users.username, register_datetime, rank,
 	latest_activity, users_stats.username_aka,
