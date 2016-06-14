@@ -24,6 +24,7 @@ func Start(conf common.Conf, dbO *sql.DB) *gin.Engine {
 		gv1 := api.Group("/v1")
 		{
 			gv1.POST("/tokens/new", Method(v1.TokenNewPOST))
+			gv1.GET("/tokens/self/delete", Method(v1.TokenSelfDeleteGET))
 
 			// Auth-free API endpoints
 			gv1.GET("/ping", Method(v1.PingGET))

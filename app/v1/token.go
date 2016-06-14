@@ -123,3 +123,17 @@ func TokenNewPOST(md common.MethodData) common.CodeMessager {
 	r.Code = 200
 	return r
 }
+
+// TokenSelfDeleteGET deletes the token the user is connecting with.
+func TokenSelfDeleteGET(md common.MethodData) common.CodeMessager {
+	if md.ID() == 0 {
+		return common.SimpleResponse(400, "How should we delete your token if you haven't even given us one?!")
+	}
+	_, err := md.DB.Exec("DELETE FROM tokens WHERE token = ? LIMIT 1",
+		fmt.Sprintf("%x", md5.Sum([]byte(md.User.Value))))
+	if err != nil {
+		md.Err(err)
+		return Err500
+	}
+	return common.SimpleResponse(200, "Bye!")
+}
