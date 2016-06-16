@@ -13,6 +13,7 @@ type Conf struct {
 	DSN          string `description:"The Data Source Name for the database. More: https://github.com/go-sql-driver/mysql#dsn-data-source-name"`
 	ListenTo     string `description:"The IP/Port combination from which to take connections, e.g. :8080"`
 	Unix         bool   `description:"Bool indicating whether ListenTo is a UNIX socket or an address."`
+	SentryDSN    string `description:"thing for sentry whatever"`
 }
 
 var cachedConf *Conf

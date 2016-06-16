@@ -2,12 +2,15 @@ package app
 
 import (
 	"database/sql"
+	"fmt"
 
 	"git.zxq.co/ripple/rippleapi/app/internals"
 	"git.zxq.co/ripple/rippleapi/app/peppy"
 	"git.zxq.co/ripple/rippleapi/app/v1"
 	"git.zxq.co/ripple/rippleapi/common"
+	"github.com/getsentry/raven-go"
 	"github.com/gin-gonic/contrib/gzip"
+	"github.com/gin-gonic/contrib/sentry"
 	"github.com/gin-gonic/gin"
 )
 
@@ -17,7 +20,16 @@ var db *sql.DB
 func Start(conf common.Conf, dbO *sql.DB) *gin.Engine {
 	db = dbO
 	r := gin.Default()
-	r.Use(gzip.Gzip(gzip.DefaultCompression), ErrorHandler())
+	r.Use(gzip.Gzip(gzip.DefaultCompression))
+
+	if conf.SentryDSN != "" {
+		ravenClient, err := raven.New(conf.SentryDSN)
+		if err != nil {
+			fmt.Println(err)
+		} else {
+			r.Use(sentry.Recovery(ravenClient, false))
+		}
+	}
 
 	api := r.Group("/api")
 	{
@@ -80,6 +92,9 @@ func Start(conf common.Conf, dbO *sql.DB) *gin.Engine {
 		}
 
 		api.GET("/status", internals.Status)
+		api.GET("/errore_meme", func(c *gin.Context) {
+			c.Error(fmt.Errorf("This is a test error!"))
+		})
 
 		// peppyapi
 		api.GET("/get_user", PeppyMethod(peppy.GetUser))
