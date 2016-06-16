@@ -1,7 +1,9 @@
 package app
 
 import (
+	"crypto/md5"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"regexp"
 
@@ -34,6 +36,7 @@ func initialCaretaker(c *gin.Context, f func(md common.MethodData) common.CodeMe
 	default:
 		token, _ = c.Cookie("X-Ripple-Token")
 	}
+	c.Set("token", fmt.Sprintf("%x", md5.Sum([]byte(token))))
 
 	md := common.MethodData{
 		DB:          db,

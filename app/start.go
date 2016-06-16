@@ -10,7 +10,6 @@ import (
 	"git.zxq.co/ripple/rippleapi/common"
 	"github.com/getsentry/raven-go"
 	"github.com/gin-gonic/contrib/gzip"
-	"github.com/gin-gonic/contrib/sentry"
 	"github.com/gin-gonic/gin"
 )
 
@@ -27,7 +26,7 @@ func Start(conf common.Conf, dbO *sql.DB) *gin.Engine {
 		if err != nil {
 			fmt.Println(err)
 		} else {
-			r.Use(sentry.Recovery(ravenClient, false))
+			r.Use(Recovery(ravenClient, false))
 		}
 	}
 
