@@ -18,10 +18,10 @@ func GetTokenFull(token string, db *sql.DB) (common.Token, bool) {
 		Scan(
 			&t.ID, &t.UserID, &privs, &priv8,
 		)
-	t.Privileges = common.Privileges(privs)
 	if priv8 {
 		privs = common.PrivilegeRead | common.PrivilegeReadConfidential | common.PrivilegeWrite
 	}
+	t.Privileges = common.Privileges(privs)
 	switch {
 	case err == sql.ErrNoRows:
 		return common.Token{}, false
