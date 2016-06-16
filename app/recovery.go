@@ -18,6 +18,8 @@ func Recovery(client *raven.Client, onlyCrashes bool) gin.HandlerFunc {
 		var requestBody []byte
 
 		defer func() {
+			st := raven.NewStacktrace(0, 3, []string{"git.zxq.co/ripple"})
+
 			tokenRaw, ex := c.Get("token")
 			var token string
 			if ex {
@@ -28,8 +30,6 @@ func Recovery(client *raven.Client, onlyCrashes bool) gin.HandlerFunc {
 			if len(requestBody) != 0 {
 				ravenHTTP.Data = string(requestBody)
 			}
-
-			stackTrace := raven.NewStacktrace(0, 3, []string{"git.zxq.co/ripple"})
 
 			ravenUser := &raven.User{
 				ID: token,
@@ -54,7 +54,7 @@ func Recovery(client *raven.Client, onlyCrashes bool) gin.HandlerFunc {
 				client.CaptureError(
 					err,
 					flags,
-					stackTrace,
+					st,
 					ravenHTTP,
 					ravenUser,
 				)
@@ -69,7 +69,6 @@ func Recovery(client *raven.Client, onlyCrashes bool) gin.HandlerFunc {
 					client.CaptureError(
 						err,
 						flags,
-						stackTrace,
 						ravenHTTP,
 						ravenUser,
 					)
