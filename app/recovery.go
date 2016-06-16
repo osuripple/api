@@ -62,8 +62,12 @@ func Recovery(client *raven.Client, onlyCrashes bool) gin.HandlerFunc {
 			}
 			if !onlyCrashes {
 				for _, item := range c.Errors {
+					var err = error(item)
+					if item.Type == gin.ErrorTypePrivate {
+						err = item.Err
+					}
 					client.CaptureError(
-						item,
+						err,
 						flags,
 						stackTrace,
 						ravenHTTP,
