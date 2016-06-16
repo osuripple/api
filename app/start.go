@@ -91,9 +91,6 @@ func Start(conf common.Conf, dbO *sql.DB) *gin.Engine {
 		}
 
 		api.GET("/status", internals.Status)
-		api.GET("/errore_meme", func(c *gin.Context) {
-			c.Error(fmt.Errorf("This is a test error!"))
-		})
 
 		// peppyapi
 		api.GET("/get_user", PeppyMethod(peppy.GetUser))
