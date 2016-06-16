@@ -32,8 +32,8 @@ func Recovery(client *raven.Client, onlyCrashes bool) gin.HandlerFunc {
 			stackTrace := raven.NewStacktrace(0, 3, []string{"git.zxq.co/ripple"})
 
 			ravenUser := &raven.User{
-				Username: "token " + token,
-				IP:       c.Request.RemoteAddr,
+				ID: token,
+				IP: c.Request.RemoteAddr,
 			}
 
 			flags := map[string]string{
