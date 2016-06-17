@@ -6,6 +6,10 @@ import (
 	"github.com/thehowl/conf"
 )
 
+// Version is the git hash of the application. Do not edit. This is
+// automatically set using -ldflags during build time.
+var Version string
+
 // Conf is the configuration file data for the ripple API.
 // Conf uses https://github.com/thehowl/conf
 type Conf struct {

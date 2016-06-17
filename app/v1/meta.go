@@ -78,7 +78,7 @@ func MetaUpdateGET(md common.MethodData) common.CodeMessager {
 		if !execCommand("go", "get", "-v", "-u", "-d") {
 			return
 		}
-		if !execCommand("go", "build", "-v", "-o", "api") {
+		if !execCommand("bash", "-c", "go build -v -ldflags \"-X main.Version=`git rev-parse HEAD`\" -o api") {
 			return
 		}
 

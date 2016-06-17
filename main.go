@@ -17,12 +17,23 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
+// Version is the git hash of the application. Do not edit. This is
+// automatically set using -ldflags during build time.
+var Version string
+
 func init() {
 	log.SetFlags(log.Ltime)
 	log.SetPrefix(fmt.Sprintf("%d|", syscall.Getpid()))
+	common.Version = Version
 }
 
 func main() {
+	fmt.Print("Ripple API")
+	if Version != "" {
+		fmt.Print("; git commit hash: ", Version)
+	}
+	fmt.Println()
+
 	conf, halt := common.Load()
 	if halt {
 		return

@@ -23,6 +23,7 @@ func Start(conf common.Conf, dbO *sql.DB) *gin.Engine {
 
 	if conf.SentryDSN != "" {
 		ravenClient, err := raven.New(conf.SentryDSN)
+		ravenClient.SetRelease(common.Version)
 		if err != nil {
 			fmt.Println(err)
 		} else {
