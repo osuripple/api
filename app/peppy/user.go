@@ -31,7 +31,7 @@ func GetUser(c *gin.Context, db *sql.DB) {
 			users_stats.country, users_stats.show_country
 		FROM users
 		LEFT JOIN users_stats ON users_stats.id = users.id
-		LEFT JOIN leaderboard_%s ON leaderboard_%s.user = users.id
+		INNER JOIN leaderboard_%s ON leaderboard_%s.user = users.id
 		%s
 		LIMIT 1`,
 		mode, mode, mode, mode, mode, mode, mode, mode, whereClause,
