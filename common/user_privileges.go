@@ -1,5 +1,6 @@
 package common
 
+// user/admin privileges
 const (
 	UserPrivilegePublic = 1 << iota
 	UserPrivilegeNormal

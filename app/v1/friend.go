@@ -43,7 +43,7 @@ func FriendsGET(md common.MethodData) common.CodeMessager {
 	// Yes.
 	myFriendsQuery := `
 SELECT
-	users.id, users.username, users.register_datetime, users.rank, users.latest_activity,
+	users.id, users.username, users.register_datetime, users.privileges, users.latest_activity,
 
 	users_stats.username_aka,
 	users_stats.country, users_stats.show_country
@@ -90,7 +90,7 @@ func friendPuts(md common.MethodData, row *sql.Rows) (user friendData) {
 	registeredOn := int64(0)
 	latestActivity := int64(0)
 	var showcountry bool
-	err = row.Scan(&user.ID, &user.Username, &registeredOn, &user.Rank, &latestActivity, &user.UsernameAKA, &user.Country, &showcountry)
+	err = row.Scan(&user.ID, &user.Username, &registeredOn, &user.Privileges, &latestActivity, &user.UsernameAKA, &user.Country, &showcountry)
 	if err != nil {
 		md.Err(err)
 		return

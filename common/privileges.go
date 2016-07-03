@@ -114,27 +114,27 @@ func (p Privileges) String() string {
 }
 
 var privilegeMustBe = [...]int{
-	1,
-	1,
-	1,
-	3,
-	3,
-	4,
-	4,
-	4,
-	4,
-	4,
-	3,
-	4,
-	4,
+	UserPrivilegeNormal,
+	UserPrivilegeNormal,
+	UserPrivilegeNormal,
+	AdminPrivilegeAccessRAP | AdminPrivilegeManageBadges,
+	AdminPrivilegeAccessRAP | AdminPrivilegeManageBetaKey,
+	AdminPrivilegeAccessRAP | AdminPrivilegeManageSetting,
+	AdminPrivilegeAccessRAP,
+	AdminPrivilegeAccessRAP | AdminPrivilegeManageUsers | AdminPrivilegeBanUsers,
+	AdminPrivilegeAccessRAP | AdminPrivilegeManageUsers | AdminPrivilegeManagePrivilege,
+	AdminPrivilegeAccessRAP | AdminPrivilegeManageUsers | AdminPrivilegeManageServer,
+	AdminPrivilegeChatMod, // temporary?
+	AdminPrivilegeManageServer,
+	AdminPrivilegeAccessRAP | AdminPrivilegeManageBeatmap,
 }
 
 // CanOnly removes any privilege that the user has requested to have, but cannot have due to their rank.
-func (p Privileges) CanOnly(rank int) Privileges {
+func (p Privileges) CanOnly(userPrivs int) Privileges {
 	newPrivilege := 0
 	for i, v := range privilegeMustBe {
 		wants := p&1 == 1
-		can := rank >= v
+		can := userPrivs&v == v
 		if wants && can {
 			newPrivilege |= 1 << uint(i)
 		}

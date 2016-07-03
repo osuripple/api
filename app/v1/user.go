@@ -16,7 +16,7 @@ type userData struct {
 	Username       string    `json:"username"`
 	UsernameAKA    string    `json:"username_aka"`
 	RegisteredOn   time.Time `json:"registered_on"`
-	Rank           int       `json:"rank"`
+	Privileges     uint64    `json:"rank"`
 	LatestActivity time.Time `json:"latest_activity"`
 	Country        string    `json:"country"`
 }
@@ -29,7 +29,7 @@ func UsersGET(md common.MethodData) common.CodeMessager {
 	}
 
 	query := `
-SELECT users.id, users.username, register_datetime, rank,
+SELECT users.id, users.username, register_datetime, privileges,
 	latest_activity, users_stats.username_aka,
 	users_stats.country, users_stats.show_country
 FROM users
@@ -54,7 +54,7 @@ func userPuts(md common.MethodData, row *sql.Row) common.CodeMessager {
 		latestActivity int64
 		showCountry    bool
 	)
-	err = row.Scan(&user.ID, &user.Username, &registeredOn, &user.Rank, &latestActivity, &user.UsernameAKA, &user.Country, &showCountry)
+	err = row.Scan(&user.ID, &user.Username, &registeredOn, &user.Privileges, &latestActivity, &user.UsernameAKA, &user.Country, &showCountry)
 	switch {
 	case err == sql.ErrNoRows:
 		return common.SimpleResponse(404, "No such user was found!")
@@ -109,11 +109,11 @@ type whatIDResponse struct {
 // UserWhatsTheIDGET is an API request that only returns an user's ID.
 func UserWhatsTheIDGET(md common.MethodData) common.CodeMessager {
 	var (
-		r       whatIDResponse
+		r          whatIDResponse
 		privileges int
 	)
 	err := md.DB.QueryRow("SELECT id, privileges FROM users WHERE username = ? LIMIT 1", md.C.Query("name")).Scan(&r.ID, &privileges)
-	if err != nil || ( (privileges & common.UserPrivilegePublic) == 0 && !md.User.Privileges.HasPrivilegeViewUserAdvanced()) {
+	if err != nil || ((privileges&common.UserPrivilegePublic) == 0 && !md.User.Privileges.HasPrivilegeViewUserAdvanced()) {
 		return common.SimpleResponse(404, "That user could not be found!")
 	}
 	r.Code = 200
@@ -153,7 +153,7 @@ func UserFullGET(md common.MethodData) common.CodeMessager {
 	// Hellest query I've ever done.
 	query := `
 SELECT
-	users.id, users.username, users.register_datetime, users.rank, users.latest_activity,
+	users.id, users.username, users.register_datetime, users.privileges, users.latest_activity,
 
 	users_stats.username_aka, users_stats.badges_shown, users_stats.country, users_stats.show_country,
 	users_stats.play_style, users_stats.favourite_mode,
@@ -198,7 +198,7 @@ LIMIT 1
 		latestActivity int64
 	)
 	err := md.DB.QueryRow(query, param).Scan(
-		&r.ID, &r.Username, &registeredOn, &r.Rank, &latestActivity,
+		&r.ID, &r.Username, &registeredOn, &r.Privileges, &latestActivity,
 
 		&r.UsernameAKA, &badges, &country, &showCountry,
 		&r.PlayStyle, &r.FavouriteMode,

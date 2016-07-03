@@ -50,7 +50,7 @@ func TokenNewPOST(md common.MethodData) common.CodeMessager {
 	}
 
 	var q *sql.Row
-	const base = "SELECT id, username, rank, password_md5, password_version, privileges FROM users "
+	const base = "SELECT id, username, privileges, password_md5, password_version, privileges FROM users "
 	if data.UserID != 0 {
 		q = md.DB.QueryRow(base+"WHERE id = ? LIMIT 1", data.UserID)
 	} else {
@@ -58,10 +58,10 @@ func TokenNewPOST(md common.MethodData) common.CodeMessager {
 	}
 
 	var (
-		rank      int
-		pw        string
-		pwVersion int
-		privileges   int
+		rank       int
+		pw         string
+		pwVersion  int
+		privileges int
 	)
 
 	err = q.Scan(&r.ID, &r.Username, &rank, &pw, &pwVersion, &privileges)
@@ -88,13 +88,14 @@ func TokenNewPOST(md common.MethodData) common.CodeMessager {
 		md.Err(err)
 		return Err500
 	}
-	if (privileges & 0) == 0 {
+	const want = (common.UserPrivilegePublic | common.UserPrivilegeNormal)
+	if (privileges & want) != want {
 		r.Code = 200
 		r.Message = "That user is banned."
 		r.Banned = true
 		return r
 	}
-	r.Privileges = int(common.Privileges(data.Privileges).CanOnly(rank))
+	r.Privileges = int(common.Privileges(data.Privileges).CanOnly(privileges))
 
 	var (
 		tokenStr string
@@ -104,7 +105,7 @@ func TokenNewPOST(md common.MethodData) common.CodeMessager {
 		tokenStr = common.RandomString(32)
 		tokenMD5 = fmt.Sprintf("%x", md5.Sum([]byte(tokenStr)))
 		r.Token = tokenStr
-		id := 0
+		var id int
 
 		err := md.DB.QueryRow("SELECT id FROM tokens WHERE token=? LIMIT 1", tokenMD5).Scan(&id)
 		if err == sql.ErrNoRows {
@@ -210,7 +211,7 @@ func fixPrivileges(user int, db *sql.DB) {
 	}
 	rows, err := db.Query(`
 SELECT
-	tokens.id, tokens.privileges, users.rank
+	tokens.id, tokens.privileges, users.privileges
 FROM tokens
 LEFT JOIN users ON users.id = tokens.user
 `+wc, params...)
@@ -221,15 +222,15 @@ LEFT JOIN users ON users.id = tokens.user
 	}
 	for rows.Next() {
 		var (
-			id       int
-			privsRaw uint64
-			privs    common.Privileges
-			newPrivs common.Privileges
-			rank     int
+			id         int
+			privsRaw   uint64
+			privs      common.Privileges
+			newPrivs   common.Privileges
+			privileges int
 		)
-		rows.Scan(&id, &privsRaw, &rank)
+		rows.Scan(&id, &privsRaw, &privileges)
 		privs = common.Privileges(privsRaw)
-		newPrivs = privs.CanOnly(rank)
+		newPrivs = privs.CanOnly(privileges)
 		if newPrivs != privs {
 			_, err := db.Exec("UPDATE tokens SET privileges = ? WHERE id = ? LIMIT 1", uint64(newPrivs), id)
 			if err != nil {

@@ -21,7 +21,7 @@ type leaderboardResponse struct {
 
 const lbUserQuery = `
 SELECT
-	users.id, users.username, users.register_datetime, users.rank, users.latest_activity,
+	users.id, users.username, users.register_datetime, users.privileges, users.latest_activity,
 
 	users_stats.username_aka, users_stats.country, users_stats.show_country,
 	users_stats.play_style, users_stats.favourite_mode,
@@ -53,7 +53,7 @@ func LeaderboardGET(md common.MethodData) common.CodeMessager {
 			showCountry    bool
 		)
 		err := rows.Scan(
-			&u.ID, &u.Username, &register, &u.Rank, &latestActivity,
+			&u.ID, &u.Username, &register, &u.Privileges, &latestActivity,
 
 			&u.UsernameAKA, &u.Country, &showCountry,
 			&u.PlayStyle, &u.FavouriteMode,

@@ -30,7 +30,7 @@ func UserManageSetAllowedPOST(md common.MethodData) common.CodeMessager {
 	}
 	if data.Allowed == 0 {
 		banDatetime = time.Now().Unix()
-		newPrivileges = privileges &^(common.UserPrivilegeNormal | common.UserPrivilegePublic)
+		newPrivileges = privileges &^ (common.UserPrivilegeNormal | common.UserPrivilegePublic)
 	} else {
 		banDatetime = 0
 		newPrivileges = privileges | (common.UserPrivilegeNormal | common.UserPrivilegePublic)
@@ -42,7 +42,7 @@ func UserManageSetAllowedPOST(md common.MethodData) common.CodeMessager {
 	}
 	go fixPrivileges(data.UserID, md.DB)
 	query := `
-SELECT users.id, users.username, register_datetime, rank,
+SELECT users.id, users.username, register_datetime, privileges,
 	latest_activity, users_stats.username_aka,
 	users_stats.country, users_stats.show_country
 FROM users
