@@ -35,7 +35,7 @@ SELECT users.id, users.username, register_datetime, rank,
 FROM users
 LEFT JOIN users_stats
 ON users.id=users_stats.id
-WHERE ` + whereClause + ` AND users.allowed='1'
+WHERE ` + whereClause + ` AND users.privileges & 1 > 0
 LIMIT 1`
 	return userPuts(md, md.DB.QueryRow(query, param))
 }
@@ -110,10 +110,10 @@ type whatIDResponse struct {
 func UserWhatsTheIDGET(md common.MethodData) common.CodeMessager {
 	var (
 		r       whatIDResponse
-		allowed int
+		privileges int
 	)
-	err := md.DB.QueryRow("SELECT id, allowed FROM users WHERE username = ? LIMIT 1", md.C.Query("name")).Scan(&r.ID, &allowed)
-	if err != nil || (allowed != 1 && !md.User.Privileges.HasPrivilegeViewUserAdvanced()) {
+	err := md.DB.QueryRow("SELECT id, privileges FROM users WHERE username = ? LIMIT 1", md.C.Query("name")).Scan(&r.ID, &privileges)
+	if err != nil || ( (privileges & common.UserPrivilegePublic) == 0 && !md.User.Privileges.HasPrivilegeViewUserAdvanced()) {
 		return common.SimpleResponse(404, "That user could not be found!")
 	}
 	r.Code = 200
@@ -154,14 +154,14 @@ func UserFullGET(md common.MethodData) common.CodeMessager {
 	query := `
 SELECT
 	users.id, users.username, users.register_datetime, users.rank, users.latest_activity,
-	
+
 	users_stats.username_aka, users_stats.badges_shown, users_stats.country, users_stats.show_country,
 	users_stats.play_style, users_stats.favourite_mode,
-	
+
 	users_stats.ranked_score_std, users_stats.total_score_std, users_stats.playcount_std,
 	users_stats.replays_watched_std, users_stats.total_hits_std,
 	users_stats.avg_accuracy_std, users_stats.pp_std, leaderboard_std.position as std_position,
-	
+
 	users_stats.ranked_score_taiko, users_stats.total_score_taiko, users_stats.playcount_taiko,
 	users_stats.replays_watched_taiko, users_stats.total_hits_taiko,
 	users_stats.avg_accuracy_taiko, users_stats.pp_taiko, leaderboard_taiko.position as taiko_position,
@@ -185,7 +185,7 @@ LEFT JOIN leaderboard_ctb
 ON users.id=leaderboard_ctb.user
 LEFT JOIN leaderboard_mania
 ON users.id=leaderboard_mania.user
-WHERE ` + whereClause + ` AND users.allowed = '1'
+WHERE ` + whereClause + ` AND users.privileges & 1 > 0
 LIMIT 1
 `
 	// Fuck.
@@ -304,7 +304,7 @@ func UserLookupGET(md common.MethodData) common.CodeMessager {
 		return common.SimpleResponse(400, "please provide an username to start searching")
 	}
 	name = "%" + name + "%"
-	rows, err := md.DB.Query("SELECT users.id, users.username FROM users WHERE username LIKE ? AND allowed = '1' LIMIT 25", name)
+	rows, err := md.DB.Query("SELECT users.id, users.username FROM users WHERE username LIKE ? AND privileges & 1 > 0 LIMIT 25", name)
 	if err != nil {
 		md.Err(err)
 		return Err500

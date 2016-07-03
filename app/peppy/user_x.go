@@ -31,7 +31,7 @@ func GetUserBest(c *gin.Context, db *sql.DB) {
 func getUserX(c *gin.Context, db *sql.DB, orderBy string, limit int) {
 	whereClause, p := genUser(c, db)
 	query := fmt.Sprintf(
-		`SELECT 
+		`SELECT
 			beatmaps.beatmap_id, scores.score, scores.max_combo,
 			scores.300_count, scores.100_count, scores.50_count,
 			scores.gekis_count, scores.katus_count, scores.misses_count,
@@ -40,7 +40,7 @@ func getUserX(c *gin.Context, db *sql.DB, orderBy string, limit int) {
 		FROM scores
 		LEFT JOIN beatmaps ON beatmaps.beatmap_md5 = scores.beatmap_md5
 		LEFT JOIN users ON scores.userid = users.id
-		WHERE %s AND scores.play_mode = ? AND users.allowed = '1'
+		WHERE %s AND scores.play_mode = ? AND users.privileges & 1 > 0
 		%s
 		LIMIT %d`, whereClause, orderBy, limit,
 	)

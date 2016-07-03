@@ -46,7 +46,7 @@ SELECT
 	scores.gekis_count, scores.katus_count, scores.misses_count,
 	scores.time, scores.play_mode, scores.accuracy, scores.pp,
 	scores.completed,
-	
+
 	beatmaps.beatmap_id, beatmaps.beatmapset_id, beatmaps.beatmap_md5,
 	beatmaps.song_name, beatmaps.ar, beatmaps.od, beatmaps.difficulty,
 	beatmaps.max_combo, beatmaps.hit_length, beatmaps.ranked,
@@ -70,10 +70,10 @@ func UserScoresBestGET(md common.MethodData) common.CodeMessager {
 	}
 	return scoresPuts(md, fmt.Sprintf(
 		`WHERE
-			scores.completed = '3' 
+			scores.completed = '3'
 			AND %s
 			%s
-			AND users.allowed = '1'
+			AND users.privileges & 1 > 0
 		ORDER BY scores.pp DESC, scores.score DESC %s`,
 		wc, mc, common.Paginate(md.C.Query("p"), md.C.Query("l"), 100),
 	), param)
@@ -89,7 +89,7 @@ func UserScoresRecentGET(md common.MethodData) common.CodeMessager {
 		`WHERE
 			%s
 			%s
-			AND users.allowed = '1'
+			AND users.privileges & 1 > 0
 		ORDER BY scores.time DESC %s`,
 		wc, genModeClause(md), common.Paginate(md.C.Query("p"), md.C.Query("l"), 100),
 	), param)

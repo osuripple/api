@@ -22,10 +22,10 @@ type leaderboardResponse struct {
 const lbUserQuery = `
 SELECT
 	users.id, users.username, users.register_datetime, users.rank, users.latest_activity,
-	
+
 	users_stats.username_aka, users_stats.country, users_stats.show_country,
 	users_stats.play_style, users_stats.favourite_mode,
-	
+
 	users_stats.ranked_score_%[1]s, users_stats.total_score_%[1]s, users_stats.playcount_%[1]s,
 	users_stats.replays_watched_%[1]s, users_stats.total_hits_%[1]s,
 	users_stats.avg_accuracy_%[1]s, users_stats.pp_%[1]s, leaderboard_%[1]s.position as %[1]s_position
@@ -37,7 +37,7 @@ INNER JOIN users_stats ON users_stats.id = leaderboard_%[1]s.user
 // LeaderboardGET gets the leaderboard.
 func LeaderboardGET(md common.MethodData) common.CodeMessager {
 	m := getMode(md.C.Query("mode"))
-	query := fmt.Sprintf(lbUserQuery, m, `WHERE users.allowed = '1' ORDER BY leaderboard_`+m+`.position `+
+	query := fmt.Sprintf(lbUserQuery, m, `WHERE users.privileges & 1 > 0 ORDER BY leaderboard_`+m+`.position `+
 		common.Paginate(md.C.Query("p"), md.C.Query("l"), 100))
 	rows, err := md.DB.Query(query)
 	if err != nil {

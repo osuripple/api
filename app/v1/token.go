@@ -50,7 +50,7 @@ func TokenNewPOST(md common.MethodData) common.CodeMessager {
 	}
 
 	var q *sql.Row
-	const base = "SELECT id, username, rank, password_md5, password_version, allowed FROM users "
+	const base = "SELECT id, username, rank, password_md5, password_version, privileges FROM users "
 	if data.UserID != 0 {
 		q = md.DB.QueryRow(base+"WHERE id = ? LIMIT 1", data.UserID)
 	} else {
@@ -61,10 +61,10 @@ func TokenNewPOST(md common.MethodData) common.CodeMessager {
 		rank      int
 		pw        string
 		pwVersion int
-		allowed   int
+		privileges   int
 	)
 
-	err = q.Scan(&r.ID, &r.Username, &rank, &pw, &pwVersion, &allowed)
+	err = q.Scan(&r.ID, &r.Username, &rank, &pw, &pwVersion, &privileges)
 	switch {
 	case err == sql.ErrNoRows:
 		return common.SimpleResponse(404, "No user with that username/id was found.")
@@ -88,7 +88,7 @@ func TokenNewPOST(md common.MethodData) common.CodeMessager {
 		md.Err(err)
 		return Err500
 	}
-	if allowed == 0 {
+	if (privileges & 0) == 0 {
 		r.Code = 200
 		r.Message = "That user is banned."
 		r.Banned = true

@@ -42,9 +42,9 @@ func FriendsGET(md common.MethodData) common.CodeMessager {
 
 	// Yes.
 	myFriendsQuery := `
-SELECT 
+SELECT
 	users.id, users.username, users.register_datetime, users.rank, users.latest_activity,
-	
+
 	users_stats.username_aka,
 	users_stats.country, users_stats.show_country
 FROM users_relationships
@@ -169,7 +169,7 @@ func addFriend(md common.MethodData, u int) common.CodeMessager {
 
 // userExists makes sure an user exists.
 func userExists(md common.MethodData, u int) (r bool) {
-	err := md.DB.QueryRow("SELECT EXISTS(SELECT 1 FROM users WHERE id = ? AND users.allowed='1')", u).Scan(&r)
+	err := md.DB.QueryRow("SELECT EXISTS(SELECT 1 FROM users WHERE id = ? AND users.privileges & 1 > 0)", u).Scan(&r)
 	if err != nil && err != sql.ErrNoRows {
 		md.Err(err)
 	}
