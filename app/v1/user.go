@@ -16,7 +16,7 @@ type userData struct {
 	Username       string    `json:"username"`
 	UsernameAKA    string    `json:"username_aka"`
 	RegisteredOn   time.Time `json:"registered_on"`
-	Privileges     uint64    `json:"rank"`
+	Privileges     uint64    `json:"privileges"`
 	LatestActivity time.Time `json:"latest_activity"`
 	Country        string    `json:"country"`
 }
