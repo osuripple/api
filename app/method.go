@@ -51,7 +51,7 @@ func initialCaretaker(c *gin.Context, f func(md common.MethodData) common.CodeMe
 		}
 	}
 
-	perUserRequestLimiter(md.ID(), c.Request.Header.Get("X-Real-IP"))
+	perUserRequestLimiter(md.ID(), c.ClientIP())
 
 	missingPrivileges := 0
 	for _, privilege := range privilegesNeeded {
