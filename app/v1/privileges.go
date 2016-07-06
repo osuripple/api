@@ -26,7 +26,7 @@ func PrivilegesGET(md common.MethodData) common.CodeMessager {
 	r := privilegesData{}
 	r.Code = 200
 	// This code sucks.
-	r.Read = md.User.Privileges.HasPrivilegeRead()
+	r.Read = true
 	r.ReadConfidential = md.User.Privileges.HasPrivilegeReadConfidential()
 	r.Write = md.User.Privileges.HasPrivilegeWrite()
 	r.ManageBadges = md.User.Privileges.HasPrivilegeManageBadges()

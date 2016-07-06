@@ -4,7 +4,7 @@ import "strings"
 
 // These are the various privileges a token can have.
 const (
-	PrivilegeRead             = 1 << iota // pretty much public data: leaderboard, scores, user profiles (without confidential stuff like email)
+	PrivilegeRead             = 1 << iota // used to be to fetch public data, such as user information etc. this is deprecated.
 	PrivilegeReadConfidential             // (eventual) private messages, reports... of self
 	PrivilegeWrite                        // change user information, write into confidential stuff...
 	PrivilegeManageBadges                 // can change various users' badges.
@@ -21,11 +21,6 @@ const (
 
 // Privileges is a bitwise enum of the privileges of an user's API key.
 type Privileges uint64
-
-// HasPrivilegeRead returns whether the Read privilege is included in the privileges.
-func (p Privileges) HasPrivilegeRead() bool {
-	return p&PrivilegeRead != 0
-}
 
 // HasPrivilegeReadConfidential returns whether the ReadConfidential privilege is included in the privileges.
 func (p Privileges) HasPrivilegeReadConfidential() bool {
@@ -114,7 +109,7 @@ func (p Privileges) String() string {
 }
 
 var privilegeMustBe = [...]int{
-	UserPrivilegeNormal,
+	1 << 30, // read is deprecated, and should be given out to no-one.
 	UserPrivilegeNormal,
 	UserPrivilegeNormal,
 	AdminPrivilegeAccessRAP | AdminPrivilegeManageBadges,

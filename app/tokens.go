@@ -19,7 +19,7 @@ func GetTokenFull(token string, db *sql.DB) (common.Token, bool) {
 			&t.ID, &t.UserID, &privs, &priv8,
 		)
 	if priv8 {
-		privs = common.PrivilegeRead | common.PrivilegeReadConfidential | common.PrivilegeWrite
+		privs = common.PrivilegeReadConfidential | common.PrivilegeWrite
 	}
 	t.Privileges = common.Privileges(privs)
 	switch {
