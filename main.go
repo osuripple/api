@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"strings"
 	"syscall"
 
 	"git.zxq.co/ripple/rippleapi/app"
@@ -38,6 +39,14 @@ func main() {
 	}
 
 	schiavo.Prefix = "Ripple API"
+
+	if !strings.Contains(conf.DSN, "parseTime=true") {
+		c := "?"
+		if strings.Contains(conf.DSN, "?") {
+			c = "&"
+		}
+		conf.DSN += c + "parseTime=true"
+	}
 
 	var err error
 	db, err = sql.Open(conf.DatabaseType, conf.DSN)

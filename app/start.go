@@ -62,6 +62,8 @@ func Start(conf common.Conf, dbO *sql.DB) *gin.Engine {
 			gv1.GET("/tokens", Method(v1.TokenGET))
 			gv1.GET("/users/self", Method(v1.UserSelfGET))
 			gv1.GET("/tokens/self", Method(v1.TokenSelfGET))
+			gv1.GET("/blog/posts", Method(v1.BlogPostsGET))
+			gv1.GET("/blog/posts/content", Method(v1.BlogPostsContentGET))
 
 			// ReadConfidential privilege required
 			gv1.GET("/friends", Method(v1.FriendsGET, common.PrivilegeReadConfidential))
