@@ -22,13 +22,12 @@ func GetUser(c *gin.Context, db *sql.DB) {
 
 	mode := genmode(c.Query("m"))
 
-	var display bool
 	err := db.QueryRow(fmt.Sprintf(
 		`SELECT
 			users.id, users.username,
 			users_stats.playcount_%s, users_stats.ranked_score_%s, users_stats.total_score_%s,
 			leaderboard_%s.position, users_stats.pp_%s, users_stats.avg_accuracy_%s,
-			users_stats.country, users_stats.show_country
+			users_stats.country
 		FROM users
 		LEFT JOIN users_stats ON users_stats.id = users.id
 		INNER JOIN leaderboard_%s ON leaderboard_%s.user = users.id
@@ -39,7 +38,7 @@ func GetUser(c *gin.Context, db *sql.DB) {
 		&user.UserID, &user.Username,
 		&user.Playcount, &user.RankedScore, &user.TotalScore,
 		&user.Rank, &user.PP, &user.Accuracy,
-		&user.Country, &display,
+		&user.Country,
 	)
 	if err != nil {
 		c.JSON(200, defaultResponse)
@@ -47,9 +46,6 @@ func GetUser(c *gin.Context, db *sql.DB) {
 			c.Error(err)
 		}
 		return
-	}
-	if !display {
-		user.Country = "XX"
 	}
 	user.Level = ocl.GetLevelPrecise(user.TotalScore)
 

@@ -44,7 +44,7 @@ func UserManageSetAllowedPOST(md common.MethodData) common.CodeMessager {
 	query := `
 SELECT users.id, users.username, register_datetime, privileges,
 	latest_activity, users_stats.username_aka,
-	users_stats.country, users_stats.show_country
+	users_stats.country
 FROM users
 LEFT JOIN users_stats
 ON users.id=users_stats.id

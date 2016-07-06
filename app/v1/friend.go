@@ -40,12 +40,12 @@ func FriendsGET(md common.MethodData) common.CodeMessager {
 	}
 
 	// Yes.
-	myFriendsQuery := `
+	const myFriendsQuery = `
 SELECT
 	users.id, users.username, users.register_datetime, users.privileges, users.latest_activity,
 
 	users_stats.username_aka,
-	users_stats.country, users_stats.show_country
+	users_stats.country
 FROM users_relationships
 LEFT JOIN users
 ON users_relationships.user2 = users.id
@@ -86,18 +86,12 @@ ORDER BY users_relationships.id`
 func friendPuts(md common.MethodData, row *sql.Rows) (user friendData) {
 	var err error
 
-	var showcountry bool
-	err = row.Scan(&user.ID, &user.Username, &user.RegisteredOn, &user.Privileges, &user.LatestActivity, &user.UsernameAKA, &user.Country, &showcountry)
+	err = row.Scan(&user.ID, &user.Username, &user.RegisteredOn, &user.Privileges, &user.LatestActivity, &user.UsernameAKA, &user.Country)
 	if err != nil {
 		md.Err(err)
 		return
 	}
 
-	// If the user wants to stay anonymous, don't show their country.
-	// This can be overriden if we have the ReadConfidential privilege and the user we are accessing is the token owner.
-	if !(showcountry || (md.User.Privileges.HasPrivilegeReadConfidential() && user.ID == md.ID())) {
-		user.Country = "XX"
-	}
 	return
 }
 

@@ -22,7 +22,7 @@ const lbUserQuery = `
 SELECT
 	users.id, users.username, users.register_datetime, users.privileges, users.latest_activity,
 
-	users_stats.username_aka, users_stats.country, users_stats.show_country,
+	users_stats.username_aka, users_stats.country,
 	users_stats.play_style, users_stats.favourite_mode,
 
 	users_stats.ranked_score_%[1]s, users_stats.total_score_%[1]s, users_stats.playcount_%[1]s,
@@ -45,15 +45,11 @@ func LeaderboardGET(md common.MethodData) common.CodeMessager {
 	}
 	var resp leaderboardResponse
 	for rows.Next() {
-		var (
-			u           leaderboardUser
-			showCountry bool
-		)
+		var u leaderboardUser
 		err := rows.Scan(
 			&u.ID, &u.Username, &u.RegisteredOn, &u.Privileges, &u.LatestActivity,
 
-			&u.UsernameAKA, &u.Country, &showCountry,
-			&u.PlayStyle, &u.FavouriteMode,
+			&u.UsernameAKA, &u.Country, &u.PlayStyle, &u.FavouriteMode,
 
 			&u.ChosenMode.RankedScore, &u.ChosenMode.TotalScore, &u.ChosenMode.PlayCount,
 			&u.ChosenMode.ReplaysWatched, &u.ChosenMode.TotalHits,
@@ -62,9 +58,6 @@ func LeaderboardGET(md common.MethodData) common.CodeMessager {
 		if err != nil {
 			md.Err(err)
 			continue
-		}
-		if !showCountry {
-			u.Country = "XX"
 		}
 		resp.Users = append(resp.Users, u)
 	}

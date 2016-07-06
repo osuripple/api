@@ -30,7 +30,7 @@ func UsersGET(md common.MethodData) common.CodeMessager {
 	query := `
 SELECT users.id, users.username, register_datetime, privileges,
 	latest_activity, users_stats.username_aka,
-	users_stats.country, users_stats.show_country
+	users_stats.country
 FROM users
 LEFT JOIN users_stats
 ON users.id=users_stats.id
@@ -48,10 +48,9 @@ func userPuts(md common.MethodData, row *sql.Row) common.CodeMessager {
 	var err error
 	var user userPutsUserData
 
-	var showCountry bool
 	err = row.Scan(
 		&user.ID, &user.Username, &user.RegisteredOn, &user.Privileges, &user.LatestActivity,
-		&user.UsernameAKA, &user.Country, &showCountry,
+		&user.UsernameAKA, &user.Country,
 	)
 	switch {
 	case err == sql.ErrNoRows:
@@ -60,8 +59,6 @@ func userPuts(md common.MethodData, row *sql.Row) common.CodeMessager {
 		md.Err(err)
 		return Err500
 	}
-
-	user.Country = genCountry(md, user.ID, showCountry, user.Country)
 
 	user.Code = 200
 	return user
@@ -79,15 +76,6 @@ func badgesToArray(badges string) []int {
 		}
 	}
 	return end
-}
-
-func genCountry(md common.MethodData, uid int, showCountry bool, country string) string {
-	// If the user wants to stay anonymous, don't show their country.
-	// This can be overriden if we have the ReadConfidential privilege and the user we are accessing is the token owner.
-	if showCountry || (md.User.Privileges.HasPrivilegeReadConfidential() && uid == md.ID()) {
-		return country
-	}
-	return "XX"
 }
 
 // UserSelfGET is a shortcut for /users/id/self. (/users/self)
@@ -150,7 +138,7 @@ func UserFullGET(md common.MethodData) common.CodeMessager {
 SELECT
 	users.id, users.username, users.register_datetime, users.privileges, users.latest_activity,
 
-	users_stats.username_aka, users_stats.badges_shown, users_stats.country, users_stats.show_country,
+	users_stats.username_aka, users_stats.badges_shown, users_stats.country,
 	users_stats.play_style, users_stats.favourite_mode,
 
 	users_stats.ranked_score_std, users_stats.total_score_std, users_stats.playcount_std,
@@ -186,14 +174,13 @@ LIMIT 1
 	// Fuck.
 	r := userFullResponse{}
 	var (
-		badges      string
-		country     string
-		showCountry bool
+		badges  string
+		country string
 	)
 	err := md.DB.QueryRow(query, param).Scan(
 		&r.ID, &r.Username, &r.RegisteredOn, &r.Privileges, &r.LatestActivity,
 
-		&r.UsernameAKA, &badges, &country, &showCountry,
+		&r.UsernameAKA, &badges, &country,
 		&r.PlayStyle, &r.FavouriteMode,
 
 		&r.STD.RankedScore, &r.STD.TotalScore, &r.STD.PlayCount,
@@ -220,7 +207,6 @@ LIMIT 1
 		return Err500
 	}
 
-	r.Country = genCountry(md, r.ID, showCountry, country)
 	r.Badges = badgesToArray(badges)
 
 	for _, m := range []*modeData{&r.STD, &r.Taiko, &r.CTB, &r.Mania} {
