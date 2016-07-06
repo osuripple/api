@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	"strconv"
 	"sync"
 	"time"
@@ -51,15 +52,30 @@ func (s *specificRateLimiter) Request(u string, perMinute int) {
 	if !exists {
 		c = makePrefilledChan(perMinute)
 		s.Mutex.Lock()
-		s.Map[u] = c
-		s.Mutex.Unlock()
-		<-c
-		go s.filler(u, perMinute)
+		// Now that we have exclusive read and write-access, we want to
+		// make sure we don't overwrite an existing channel. Otherwise,
+		// race conditions and panic happen.
+		if cNew, exists := s.Map[u]; exists {
+			c = cNew
+			s.Mutex.Unlock()
+		} else {
+			s.Map[u] = c
+			s.Mutex.Unlock()
+			<-c
+			go s.filler(u, perMinute)
+		}
 	}
 	<-c
 }
 
 func (s *specificRateLimiter) filler(el string, perMinute int) {
+	defer func() {
+		r := recover()
+		if r != nil {
+			fmt.Println(r)
+		}
+	}()
+
 	s.Mutex.RLock()
 	c := s.Map[el]
 	s.Mutex.RUnlock()
