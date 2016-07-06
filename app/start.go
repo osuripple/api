@@ -18,6 +18,9 @@ var db *sql.DB
 // Start begins taking HTTP connections.
 func Start(conf common.Conf, dbO *sql.DB) *gin.Engine {
 	db = dbO
+
+	setUpLimiter()
+
 	r := gin.Default()
 	r.Use(gzip.Gzip(gzip.DefaultCompression))
 

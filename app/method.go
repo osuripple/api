@@ -19,11 +19,12 @@ func Method(f func(md common.MethodData) common.CodeMessager, privilegesNeeded .
 }
 
 func initialCaretaker(c *gin.Context, f func(md common.MethodData) common.CodeMessager, privilegesNeeded ...int) {
+	rateLimiter()
+
 	data, err := ioutil.ReadAll(c.Request.Body)
 	if err != nil {
 		c.Error(err)
 	}
-	c.Request.Body.Close()
 
 	token := ""
 	switch {
@@ -49,6 +50,8 @@ func initialCaretaker(c *gin.Context, f func(md common.MethodData) common.CodeMe
 			md.User = tokenReal
 		}
 	}
+
+	perUserRequestLimiter(md.ID(), c.Request.Header.Get("X-Real-IP"))
 
 	missingPrivileges := 0
 	for _, privilege := range privilegesNeeded {
@@ -96,7 +99,7 @@ func mkjson(c *gin.Context, data interface{}) {
 	exported, err := json.MarshalIndent(data, "", "\t")
 	if err != nil {
 		c.Error(err)
-		exported = []byte(`{ "code": 500, "message": "something has gone really really really really really really wrong.", "data": null }`)
+		exported = []byte(`{ "code": 500, "message": "something has gone really really really really really really wrong." }`)
 	}
 	cb := c.Query("callback")
 	willcb := cb != "" &&
