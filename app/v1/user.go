@@ -5,20 +5,19 @@ import (
 	"database/sql"
 	"strconv"
 	"strings"
-	"time"
 
 	"git.zxq.co/ripple/ocl"
 	"git.zxq.co/ripple/rippleapi/common"
 )
 
 type userData struct {
-	ID             int       `json:"id"`
-	Username       string    `json:"username"`
-	UsernameAKA    string    `json:"username_aka"`
-	RegisteredOn   time.Time `json:"registered_on"`
-	Privileges     uint64    `json:"privileges"`
-	LatestActivity time.Time `json:"latest_activity"`
-	Country        string    `json:"country"`
+	ID             int                  `json:"id"`
+	Username       string               `json:"username"`
+	UsernameAKA    string               `json:"username_aka"`
+	RegisteredOn   common.UnixTimestamp `json:"registered_on"`
+	Privileges     uint64               `json:"privileges"`
+	LatestActivity common.UnixTimestamp `json:"latest_activity"`
+	Country        string               `json:"country"`
 }
 
 // UsersGET is the API handler for GET /users
@@ -49,12 +48,11 @@ func userPuts(md common.MethodData, row *sql.Row) common.CodeMessager {
 	var err error
 	var user userPutsUserData
 
-	var (
-		registeredOn   int64
-		latestActivity int64
-		showCountry    bool
+	var showCountry bool
+	err = row.Scan(
+		&user.ID, &user.Username, &user.RegisteredOn, &user.Privileges, &user.LatestActivity,
+		&user.UsernameAKA, &user.Country, &showCountry,
 	)
-	err = row.Scan(&user.ID, &user.Username, &registeredOn, &user.Privileges, &latestActivity, &user.UsernameAKA, &user.Country, &showCountry)
 	switch {
 	case err == sql.ErrNoRows:
 		return common.SimpleResponse(404, "No such user was found!")
@@ -62,9 +60,6 @@ func userPuts(md common.MethodData, row *sql.Row) common.CodeMessager {
 		md.Err(err)
 		return Err500
 	}
-
-	user.RegisteredOn = time.Unix(registeredOn, 0)
-	user.LatestActivity = time.Unix(latestActivity, 0)
 
 	user.Country = genCountry(md, user.ID, showCountry, user.Country)
 
@@ -191,14 +186,12 @@ LIMIT 1
 	// Fuck.
 	r := userFullResponse{}
 	var (
-		badges         string
-		country        string
-		showCountry    bool
-		registeredOn   int64
-		latestActivity int64
+		badges      string
+		country     string
+		showCountry bool
 	)
 	err := md.DB.QueryRow(query, param).Scan(
-		&r.ID, &r.Username, &registeredOn, &r.Privileges, &latestActivity,
+		&r.ID, &r.Username, &r.RegisteredOn, &r.Privileges, &r.LatestActivity,
 
 		&r.UsernameAKA, &badges, &country, &showCountry,
 		&r.PlayStyle, &r.FavouriteMode,
@@ -229,9 +222,6 @@ LIMIT 1
 
 	r.Country = genCountry(md, r.ID, showCountry, country)
 	r.Badges = badgesToArray(badges)
-
-	r.RegisteredOn = time.Unix(registeredOn, 0)
-	r.LatestActivity = time.Unix(latestActivity, 0)
 
 	for _, m := range []*modeData{&r.STD, &r.Taiko, &r.CTB, &r.Mania} {
 		m.Level = ocl.GetLevelPrecise(int64(m.TotalScore))

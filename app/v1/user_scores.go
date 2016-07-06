@@ -128,10 +128,9 @@ func scoresPuts(md common.MethodData, whereClause string, params ...interface{})
 	var scores []userScore
 	for rows.Next() {
 		var (
-			us              userScore
-			t               string
-			b               beatmapMayOrMayNotExist
-			rawLatestUpdate *int64
+			us userScore
+			t  string
+			b  beatmapMayOrMayNotExist
 		)
 		err = rows.Scan(
 			&us.ID, &us.BeatmapMD5, &us.Score,
@@ -144,7 +143,7 @@ func scoresPuts(md common.MethodData, whereClause string, params ...interface{})
 			&b.BeatmapID, &b.BeatmapsetID, &b.BeatmapMD5,
 			&b.SongName, &b.AR, &b.OD, &b.Difficulty,
 			&b.MaxCombo, &b.HitLength, &b.Ranked,
-			&b.RankedStatusFrozen, &rawLatestUpdate,
+			&b.RankedStatusFrozen, &b.LatestUpdate,
 		)
 		if err != nil {
 			md.Err(err)
@@ -155,11 +154,6 @@ func scoresPuts(md common.MethodData, whereClause string, params ...interface{})
 		if err != nil {
 			md.Err(err)
 			return Err500
-		}
-		if rawLatestUpdate != nil {
-			// fml i should have used an inner join
-			xd := time.Unix(*rawLatestUpdate, 0)
-			b.LatestUpdate = &xd
 		}
 		us.Beatmap = b.toBeatmap()
 		scores = append(scores, us)

@@ -2,24 +2,23 @@ package v1
 
 import (
 	"database/sql"
-	"time"
 
 	"git.zxq.co/ripple/rippleapi/common"
 )
 
 type beatmap struct {
-	BeatmapID          int       `json:"beatmap_id"`
-	BeatmapsetID       int       `json:"beatmapset_id"`
-	BeatmapMD5         string    `json:"beatmap_md5"`
-	SongName           string    `json:"song_name"`
-	AR                 float32   `json:"ar"`
-	OD                 float32   `json:"od"`
-	Difficulty         float64   `json:"difficulty"`
-	MaxCombo           int       `json:"max_combo"`
-	HitLength          int       `json:"hit_length"`
-	Ranked             int       `json:"ranked"`
-	RankedStatusFrozen int       `json:"ranked_status_frozen"`
-	LatestUpdate       time.Time `json:"latest_update"`
+	BeatmapID          int                  `json:"beatmap_id"`
+	BeatmapsetID       int                  `json:"beatmapset_id"`
+	BeatmapMD5         string               `json:"beatmap_md5"`
+	SongName           string               `json:"song_name"`
+	AR                 float32              `json:"ar"`
+	OD                 float32              `json:"od"`
+	Difficulty         float64              `json:"difficulty"`
+	MaxCombo           int                  `json:"max_combo"`
+	HitLength          int                  `json:"hit_length"`
+	Ranked             int                  `json:"ranked"`
+	RankedStatusFrozen int                  `json:"ranked_status_frozen"`
+	LatestUpdate       common.UnixTimestamp `json:"latest_update"`
 }
 
 type beatmapMayOrMayNotExist struct {
@@ -34,7 +33,7 @@ type beatmapMayOrMayNotExist struct {
 	HitLength          *int
 	Ranked             *int
 	RankedStatusFrozen *int
-	LatestUpdate       *time.Time
+	LatestUpdate       *common.UnixTimestamp
 }
 
 func (b *beatmapMayOrMayNotExist) toBeatmap() *beatmap {
@@ -146,21 +145,17 @@ func getSet(md common.MethodData, setID int) common.CodeMessager {
 	}
 	var r beatmapSetResponse
 	for rows.Next() {
-		var (
-			b               beatmap
-			rawLatestUpdate int64
-		)
+		var b beatmap
 		err = rows.Scan(
 			&b.BeatmapID, &b.BeatmapsetID, &b.BeatmapMD5,
 			&b.SongName, &b.AR, &b.OD, &b.Difficulty, &b.MaxCombo,
 			&b.HitLength, &b.Ranked, &b.RankedStatusFrozen,
-			&rawLatestUpdate,
+			&b.LatestUpdate,
 		)
 		if err != nil {
 			md.Err(err)
 			continue
 		}
-		b.LatestUpdate = time.Unix(rawLatestUpdate, 0)
 		r.Beatmaps = append(r.Beatmaps, b)
 	}
 	r.Code = 200
@@ -168,15 +163,12 @@ func getSet(md common.MethodData, setID int) common.CodeMessager {
 }
 
 func getBeatmap(md common.MethodData, beatmapID int) common.CodeMessager {
-	var (
-		b               beatmap
-		rawLatestUpdate int64
-	)
+	var b beatmap
 	err := md.DB.QueryRow(baseBeatmapSelect+"WHERE beatmap_id = ? LIMIT 1", beatmapID).Scan(
 		&b.BeatmapID, &b.BeatmapsetID, &b.BeatmapMD5,
 		&b.SongName, &b.AR, &b.OD, &b.Difficulty, &b.MaxCombo,
 		&b.HitLength, &b.Ranked, &b.RankedStatusFrozen,
-		&rawLatestUpdate,
+		&b.LatestUpdate,
 	)
 	switch {
 	case err == sql.ErrNoRows:
@@ -185,7 +177,6 @@ func getBeatmap(md common.MethodData, beatmapID int) common.CodeMessager {
 		md.Err(err)
 		return Err500
 	}
-	b.LatestUpdate = time.Unix(rawLatestUpdate, 0)
 	var r beatmapResponse
 	r.Code = 200
 	r.beatmap = b

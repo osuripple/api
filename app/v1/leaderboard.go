@@ -2,7 +2,6 @@ package v1
 
 import (
 	"fmt"
-	"time"
 
 	"git.zxq.co/ripple/rippleapi/common"
 )
@@ -47,13 +46,11 @@ func LeaderboardGET(md common.MethodData) common.CodeMessager {
 	var resp leaderboardResponse
 	for rows.Next() {
 		var (
-			u              leaderboardUser
-			register       int64
-			latestActivity int64
-			showCountry    bool
+			u           leaderboardUser
+			showCountry bool
 		)
 		err := rows.Scan(
-			&u.ID, &u.Username, &register, &u.Privileges, &latestActivity,
+			&u.ID, &u.Username, &u.RegisteredOn, &u.Privileges, &u.LatestActivity,
 
 			&u.UsernameAKA, &u.Country, &showCountry,
 			&u.PlayStyle, &u.FavouriteMode,
@@ -69,8 +66,6 @@ func LeaderboardGET(md common.MethodData) common.CodeMessager {
 		if !showCountry {
 			u.Country = "XX"
 		}
-		u.RegisteredOn = time.Unix(register, 0)
-		u.LatestActivity = time.Unix(latestActivity, 0)
 		resp.Users = append(resp.Users, u)
 	}
 	resp.Code = 200

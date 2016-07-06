@@ -2,7 +2,6 @@ package v1
 
 import (
 	"database/sql"
-	"time"
 
 	"git.zxq.co/ripple/rippleapi/common"
 )
@@ -87,17 +86,12 @@ ORDER BY users_relationships.id`
 func friendPuts(md common.MethodData, row *sql.Rows) (user friendData) {
 	var err error
 
-	registeredOn := int64(0)
-	latestActivity := int64(0)
 	var showcountry bool
-	err = row.Scan(&user.ID, &user.Username, &registeredOn, &user.Privileges, &latestActivity, &user.UsernameAKA, &user.Country, &showcountry)
+	err = row.Scan(&user.ID, &user.Username, &user.RegisteredOn, &user.Privileges, &user.LatestActivity, &user.UsernameAKA, &user.Country, &showcountry)
 	if err != nil {
 		md.Err(err)
 		return
 	}
-
-	user.RegisteredOn = time.Unix(registeredOn, 0)
-	user.LatestActivity = time.Unix(latestActivity, 0)
 
 	// If the user wants to stay anonymous, don't show their country.
 	// This can be overriden if we have the ReadConfidential privilege and the user we are accessing is the token owner.
