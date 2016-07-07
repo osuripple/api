@@ -51,6 +51,7 @@ func Recovery(client *raven.Client, onlyCrashes bool) gin.HandlerFunc {
 				default:
 					err = fmt.Errorf("%v - %#v", rval, rval)
 				}
+				fmt.Println(err)
 				client.CaptureError(
 					err,
 					flags,
@@ -66,6 +67,7 @@ func Recovery(client *raven.Client, onlyCrashes bool) gin.HandlerFunc {
 					if item.Type == gin.ErrorTypePrivate {
 						err = item.Err
 					}
+					fmt.Println(err)
 					client.CaptureError(
 						err,
 						flags,
