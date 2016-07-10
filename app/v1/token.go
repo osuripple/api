@@ -90,7 +90,7 @@ func TokenNewPOST(md common.MethodData) common.CodeMessager {
 	}
 	const want = (common.UserPrivilegePublic | common.UserPrivilegeNormal)
 	if (privileges & want) != want {
-		r.Code = 200
+		r.Code = 402
 		r.Message = "That user is banned."
 		r.Banned = true
 		return r
@@ -147,7 +147,7 @@ type token struct {
 }
 type tokenResponse struct {
 	common.ResponseBase
-	Tokens []token `json:"token"`
+	Tokens []token `json:"tokens"`
 }
 
 // TokenGET retrieves a list listing all the user's public tokens.
