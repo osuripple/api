@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"net"
 	"regexp"
+	"strings"
 
 	"git.zxq.co/ripple/rippleapi/common"
 	"github.com/gin-gonic/gin"
@@ -51,7 +53,25 @@ func initialCaretaker(c *gin.Context, f func(md common.MethodData) common.CodeMe
 		}
 	}
 
-	perUserRequestLimiter(md.ID(), c.ClientIP())
+	var ip string
+	if requestIP, _, err := net.SplitHostPort(strings.TrimSpace(c.Request.RemoteAddr)); err != nil {
+		panic(err)
+	} else {
+		// if requestIP is not 127.0.0.1, means no reverse proxy is being used => direct request.
+		if requestIP != "127.0.0.1" {
+			ip = requestIP
+		}
+	}
+
+	// means we're using reverse-proxy, so X-Real-IP
+	if ip == "" {
+		ip = c.ClientIP()
+	}
+
+	// requests from hanayo should not be rate limited.
+	if ip != "127.0.0.1" || c.Request.UserAgent() != "hanayo" {
+		perUserRequestLimiter(md.ID(), c.ClientIP())
+	}
 
 	missingPrivileges := 0
 	for _, privilege := range privilegesNeeded {
