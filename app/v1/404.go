@@ -12,6 +12,7 @@ type response404 struct {
 
 // Handle404 handles requests with no implemented handlers.
 func Handle404(c *gin.Context) {
+	c.Header("X-Real-404", "yes")
 	c.IndentedJSON(404, response404{
 		ResponseBase: common.ResponseBase{
 			Code: 404,
