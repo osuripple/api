@@ -6,6 +6,13 @@ import (
 	"git.zxq.co/ripple/rippleapi/common"
 )
 
+type difficulty struct {
+	STD   float64 `json:"std"`
+	Taiko float64 `json:"taiko"`
+	CTB   float64 `json:"ctb"`
+	Mania float64 `json:"mania"`
+}
+
 type beatmap struct {
 	BeatmapID          int                  `json:"beatmap_id"`
 	BeatmapsetID       int                  `json:"beatmapset_id"`
@@ -14,46 +21,12 @@ type beatmap struct {
 	AR                 float32              `json:"ar"`
 	OD                 float32              `json:"od"`
 	Difficulty         float64              `json:"difficulty"`
+	Diff2              difficulty           `json:"difficulty2"` // fuck nyo
 	MaxCombo           int                  `json:"max_combo"`
 	HitLength          int                  `json:"hit_length"`
 	Ranked             int                  `json:"ranked"`
 	RankedStatusFrozen int                  `json:"ranked_status_frozen"`
 	LatestUpdate       common.UnixTimestamp `json:"latest_update"`
-}
-
-type beatmapMayOrMayNotExist struct {
-	BeatmapID          *int
-	BeatmapsetID       *int
-	BeatmapMD5         *string
-	SongName           *string
-	AR                 *float32
-	OD                 *float32
-	Difficulty         *float64
-	MaxCombo           *int
-	HitLength          *int
-	Ranked             *int
-	RankedStatusFrozen *int
-	LatestUpdate       *common.UnixTimestamp
-}
-
-func (b *beatmapMayOrMayNotExist) toBeatmap() *beatmap {
-	if b == nil || b.BeatmapID == nil {
-		return nil
-	}
-	return &beatmap{
-		BeatmapID:          *b.BeatmapID,
-		BeatmapsetID:       *b.BeatmapsetID,
-		BeatmapMD5:         *b.BeatmapMD5,
-		SongName:           *b.SongName,
-		AR:                 *b.AR,
-		OD:                 *b.OD,
-		Difficulty:         *b.Difficulty,
-		MaxCombo:           *b.MaxCombo,
-		HitLength:          *b.HitLength,
-		Ranked:             *b.Ranked,
-		RankedStatusFrozen: *b.RankedStatusFrozen,
-		LatestUpdate:       *b.LatestUpdate,
-	}
 }
 
 type beatmapResponse struct {
@@ -131,7 +104,8 @@ func BeatmapGET(md common.MethodData) common.CodeMessager {
 const baseBeatmapSelect = `
 SELECT
 	beatmap_id, beatmapset_id, beatmap_md5,
-	song_name, ar, od, difficulty, max_combo,
+	song_name, ar, od, difficulty_std, difficulty_taiko,
+	difficulty_ctb, difficulty_mania, max_combo,
 	hit_length, ranked, ranked_status_freezed,
 	latest_update
 FROM beatmaps
@@ -148,10 +122,12 @@ func getSet(md common.MethodData, setID int) common.CodeMessager {
 		var b beatmap
 		err = rows.Scan(
 			&b.BeatmapID, &b.BeatmapsetID, &b.BeatmapMD5,
-			&b.SongName, &b.AR, &b.OD, &b.Difficulty, &b.MaxCombo,
+			&b.SongName, &b.AR, &b.OD, &b.Diff2.STD, &b.Diff2.Taiko,
+			&b.Diff2.CTB, &b.Diff2.Mania, &b.MaxCombo,
 			&b.HitLength, &b.Ranked, &b.RankedStatusFrozen,
 			&b.LatestUpdate,
 		)
+		b.Difficulty = b.Diff2.STD
 		if err != nil {
 			md.Err(err)
 			continue
@@ -166,10 +142,12 @@ func getBeatmap(md common.MethodData, beatmapID int) common.CodeMessager {
 	var b beatmap
 	err := md.DB.QueryRow(baseBeatmapSelect+"WHERE beatmap_id = ? LIMIT 1", beatmapID).Scan(
 		&b.BeatmapID, &b.BeatmapsetID, &b.BeatmapMD5,
-		&b.SongName, &b.AR, &b.OD, &b.Difficulty, &b.MaxCombo,
+		&b.SongName, &b.AR, &b.OD, &b.Diff2.STD, &b.Diff2.Taiko,
+		&b.Diff2.CTB, &b.Diff2.Mania, &b.MaxCombo,
 		&b.HitLength, &b.Ranked, &b.RankedStatusFrozen,
 		&b.LatestUpdate,
 	)
+	b.Difficulty = b.Diff2.STD
 	switch {
 	case err == sql.ErrNoRows:
 		return common.SimpleResponse(404, "That beatmap could not be found!")

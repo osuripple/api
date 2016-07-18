@@ -30,7 +30,7 @@ type score struct {
 
 type userScore struct {
 	score
-	Beatmap *beatmap `json:"beatmap"`
+	Beatmap beatmap `json:"beatmap"`
 }
 
 type userScoresResponse struct {
@@ -48,7 +48,8 @@ SELECT
 	scores.completed,
 
 	beatmaps.beatmap_id, beatmaps.beatmapset_id, beatmaps.beatmap_md5,
-	beatmaps.song_name, beatmaps.ar, beatmaps.od, beatmaps.difficulty,
+	beatmaps.song_name, beatmaps.ar, beatmaps.od, beatmaps.difficulty_std,
+	beatmaps.difficulty_taiko, beatmaps.difficulty_ctb, beatmaps.difficulty_mania,
 	beatmaps.max_combo, beatmaps.hit_length, beatmaps.ranked,
 	beatmaps.ranked_status_freezed, beatmaps.latest_update
 FROM scores
@@ -130,7 +131,7 @@ func scoresPuts(md common.MethodData, whereClause string, params ...interface{})
 		var (
 			us userScore
 			t  string
-			b  beatmapMayOrMayNotExist
+			b  beatmap
 		)
 		err = rows.Scan(
 			&us.ID, &us.BeatmapMD5, &us.Score,
@@ -141,10 +142,12 @@ func scoresPuts(md common.MethodData, whereClause string, params ...interface{})
 			&us.Completed,
 
 			&b.BeatmapID, &b.BeatmapsetID, &b.BeatmapMD5,
-			&b.SongName, &b.AR, &b.OD, &b.Difficulty,
+			&b.SongName, &b.AR, &b.OD, &b.Diff2.STD,
+			&b.Diff2.Taiko, &b.Diff2.CTB, &b.Diff2.Mania,
 			&b.MaxCombo, &b.HitLength, &b.Ranked,
 			&b.RankedStatusFrozen, &b.LatestUpdate,
 		)
+		b.Difficulty = b.Diff2.STD
 		if err != nil {
 			md.Err(err)
 			return Err500
@@ -155,7 +158,7 @@ func scoresPuts(md common.MethodData, whereClause string, params ...interface{})
 			md.Err(err)
 			return Err500
 		}
-		us.Beatmap = b.toBeatmap()
+		us.Beatmap = b
 		scores = append(scores, us)
 	}
 	r := userScoresResponse{}
