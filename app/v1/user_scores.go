@@ -53,8 +53,8 @@ SELECT
 	beatmaps.max_combo, beatmaps.hit_length, beatmaps.ranked,
 	beatmaps.ranked_status_freezed, beatmaps.latest_update
 FROM scores
-LEFT JOIN beatmaps ON beatmaps.beatmap_md5 = scores.beatmap_md5
-LEFT JOIN users ON users.id = scores.userid
+INNER JOIN beatmaps ON beatmaps.beatmap_md5 = scores.beatmap_md5
+INNER JOIN users ON users.id = scores.userid
 `
 
 // UserScoresBestGET retrieves the best scores of an user, sorted by PP if

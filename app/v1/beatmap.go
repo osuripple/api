@@ -78,7 +78,7 @@ func BeatmapSetStatusPOST(md common.MethodData) common.CodeMessager {
 		}
 	}
 
-	md.DB.Exec(`UPDATE beatmaps 
+	md.DB.Exec(`UPDATE beatmaps
 		SET ranked = ?, ranked_status_freezed = ?
 		WHERE beatmapset_id = ?`, req.RankedStatus, req.Frozen, param)
 
