@@ -81,7 +81,10 @@ func getUserX(c *gin.Context, db *sql.DB, orderBy string, limit int) {
 		curscore.FullCombo = osuapi.OsuBool(fc)
 		curscore.Mods = osuapi.Mods(mods)
 		t, err := time.Parse(common.OsuTimeFormat, rawTime)
-		if err != nil {
+		// silently ignore ParseErrors. should probably put something in the
+		// cron to restrict all users who have an "unusual" time format in
+		// their scores.
+		if _, ok := err.(*time.ParseError); !ok && err != nil {
 			c.JSON(200, defaultResponse)
 			c.Error(err)
 			return
