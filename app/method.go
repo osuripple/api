@@ -69,7 +69,7 @@ func initialCaretaker(c *gin.Context, f func(md common.MethodData) common.CodeMe
 	}
 
 	// requests from hanayo should not be rate limited.
-	if ip != "127.0.0.1" || c.Request.UserAgent() != "hanayo" {
+	if !(c.Request.Header.Get("H-Key") == cf.HanayoKey && c.Request.UserAgent() == "hanayo") {
 		perUserRequestLimiter(md.ID(), c.ClientIP())
 	}
 

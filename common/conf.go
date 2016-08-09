@@ -18,6 +18,7 @@ type Conf struct {
 	ListenTo     string `description:"The IP/Port combination from which to take connections, e.g. :8080"`
 	Unix         bool   `description:"Bool indicating whether ListenTo is a UNIX socket or an address."`
 	SentryDSN    string `description:"thing for sentry whatever"`
+	HanayoKey    string
 }
 
 var cachedConf *Conf
@@ -36,6 +37,7 @@ func Load() (c Conf, halt bool) {
 			DSN:          "root@/ripple",
 			ListenTo:     ":40001",
 			Unix:         false,
+			HanayoKey:    "Potato",
 		}, "api.conf")
 		fmt.Println("Please compile the configuration file (api.conf).")
 	}

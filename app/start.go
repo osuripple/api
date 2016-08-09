@@ -13,11 +13,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var db *sql.DB
+var (
+	db *sql.DB
+	cf common.Conf
+)
 
 // Start begins taking HTTP connections.
 func Start(conf common.Conf, dbO *sql.DB) *gin.Engine {
 	db = dbO
+	cf = conf
 
 	setUpLimiter()
 
