@@ -177,6 +177,9 @@ type tokenSingleResponse struct {
 
 // TokenSelfGET retrieves information about the token the user is connecting with.
 func TokenSelfGET(md common.MethodData) common.CodeMessager {
+	if md.ID() == 0 {
+		return common.SimpleResponse(404, "How are we supposed to find the token you're using if you ain't even using one?!")
+	}
 	var r tokenSingleResponse
 	// md.User.ID = token id, userid would have been md.User.UserID. what a clusterfuck
 	err := md.DB.QueryRow("SELECT id, privileges, description FROM tokens WHERE id = ?", md.User.ID).Scan(
