@@ -37,7 +37,7 @@ func initialCaretaker(c *gin.Context, f func(md common.MethodData) common.CodeMe
 	case c.Query("k") != "":
 		token = c.Query("k")
 	default:
-		token, _ = c.Cookie("X-Ripple-Token")
+		token, _ = c.Cookie("rt")
 	}
 	c.Set("token", fmt.Sprintf("%x", md5.Sum([]byte(token))))
 
