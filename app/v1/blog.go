@@ -74,11 +74,22 @@ func BlogPostsContentGET(md common.MethodData) common.CodeMessager {
 	if _, present := md.C.GetQuery("html"); present {
 		field = "html"
 	}
-	if md.C.Query("id") == "" {
-		return ErrMissingField("id")
+	var (
+		by  string
+		val string
+	)
+	switch {
+	case md.C.Query("slug") != "":
+		by = "slug"
+		val = md.C.Query("slug")
+	case md.C.Query("id") != "":
+		by = "id"
+		val = md.C.Query("id")
+	default:
+		return ErrMissingField("id|slug")
 	}
 	var r blogPostContent
-	err := md.DB.QueryRow("SELECT "+field+" FROM anchor_posts WHERE id = ? AND status = 'published'", md.C.Query("id")).Scan(&r.Content)
+	err := md.DB.QueryRow("SELECT "+field+" FROM anchor_posts WHERE "+by+" = ? AND status = 'published'", val).Scan(&r.Content)
 	if err != nil {
 		return common.SimpleResponse(404, "no blog post found")
 	}
