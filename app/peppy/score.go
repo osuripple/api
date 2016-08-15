@@ -34,6 +34,15 @@ func GetScores(c *gin.Context, db *sqlx.DB) {
 	if rankable(c.Query("m")) {
 		sb = "scores.pp"
 	}
+	var (
+		extraWhere  string
+		extraParams []interface{}
+	)
+	if c.Query("u") != "" {
+		w, p := genUser(c, db)
+		extraWhere = "AND " + w
+		extraParams = append(extraParams, p)
+	}
 	rows, err := db.Query(`
 SELECT
 	scores.id, scores.score, users.username, scores.300_count, scores.100_count,
@@ -46,8 +55,9 @@ WHERE scores.completed = '3'
   AND users.privileges & 1 > 0
   AND scores.beatmap_md5 = ?
   AND scores.play_mode = ?
+  `+extraWhere+`
 ORDER BY `+sb+` DESC LIMIT `+strconv.Itoa(common.InString(1, c.Query("limit"), 100, 50)),
-		beatmapMD5, genmodei(c.Query("m")))
+		append([]interface{}{beatmapMD5, genmodei(c.Query("m"))}, extraParams...)...)
 	if err != nil {
 		c.Error(err)
 		c.JSON(200, defaultResponse)
