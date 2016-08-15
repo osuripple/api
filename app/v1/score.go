@@ -2,6 +2,8 @@ package v1
 
 import (
 	"database/sql"
+	"fmt"
+	"strconv"
 
 	"git.zxq.co/ripple/rippleapi/common"
 )
@@ -81,7 +83,7 @@ SELECT
 FROM scores
 INNER JOIN users ON users.id = scores.userid
 INNER JOIN users_stats ON users_stats.id = scores.userid
-WHERE scores.beatmap_md5 = ? AND scores.completed = '3'
+WHERE scores.beatmap_md5 = ? AND scores.completed = '3' AND users.privileges & 1 > 0 `+genModeClause(md)+`
 `+sort+common.Paginate(md.Query("p"), md.Query("l"), 100), beatmapMD5)
 	if err != nil {
 		md.Err(err)
@@ -112,4 +114,28 @@ WHERE scores.beatmap_md5 = ? AND scores.completed = '3'
 	}
 	r.Code = 200
 	return r
+}
+
+func getMode(m string) string {
+	switch m {
+	case "1":
+		return "taiko"
+	case "2":
+		return "ctb"
+	case "3":
+		return "mania"
+	default:
+		return "std"
+	}
+}
+
+func genModeClause(md common.MethodData) string {
+	var modeClause string
+	if md.Query("mode") != "" {
+		m, err := strconv.Atoi(md.Query("mode"))
+		if err == nil && m >= 0 && m <= 3 {
+			modeClause = fmt.Sprintf("AND scores.play_mode = '%d'", m)
+		}
+	}
+	return modeClause
 }

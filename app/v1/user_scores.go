@@ -2,7 +2,6 @@ package v1
 
 import (
 	"fmt"
-	"strconv"
 
 	"git.zxq.co/ripple/rippleapi/common"
 )
@@ -73,30 +72,6 @@ func UserScoresRecentGET(md common.MethodData) common.CodeMessager {
 		ORDER BY scores.time DESC %s`,
 		wc, genModeClause(md), common.Paginate(md.Query("p"), md.Query("l"), 100),
 	), param)
-}
-
-func getMode(m string) string {
-	switch m {
-	case "1":
-		return "taiko"
-	case "2":
-		return "ctb"
-	case "3":
-		return "mania"
-	default:
-		return "std"
-	}
-}
-
-func genModeClause(md common.MethodData) string {
-	var modeClause string
-	if md.Query("mode") != "" {
-		m, err := strconv.Atoi(md.Query("mode"))
-		if err == nil && m >= 0 && m <= 3 {
-			modeClause = fmt.Sprintf("AND scores.play_mode = '%d'", m)
-		}
-	}
-	return modeClause
 }
 
 func scoresPuts(md common.MethodData, whereClause string, params ...interface{}) common.CodeMessager {
