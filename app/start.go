@@ -1,7 +1,6 @@
 package app
 
 import (
-	"database/sql"
 	"fmt"
 
 	"git.zxq.co/ripple/rippleapi/app/internals"
@@ -11,15 +10,16 @@ import (
 	"github.com/getsentry/raven-go"
 	"github.com/gin-gonic/contrib/gzip"
 	"github.com/gin-gonic/gin"
+	"github.com/jmoiron/sqlx"
 )
 
 var (
-	db *sql.DB
+	db *sqlx.DB
 	cf common.Conf
 )
 
 // Start begins taking HTTP connections.
-func Start(conf common.Conf, dbO *sql.DB) *gin.Engine {
+func Start(conf common.Conf, dbO *sqlx.DB) *gin.Engine {
 	db = dbO
 	cf = conf
 

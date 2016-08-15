@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/jmoiron/sqlx"
+
 	"git.zxq.co/ripple/rippleapi/common"
 	"git.zxq.co/ripple/schiavolib"
 	"golang.org/x/crypto/bcrypt"
@@ -204,7 +206,7 @@ func TokenFixPrivilegesGET(md common.MethodData) common.CodeMessager {
 	return common.SimpleResponse(200, "Privilege fixing started!")
 }
 
-func fixPrivileges(user int, db *sql.DB) {
+func fixPrivileges(user int, db *sqlx.DB) {
 	var wc string
 	var params = make([]interface{}, 0, 1)
 	if user != 0 {

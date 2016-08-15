@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"fmt"
 	"log"
 	"strings"
@@ -12,6 +11,7 @@ import (
 	"git.zxq.co/ripple/schiavolib"
 	// Golint pls dont break balls
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/jmoiron/sqlx"
 )
 
 // Version is the git hash of the application. Do not edit. This is
@@ -24,7 +24,7 @@ func init() {
 	common.Version = Version
 }
 
-var db *sql.DB
+var db *sqlx.DB
 
 func main() {
 	fmt.Print("Ripple API")
@@ -49,7 +49,7 @@ func main() {
 	}
 
 	var err error
-	db, err = sql.Open(conf.DatabaseType, conf.DSN)
+	db, err = sqlx.Open(conf.DatabaseType, conf.DSN)
 	if err != nil {
 		schiavo.Bunker.Send(err.Error())
 		log.Fatalln(err)
