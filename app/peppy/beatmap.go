@@ -1,13 +1,12 @@
 package peppy
 
 import (
-	"database/sql"
-
 	"github.com/gin-gonic/gin"
+	"github.com/jmoiron/sqlx"
 )
 
 // GetBeatmap retrieves general beatmap information.
-func GetBeatmap(c *gin.Context, db *sql.DB) {
+func GetBeatmap(c *gin.Context, db *sqlx.DB) {
 	var whereClauses []string
 	var params []string
 

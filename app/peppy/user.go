@@ -7,11 +7,12 @@ import (
 
 	"git.zxq.co/ripple/ocl"
 	"github.com/gin-gonic/gin"
+	"github.com/jmoiron/sqlx"
 	"github.com/thehowl/go-osuapi"
 )
 
 // GetUser retrieves general user information.
-func GetUser(c *gin.Context, db *sql.DB) {
+func GetUser(c *gin.Context, db *sqlx.DB) {
 	if c.Query("u") == "" {
 		c.JSON(200, defaultResponse)
 		return

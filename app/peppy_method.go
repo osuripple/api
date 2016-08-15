@@ -1,13 +1,12 @@
 package app
 
 import (
-	"database/sql"
-
 	"github.com/gin-gonic/gin"
+	"github.com/jmoiron/sqlx"
 )
 
 // PeppyMethod generates a method for the peppyapi
-func PeppyMethod(a func(c *gin.Context, db *sql.DB)) gin.HandlerFunc {
+func PeppyMethod(a func(c *gin.Context, db *sqlx.DB)) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		rateLimiter()
 		perUserRequestLimiter(0, c.ClientIP())

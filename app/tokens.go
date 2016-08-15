@@ -5,11 +5,13 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/jmoiron/sqlx"
+
 	"git.zxq.co/ripple/rippleapi/common"
 )
 
 // GetTokenFull retrieves an user ID and their token privileges knowing their API token.
-func GetTokenFull(token string, db *sql.DB) (common.Token, bool) {
+func GetTokenFull(token string, db *sqlx.DB) (common.Token, bool) {
 	var t common.Token
 	var privs uint64
 	var priv8 bool

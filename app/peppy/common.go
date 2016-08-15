@@ -7,6 +7,7 @@ import (
 	"git.zxq.co/ripple/rippleapi/common"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jmoiron/sqlx"
 )
 
 var defaultResponse = []struct{}{}
@@ -32,7 +33,7 @@ func genmodei(m string) int {
 	return v
 }
 
-func genUser(c *gin.Context, db *sql.DB) (string, string) {
+func genUser(c *gin.Context, db *sqlx.DB) (string, string) {
 	var whereClause string
 	var p string
 

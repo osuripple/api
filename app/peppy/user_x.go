@@ -1,7 +1,6 @@
 package peppy
 
 import (
-	"database/sql"
 	"fmt"
 	"strings"
 	"time"
@@ -9,16 +8,17 @@ import (
 	"git.zxq.co/ripple/rippleapi/common"
 	"git.zxq.co/x/getrank"
 	"github.com/gin-gonic/gin"
+	"github.com/jmoiron/sqlx"
 	"gopkg.in/thehowl/go-osuapi.v1"
 )
 
 // GetUserRecent retrieves an user's recent scores.
-func GetUserRecent(c *gin.Context, db *sql.DB) {
+func GetUserRecent(c *gin.Context, db *sqlx.DB) {
 	getUserX(c, db, "ORDER BY scores.time DESC", common.InString(1, c.Query("limit"), 50, 10))
 }
 
 // GetUserBest retrieves an user's best scores.
-func GetUserBest(c *gin.Context, db *sql.DB) {
+func GetUserBest(c *gin.Context, db *sqlx.DB) {
 	var sb string
 	if genmodei(c.Query("m")) == 0 {
 		sb = "scores.pp"
@@ -28,7 +28,7 @@ func GetUserBest(c *gin.Context, db *sql.DB) {
 	getUserX(c, db, "AND completed = '3' ORDER BY "+sb+" DESC", common.InString(1, c.Query("limit"), 100, 10))
 }
 
-func getUserX(c *gin.Context, db *sql.DB, orderBy string, limit int) {
+func getUserX(c *gin.Context, db *sqlx.DB, orderBy string, limit int) {
 	whereClause, p := genUser(c, db)
 	query := fmt.Sprintf(
 		`SELECT
