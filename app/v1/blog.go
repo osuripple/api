@@ -23,9 +23,9 @@ type blogPostsResponse struct {
 func BlogPostsGET(md common.MethodData) common.CodeMessager {
 	var and string
 	var params []interface{}
-	if md.C.Query("id") != "" {
+	if md.Query("id") != "" {
 		and = "b.id = ?"
-		params = append(params, md.C.Query("id"))
+		params = append(params, md.Query("id"))
 	}
 	rows, err := md.DB.Query(`
 	SELECT 
@@ -37,7 +37,7 @@ func BlogPostsGET(md common.MethodData) common.CodeMessager {
 	LEFT JOIN users u ON b.author = u.id
 	LEFT JOIN users_stats s ON b.author = s.id
 	WHERE status = "published" `+and+`
-	ORDER BY b.id DESC `+common.Paginate(md.C.Query("p"), md.C.Query("l"), 50), params...)
+	ORDER BY b.id DESC `+common.Paginate(md.Query("p"), md.Query("l"), 50), params...)
 	if err != nil {
 		md.Err(err)
 		return Err500
@@ -79,12 +79,12 @@ func BlogPostsContentGET(md common.MethodData) common.CodeMessager {
 		val string
 	)
 	switch {
-	case md.C.Query("slug") != "":
+	case md.Query("slug") != "":
 		by = "slug"
-		val = md.C.Query("slug")
-	case md.C.Query("id") != "":
+		val = md.Query("slug")
+	case md.Query("id") != "":
 		by = "id"
-		val = md.C.Query("id")
+		val = md.Query("id")
 	default:
 		return ErrMissingField("id|slug")
 	}

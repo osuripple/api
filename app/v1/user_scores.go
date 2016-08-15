@@ -3,7 +3,6 @@ package v1
 import (
 	"fmt"
 	"strconv"
-	"time"
 
 	"git.zxq.co/ripple/rippleapi/common"
 )
@@ -46,7 +45,7 @@ func UserScoresBestGET(md common.MethodData) common.CodeMessager {
 	}
 	mc := genModeClause(md)
 	// Do not print 0pp scores on std
-	if getMode(md.C.Query("mode")) == "std" {
+	if getMode(md.Query("mode")) == "std" {
 		mc += " AND scores.pp > 0"
 	}
 	return scoresPuts(md, fmt.Sprintf(
@@ -56,7 +55,7 @@ func UserScoresBestGET(md common.MethodData) common.CodeMessager {
 			%s
 			AND users.privileges & 1 > 0
 		ORDER BY scores.pp DESC, scores.score DESC %s`,
-		wc, mc, common.Paginate(md.C.Query("p"), md.C.Query("l"), 100),
+		wc, mc, common.Paginate(md.Query("p"), md.Query("l"), 100),
 	), param)
 }
 
@@ -72,7 +71,7 @@ func UserScoresRecentGET(md common.MethodData) common.CodeMessager {
 			%s
 			AND users.privileges & 1 > 0
 		ORDER BY scores.time DESC %s`,
-		wc, genModeClause(md), common.Paginate(md.C.Query("p"), md.C.Query("l"), 100),
+		wc, genModeClause(md), common.Paginate(md.Query("p"), md.Query("l"), 100),
 	), param)
 }
 
@@ -91,8 +90,8 @@ func getMode(m string) string {
 
 func genModeClause(md common.MethodData) string {
 	var modeClause string
-	if md.C.Query("mode") != "" {
-		m, err := strconv.Atoi(md.C.Query("mode"))
+	if md.Query("mode") != "" {
+		m, err := strconv.Atoi(md.Query("mode"))
 		if err == nil && m >= 0 && m <= 3 {
 			modeClause = fmt.Sprintf("AND scores.play_mode = '%d'", m)
 		}
@@ -110,7 +109,6 @@ func scoresPuts(md common.MethodData, whereClause string, params ...interface{})
 	for rows.Next() {
 		var (
 			us userScore
-			t  string
 			b  beatmap
 		)
 		err = rows.Scan(
@@ -118,7 +116,7 @@ func scoresPuts(md common.MethodData, whereClause string, params ...interface{})
 			&us.MaxCombo, &us.FullCombo, &us.Mods,
 			&us.Count300, &us.Count100, &us.Count50,
 			&us.CountGeki, &us.CountKatu, &us.CountMiss,
-			&t, &us.PlayMode, &us.Accuracy, &us.PP,
+			&us.Time, &us.PlayMode, &us.Accuracy, &us.PP,
 			&us.Completed,
 
 			&b.BeatmapID, &b.BeatmapsetID, &b.BeatmapMD5,
@@ -127,17 +125,11 @@ func scoresPuts(md common.MethodData, whereClause string, params ...interface{})
 			&b.MaxCombo, &b.HitLength, &b.Ranked,
 			&b.RankedStatusFrozen, &b.LatestUpdate,
 		)
-		b.Difficulty = b.Diff2.STD
 		if err != nil {
 			md.Err(err)
 			return Err500
 		}
-		// puck feppy
-		us.Time, err = time.Parse(common.OsuTimeFormat, t)
-		if _, ok := err.(*time.ParseError); !ok && err != nil {
-			md.Err(err)
-			return Err500
-		}
+		b.Difficulty = b.Diff2.STD
 		us.Beatmap = b
 		scores = append(scores, us)
 	}

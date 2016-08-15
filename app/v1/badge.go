@@ -24,9 +24,9 @@ func BadgesGET(md common.MethodData) common.CodeMessager {
 		rows *sql.Rows
 		err  error
 	)
-	if md.C.Query("id") != "" {
+	if md.Query("id") != "" {
 		// TODO(howl): ID validation
-		rows, err = md.DB.Query("SELECT id, name, icon FROM badges WHERE id = ?", md.C.Query("id"))
+		rows, err = md.DB.Query("SELECT id, name, icon FROM badges WHERE id = ?", md.Query("id"))
 	} else {
 		rows, err = md.DB.Query("SELECT id, name, icon FROM badges")
 	}

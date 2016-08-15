@@ -21,7 +21,7 @@ type docResponse struct {
 // DocGET retrieves a list of documentation files.
 func DocGET(md common.MethodData) common.CodeMessager {
 	var wc string
-	if !md.User.Privileges.HasPrivilegeBlog() || md.C.Query("public") == "1" {
+	if !md.User.Privileges.HasPrivilegeBlog() || md.Query("public") == "1" {
 		wc = "WHERE public = '1'"
 	}
 	rows, err := md.DB.Query("SELECT id, doc_name, public, is_rule FROM docs " + wc)
@@ -50,12 +50,12 @@ type docContentResponse struct {
 
 // DocContentGET retrieves the raw markdown file of a doc file
 func DocContentGET(md common.MethodData) common.CodeMessager {
-	docID := common.Int(md.C.Query("id"))
+	docID := common.Int(md.Query("id"))
 	if docID == 0 {
 		return common.SimpleResponse(404, "Documentation file not found!")
 	}
 	var wc string
-	if !md.User.Privileges.HasPrivilegeBlog() || md.C.Query("public") == "1" {
+	if !md.User.Privileges.HasPrivilegeBlog() || md.Query("public") == "1" {
 		wc = "AND public = '1'"
 	}
 	var r docContentResponse

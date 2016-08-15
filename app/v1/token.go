@@ -198,8 +198,8 @@ func TokenSelfGET(md common.MethodData) common.CodeMessager {
 // TokenFixPrivilegesGET fixes the privileges on the token of the given user,
 // or of all the users if no user is given.
 func TokenFixPrivilegesGET(md common.MethodData) common.CodeMessager {
-	id := common.Int(md.C.Query("id"))
-	if md.C.Query("id") == "self" {
+	id := common.Int(md.Query("id"))
+	if md.Query("id") == "self" {
 		id = md.ID()
 	}
 	go fixPrivileges(id, md.DB)

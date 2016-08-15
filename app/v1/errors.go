@@ -16,6 +16,6 @@ var (
 func ErrMissingField(missingFields ...string) common.CodeMessager {
 	return common.ResponseBase{
 		Code:    422, // http://stackoverflow.com/a/10323055/5328069
-		Message: "Missing fields: " + strings.Join(missingFields, ", ") + ".",
+		Message: "Missing parameters: " + strings.Join(missingFields, ", ") + ".",
 	}
 }

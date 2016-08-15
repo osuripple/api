@@ -25,6 +25,11 @@ func (md MethodData) ID() int {
 	return md.User.UserID
 }
 
+// Query is shorthand for md.C.Query.
+func (md MethodData) Query(q string) string {
+	return md.C.Query(q)
+}
+
 // RequestData is the body of a request. It is wrapped into this type
 // to implement the Unmarshal function, which is just a shorthand to
 // json.Unmarshal.

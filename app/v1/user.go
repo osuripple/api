@@ -6,6 +6,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/jmoiron/sqlx"
+
 	"git.zxq.co/ripple/ocl"
 	"git.zxq.co/ripple/rippleapi/common"
 )
@@ -36,7 +38,7 @@ LEFT JOIN users_stats
 ON users.id=users_stats.id
 WHERE ` + whereClause + ` AND users.privileges & 1 > 0
 LIMIT 1`
-	return userPuts(md, md.DB.QueryRow(query, param))
+	return userPuts(md, md.DB.QueryRowx(query, param))
 }
 
 type userPutsUserData struct {
@@ -44,14 +46,11 @@ type userPutsUserData struct {
 	userData
 }
 
-func userPuts(md common.MethodData, row *sql.Row) common.CodeMessager {
+func userPuts(md common.MethodData, row *sqlx.Row) common.CodeMessager {
 	var err error
 	var user userPutsUserData
 
-	err = row.Scan(
-		&user.ID, &user.Username, &user.RegisteredOn, &user.Privileges, &user.LatestActivity,
-		&user.UsernameAKA, &user.Country,
-	)
+	err = row.StructScan(&user.userData)
 	switch {
 	case err == sql.ErrNoRows:
 		return common.SimpleResponse(404, "No such user was found!")
@@ -95,7 +94,7 @@ func UserWhatsTheIDGET(md common.MethodData) common.CodeMessager {
 		r          whatIDResponse
 		privileges int
 	)
-	err := md.DB.QueryRow("SELECT id, privileges FROM users WHERE username = ? LIMIT 1", md.C.Query("name")).Scan(&r.ID, &privileges)
+	err := md.DB.QueryRow("SELECT id, privileges FROM users WHERE username = ? LIMIT 1", md.Query("name")).Scan(&r.ID, &privileges)
 	if err != nil || ((privileges&common.UserPrivilegePublic) == 0 && !md.User.Privileges.HasPrivilegeViewUserAdvanced()) {
 		return common.SimpleResponse(404, "That user could not be found!")
 	}
@@ -243,17 +242,17 @@ func UserUserpageGET(md common.MethodData) common.CodeMessager {
 
 func whereClauseUser(md common.MethodData, tableName string) (*common.CodeMessager, string, interface{}) {
 	switch {
-	case md.C.Query("id") == "self":
+	case md.Query("id") == "self":
 		return nil, tableName + ".id = ?", md.ID()
-	case md.C.Query("id") != "":
-		id, err := strconv.Atoi(md.C.Query("id"))
+	case md.Query("id") != "":
+		id, err := strconv.Atoi(md.Query("id"))
 		if err != nil {
 			a := common.SimpleResponse(400, "please pass a valid user ID")
 			return &a, "", nil
 		}
 		return nil, tableName + ".id = ?", id
-	case md.C.Query("name") != "":
-		return nil, tableName + ".username = ?", md.C.Query("name")
+	case md.Query("name") != "":
+		return nil, tableName + ".username = ?", md.Query("name")
 	}
 	a := common.SimpleResponse(400, "you need to pass either querystring parameters name or id")
 	return &a, "", nil
@@ -275,7 +274,7 @@ func UserLookupGET(md common.MethodData) common.CodeMessager {
 		"%", "\\%",
 		"_", "\\_",
 		"\\", "\\\\",
-	).Replace(md.C.Query("name"))
+	).Replace(md.Query("name"))
 	if name == "" {
 		return common.SimpleResponse(400, "please provide an username to start searching")
 	}

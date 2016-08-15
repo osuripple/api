@@ -11,6 +11,7 @@ import (
 	"github.com/gin-gonic/contrib/gzip"
 	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx"
+	"github.com/serenize/snaker"
 )
 
 var (
@@ -18,10 +19,22 @@ var (
 	cf common.Conf
 )
 
+var commonClusterfucks = map[string]string{
+	"RegisteredOn": "register_datetime",
+	"UsernameAKA":  "username_aka",
+}
+
 // Start begins taking HTTP connections.
 func Start(conf common.Conf, dbO *sqlx.DB) *gin.Engine {
 	db = dbO
 	cf = conf
+
+	db.MapperFunc(func(s string) string {
+		if x, ok := commonClusterfucks[s]; ok {
+			return x
+		}
+		return snaker.CamelToSnake(s)
+	})
 
 	setUpLimiter()
 
@@ -68,6 +81,7 @@ func Start(conf common.Conf, dbO *sqlx.DB) *gin.Engine {
 			gv1.GET("/tokens/self", Method(v1.TokenSelfGET))
 			gv1.GET("/blog/posts", Method(v1.BlogPostsGET))
 			gv1.GET("/blog/posts/content", Method(v1.BlogPostsContentGET))
+			gv1.GET("/scores", Method(v1.ScoresGET))
 
 			// ReadConfidential privilege required
 			gv1.GET("/friends", Method(v1.FriendsGET, common.PrivilegeReadConfidential))

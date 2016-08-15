@@ -87,14 +87,14 @@ func BeatmapSetStatusPOST(md common.MethodData) common.CodeMessager {
 
 // BeatmapGET retrieves a beatmap.
 func BeatmapGET(md common.MethodData) common.CodeMessager {
-	if md.C.Query("s") == "" && md.C.Query("b") == "" {
+	if md.Query("s") == "" && md.Query("b") == "" {
 		return common.SimpleResponse(400, "Must pass either querystring param 'b' or 's'")
 	}
-	setID := common.Int(md.C.Query("s"))
+	setID := common.Int(md.Query("s"))
 	if setID != 0 {
 		return getSet(md, setID)
 	}
-	beatmapID := common.Int(md.C.Query("b"))
+	beatmapID := common.Int(md.Query("b"))
 	if beatmapID != 0 {
 		return getBeatmap(md, beatmapID)
 	}

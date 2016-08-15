@@ -50,5 +50,5 @@ LEFT JOIN users_stats
 ON users.id=users_stats.id
 WHERE users.id=?
 LIMIT 1`
-	return userPuts(md, md.DB.QueryRow(query, data.UserID))
+	return userPuts(md, md.DB.QueryRowx(query, data.UserID))
 }

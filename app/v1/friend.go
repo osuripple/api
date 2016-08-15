@@ -54,7 +54,7 @@ ON users_relationships.user2=users_stats.id
 WHERE users_relationships.user1=?
 ORDER BY users_relationships.id`
 
-	results, err := md.DB.Query(myFriendsQuery+common.Paginate(md.C.Query("p"), md.C.Query("l"), 50), md.ID())
+	results, err := md.DB.Query(myFriendsQuery+common.Paginate(md.Query("p"), md.Query("l"), 50), md.ID())
 	if err != nil {
 		md.Err(err)
 		return Err500
@@ -105,7 +105,7 @@ type friendsWithResponse struct {
 func FriendsWithGET(md common.MethodData) common.CodeMessager {
 	var r friendsWithResponse
 	r.Code = 200
-	uid := common.Int(md.C.Query("id"))
+	uid := common.Int(md.Query("id"))
 	if uid == 0 {
 		return r
 	}
@@ -122,7 +122,7 @@ func FriendsWithGET(md common.MethodData) common.CodeMessager {
 
 // FriendsAddGET is the GET version of FriendsAddPOST.
 func FriendsAddGET(md common.MethodData) common.CodeMessager {
-	return addFriend(md, common.Int(md.C.Query("id")))
+	return addFriend(md, common.Int(md.Query("id")))
 }
 
 func addFriend(md common.MethodData, u int) common.CodeMessager {
@@ -166,7 +166,7 @@ func userExists(md common.MethodData, u int) (r bool) {
 
 // FriendsDelGET is the GET version of FriendDelPOST.
 func FriendsDelGET(md common.MethodData) common.CodeMessager {
-	return delFriend(md, common.Int(md.C.Query("id")))
+	return delFriend(md, common.Int(md.Query("id")))
 }
 
 func delFriend(md common.MethodData, u int) common.CodeMessager {

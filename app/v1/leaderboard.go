@@ -35,9 +35,9 @@ INNER JOIN users_stats ON users_stats.id = leaderboard_%[1]s.user
 
 // LeaderboardGET gets the leaderboard.
 func LeaderboardGET(md common.MethodData) common.CodeMessager {
-	m := getMode(md.C.Query("mode"))
+	m := getMode(md.Query("mode"))
 	query := fmt.Sprintf(lbUserQuery, m, `WHERE users.privileges & 1 > 0 ORDER BY leaderboard_`+m+`.position `+
-		common.Paginate(md.C.Query("p"), md.C.Query("l"), 100))
+		common.Paginate(md.Query("p"), md.Query("l"), 100))
 	rows, err := md.DB.Query(query)
 	if err != nil {
 		md.Err(err)
