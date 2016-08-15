@@ -20,7 +20,7 @@ func GetUserRecent(c *gin.Context, db *sqlx.DB) {
 // GetUserBest retrieves an user's best scores.
 func GetUserBest(c *gin.Context, db *sqlx.DB) {
 	var sb string
-	if genmodei(c.Query("m")) == 0 {
+	if rankable(c.Query("m")) {
 		sb = "scores.pp"
 	} else {
 		sb = "scores.score"

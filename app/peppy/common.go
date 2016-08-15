@@ -32,6 +32,10 @@ func genmodei(m string) int {
 	}
 	return v
 }
+func rankable(m string) bool {
+	x := genmodei(m)
+	return x == 0 || x == 3
+}
 
 func genUser(c *gin.Context, db *sqlx.DB) (string, string) {
 	var whereClause string
