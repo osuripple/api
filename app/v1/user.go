@@ -173,13 +173,12 @@ LIMIT 1
 	// Fuck.
 	r := userFullResponse{}
 	var (
-		badges  string
-		country string
+		badges string
 	)
 	err := md.DB.QueryRow(query, param).Scan(
 		&r.ID, &r.Username, &r.RegisteredOn, &r.Privileges, &r.LatestActivity,
 
-		&r.UsernameAKA, &badges, &country,
+		&r.UsernameAKA, &badges, &r.Country,
 		&r.PlayStyle, &r.FavouriteMode,
 
 		&r.STD.RankedScore, &r.STD.TotalScore, &r.STD.PlayCount,
