@@ -69,7 +69,7 @@ ORDER BY `+sb+` DESC LIMIT `+strconv.Itoa(common.InString(1, c.Query("limit"), 1
 			s         osuapi.GSScore
 			fullcombo bool
 			mods      int
-			date      common.OsuTime
+			date      common.UnixTimestamp
 			accuracy  float64
 		)
 		err := rows.Scan(

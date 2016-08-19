@@ -3,7 +3,6 @@ package peppy
 import (
 	"fmt"
 	"strings"
-	"time"
 
 	"git.zxq.co/ripple/rippleapi/common"
 	"git.zxq.co/x/getrank"
@@ -55,7 +54,7 @@ func getUserX(c *gin.Context, db *sqlx.DB, orderBy string, limit int) {
 	for rows.Next() {
 		var (
 			curscore osuapi.GUSScore
-			rawTime  string
+			rawTime  common.UnixTimestamp
 			acc      float64
 			fc       bool
 			mods     int
@@ -80,16 +79,7 @@ func getUserX(c *gin.Context, db *sqlx.DB, orderBy string, limit int) {
 		}
 		curscore.FullCombo = osuapi.OsuBool(fc)
 		curscore.Mods = osuapi.Mods(mods)
-		t, err := time.Parse(common.OsuTimeFormat, rawTime)
-		// silently ignore ParseErrors. should probably put something in the
-		// cron to restrict all users who have an "unusual" time format in
-		// their scores.
-		if _, ok := err.(*time.ParseError); !ok && err != nil {
-			c.JSON(200, defaultResponse)
-			c.Error(err)
-			return
-		}
-		curscore.Date = osuapi.MySQLDate(t)
+		curscore.Date = osuapi.MySQLDate(rawTime)
 		curscore.Rank = strings.ToUpper(getrank.GetRank(
 			osuapi.Mode(m),
 			curscore.Mods,
