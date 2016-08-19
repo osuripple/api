@@ -34,8 +34,8 @@ func BlogPostsGET(md common.MethodData) common.CodeMessager {
 		u.id, u.username, s.username_aka, u.register_datetime,
 		u.privileges, u.latest_activity, s.country
 	FROM anchor_posts b
-	LEFT JOIN users u ON b.author = u.id
-	LEFT JOIN users_stats s ON b.author = s.id
+	INNER JOIN users u ON b.author = u.id
+	INNER JOIN users_stats s ON b.author = s.id
 	WHERE status = "published" `+and+`
 	ORDER BY b.id DESC `+common.Paginate(md.Query("p"), md.Query("l"), 50), params...)
 	if err != nil {
