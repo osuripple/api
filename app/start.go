@@ -120,6 +120,7 @@ func Start(conf common.Conf, dbO *sqlx.DB) *gin.Engine {
 		api.GET("/get_user_recent", PeppyMethod(peppy.GetUserRecent))
 		api.GET("/get_user_best", PeppyMethod(peppy.GetUserBest))
 		api.GET("/get_scores", PeppyMethod(peppy.GetScores))
+		api.GET("/get_beatmaps", PeppyMethod(peppy.GetBeatmap))
 	}
 
 	r.NoRoute(v1.Handle404)

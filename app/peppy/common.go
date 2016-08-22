@@ -10,20 +10,13 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+var modes = []string{"std", "taiko", "ctb", "mania"}
+
 var defaultResponse = []struct{}{}
 
 func genmode(m string) string {
-	switch m {
-	case "1":
-		m = "taiko"
-	case "2":
-		m = "ctb"
-	case "3":
-		m = "mania"
-	default:
-		m = "std"
-	}
-	return m
+	i := genmodei(m)
+	return modes[i]
 }
 func genmodei(m string) int {
 	v := common.Int(m)
