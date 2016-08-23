@@ -28,9 +28,9 @@ func GetBeatmap(c *gin.Context, db *sqlx.DB) {
 	if c.Query("m") != "" {
 		m := genmode(c.Query("m"))
 		if m == "std" {
-			whereClauses = append(whereClauses, "beatmaps.difficulty_std != 0")
-			for _, i := range modes[1:] {
-				whereClauses = append(whereClauses, "beatmaps.difficulty_"+i+" == 0")
+			// Since STD beatmaps are converted, all of the diffs must be != 0
+			for _, i := range modes {
+				whereClauses = append(whereClauses, "beatmaps.difficulty_"+i+" != 0")
 			}
 		} else {
 			whereClauses = append(whereClauses, "beatmaps.difficulty_"+m+" != 0")
