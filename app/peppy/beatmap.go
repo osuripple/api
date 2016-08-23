@@ -94,6 +94,7 @@ FROM beatmaps `+where+" ORDER BY id DESC LIMIT "+strconv.Itoa(common.InString(1,
 			if diffVal != 0 {
 				bm.Mode = osuapi.Mode(i)
 				bm.DifficultyRating = diffVal
+				break
 			}
 		}
 		bms = append(bms, bm)
@@ -112,7 +113,7 @@ var rippleToOsuRankedStatus = map[int]osuapi.ApprovedStatus{
 
 // buggy diffname parser
 func parseDiffName(name string) (author string, title string, diffName string) {
-	parts := strings.SplitN(name, "-", 2)
+	parts := strings.SplitN(name, " - ", 2)
 	author = parts[0]
 	if len(parts) > 1 {
 		title = parts[1]
