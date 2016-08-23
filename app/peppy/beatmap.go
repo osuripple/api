@@ -14,6 +14,7 @@ import (
 func GetBeatmap(c *gin.Context, db *sqlx.DB) {
 	var whereClauses []string
 	var params []interface{}
+	limit := strconv.Itoa(common.InString(1, c.Query("limit"), 500, 500))
 
 	// since value is not stored, silently ignore
 	if c.Query("s") != "" {
@@ -23,6 +24,8 @@ func GetBeatmap(c *gin.Context, db *sqlx.DB) {
 	if c.Query("b") != "" {
 		whereClauses = append(whereClauses, "beatmaps.beatmap_id = ?")
 		params = append(params, c.Query("b"))
+		// b is unique, so change limit to 1
+		limit = "1"
 	}
 	// creator is not stored, silently ignore u and type
 	if c.Query("m") != "" {
@@ -55,7 +58,7 @@ func GetBeatmap(c *gin.Context, db *sqlx.DB) {
 	passcount, max_combo, difficulty_std, difficulty_taiko, difficulty_ctb, difficulty_mania,
 	latest_update
 
-FROM beatmaps `+where+" ORDER BY id DESC LIMIT "+strconv.Itoa(common.InString(1, c.Query("limit"), 500, 500)),
+FROM beatmaps `+where+" ORDER BY id DESC LIMIT "+limit,
 		params...)
 	if err != nil {
 		c.Error(err)
