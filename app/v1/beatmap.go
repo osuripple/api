@@ -124,7 +124,7 @@ func getMultipleBeatmaps(md common.MethodData) common.CodeMessager {
 		Default: "id DESC",
 		Table:   "beatmaps",
 	})
-	where := common.Where("beatmapsetid = ?", md.Query("s")).
+	where := common.Where("beatmapset_id = ?", md.Query("s")).
 		Where("song_name = ?", md.Query("song_name")).
 		Where("ranked_status_freezed = ?", md.Query("ranked_status_frozen"), "0", "1")
 
