@@ -30,6 +30,13 @@ func (md MethodData) Query(q string) string {
 	return md.C.Query(q)
 }
 
+// HasQuery returns true if the parameter is encountered in the querystring.
+// It returns true even if the parameter is "" (the case of ?param&etc=etc)
+func (md MethodData) HasQuery(q string) bool {
+	_, has := md.C.GetQuery(q)
+	return has
+}
+
 // RequestData is the body of a request. It is wrapped into this type
 // to implement the Unmarshal function, which is just a shorthand to
 // json.Unmarshal.

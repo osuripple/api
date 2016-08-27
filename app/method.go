@@ -75,7 +75,7 @@ func initialCaretaker(c *gin.Context, f func(md common.MethodData) common.CodeMe
 
 	missingPrivileges := 0
 	for _, privilege := range privilegesNeeded {
-		if int(md.User.Privileges)&privilege == 0 {
+		if uint64(md.User.TokenPrivileges)&uint64(privilege) == 0 {
 			missingPrivileges |= privilege
 		}
 	}
@@ -95,13 +95,13 @@ func initialCaretaker(c *gin.Context, f func(md common.MethodData) common.CodeMe
 		}
 	}
 
-	if _, exists := c.GetQuery("pls200"); exists {
+	if md.HasQuery("pls200") {
 		c.Writer.WriteHeader(200)
 	} else {
 		c.Writer.WriteHeader(resp.GetCode())
 	}
 
-	if _, exists := c.GetQuery("callback"); exists {
+	if md.HasQuery("callback") {
 		c.Header("Content-Type", "application/javascript; charset=utf-8")
 	} else {
 		c.Header("Content-Type", "application/json; charset=utf-8")

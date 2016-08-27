@@ -21,7 +21,7 @@ type docResponse struct {
 // DocGET retrieves a list of documentation files.
 func DocGET(md common.MethodData) common.CodeMessager {
 	var wc string
-	if !md.User.Privileges.HasPrivilegeBlog() || md.Query("public") == "1" {
+	if md.User.TokenPrivileges&common.PrivilegeBlog == 0 || md.Query("public") == "1" {
 		wc = "WHERE public = '1'"
 	}
 	rows, err := md.DB.Query("SELECT id, doc_name, public, is_rule FROM docs " + wc)
@@ -55,7 +55,7 @@ func DocContentGET(md common.MethodData) common.CodeMessager {
 		return common.SimpleResponse(404, "Documentation file not found!")
 	}
 	var wc string
-	if !md.User.Privileges.HasPrivilegeBlog() || md.Query("public") == "1" {
+	if md.User.TokenPrivileges&common.PrivilegeBlog == 0 || md.Query("public") == "1" {
 		wc = "AND public = '1'"
 	}
 	var r docContentResponse

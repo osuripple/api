@@ -52,7 +52,7 @@ func UserScoresBestGET(md common.MethodData) common.CodeMessager {
 			scores.completed = '3'
 			AND %s
 			%s
-			AND users.privileges & 1 > 0
+			AND `+md.User.OnlyUserPublic(true)+`
 		ORDER BY scores.pp DESC, scores.score DESC %s`,
 		wc, mc, common.Paginate(md.Query("p"), md.Query("l"), 100),
 	), param)
@@ -68,7 +68,7 @@ func UserScoresRecentGET(md common.MethodData) common.CodeMessager {
 		`WHERE
 			%s
 			%s
-			AND users.privileges & 1 > 0
+			AND `+md.User.OnlyUserPublic(true)+`
 		ORDER BY scores.time DESC %s`,
 		wc, genModeClause(md), common.Paginate(md.Query("p"), md.Query("l"), 100),
 	), param)

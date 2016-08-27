@@ -36,7 +36,7 @@ SELECT users.id, users.username, register_datetime, privileges,
 FROM users
 LEFT JOIN users_stats
 ON users.id=users_stats.id
-WHERE ` + whereClause + ` AND users.privileges & 1 > 0
+WHERE ` + whereClause + ` AND ` + md.User.OnlyUserPublic(true) + `
 LIMIT 1`
 	return userPuts(md, md.DB.QueryRowx(query, param))
 }
@@ -92,10 +92,11 @@ type whatIDResponse struct {
 func UserWhatsTheIDGET(md common.MethodData) common.CodeMessager {
 	var (
 		r          whatIDResponse
-		privileges int
+		privileges uint64
 	)
 	err := md.DB.QueryRow("SELECT id, privileges FROM users WHERE username = ? LIMIT 1", md.Query("name")).Scan(&r.ID, &privileges)
-	if err != nil || ((privileges&common.UserPrivilegePublic) == 0 && !md.User.Privileges.HasPrivilegeViewUserAdvanced()) {
+	if err != nil || ((privileges&uint64(common.UserPrivilegePublic)) == 0 &&
+		(md.User.UserPrivileges&common.AdminPrivilegeManageUsers == 0)) {
 		return common.SimpleResponse(404, "That user could not be found!")
 	}
 	r.Code = 200
@@ -167,7 +168,7 @@ LEFT JOIN leaderboard_ctb
 ON users.id=leaderboard_ctb.user
 LEFT JOIN leaderboard_mania
 ON users.id=leaderboard_mania.user
-WHERE ` + whereClause + ` AND users.privileges & 1 > 0
+WHERE ` + whereClause + ` AND ` + md.User.OnlyUserPublic(true) + `
 LIMIT 1
 `
 	// Fuck.
@@ -278,7 +279,8 @@ func UserLookupGET(md common.MethodData) common.CodeMessager {
 		return common.SimpleResponse(400, "please provide an username to start searching")
 	}
 	name = "%" + name + "%"
-	rows, err := md.DB.Query("SELECT users.id, users.username FROM users WHERE username LIKE ? AND privileges & 1 > 0 LIMIT 25", name)
+	rows, err := md.DB.Query("SELECT users.id, users.username FROM users WHERE username LIKE ? AND "+
+		md.User.OnlyUserPublic(true)+" LIMIT 25", name)
 	if err != nil {
 		md.Err(err)
 		return Err500

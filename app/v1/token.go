@@ -60,13 +60,13 @@ func TokenNewPOST(md common.MethodData) common.CodeMessager {
 	}
 
 	var (
-		rank       int
-		pw         string
-		pwVersion  int
-		privileges int
+		rank          int
+		pw            string
+		pwVersion     int
+		privilegesRaw uint64
 	)
 
-	err = q.Scan(&r.ID, &r.Username, &rank, &pw, &pwVersion, &privileges)
+	err = q.Scan(&r.ID, &r.Username, &rank, &pw, &pwVersion, &privilegesRaw)
 	switch {
 	case err == sql.ErrNoRows:
 		return common.SimpleResponse(404, "No user with that username/id was found.")
@@ -74,6 +74,7 @@ func TokenNewPOST(md common.MethodData) common.CodeMessager {
 		md.Err(err)
 		return Err500
 	}
+	privileges := common.UserPrivileges(privilegesRaw)
 
 	if nFailedAttempts(r.ID) > 20 {
 		return common.SimpleResponse(429, "You've made too many login attempts. Try again later.")
@@ -227,13 +228,18 @@ LEFT JOIN users ON users.id = tokens.user
 	}
 	for rows.Next() {
 		var (
-			id         int
-			privsRaw   uint64
-			privs      common.Privileges
-			newPrivs   common.Privileges
-			privileges int
+			id            int
+			privsRaw      uint64
+			privs         common.Privileges
+			newPrivs      common.Privileges
+			privilegesRaw uint64
 		)
-		rows.Scan(&id, &privsRaw, &privileges)
+		err := rows.Scan(&id, &privsRaw, &privilegesRaw)
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+		privileges := common.UserPrivileges(privilegesRaw)
 		privs = common.Privileges(privsRaw)
 		newPrivs = privs.CanOnly(privileges)
 		if newPrivs != privs {

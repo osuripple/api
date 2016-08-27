@@ -21,21 +21,15 @@ func UserManageSetAllowedPOST(md common.MethodData) common.CodeMessager {
 		return common.SimpleResponse(400, "Allowed status must be between 0 and 2")
 	}
 	var banDatetime int64
-	var privileges int32
-	var newPrivileges int32
-	err := md.DB.QueryRow("SELECT privileges FROM users WHERE id = ?", data.UserID).Scan(&privileges)
-	if err != nil {
-		md.Err(err)
-		return Err500
-	}
+	var privsSet string
 	if data.Allowed == 0 {
 		banDatetime = time.Now().Unix()
-		newPrivileges = privileges &^ (common.UserPrivilegeNormal | common.UserPrivilegePublic)
+		privsSet = "privileges = (privileges & ~3)"
 	} else {
 		banDatetime = 0
-		newPrivileges = privileges | (common.UserPrivilegeNormal | common.UserPrivilegePublic)
+		privsSet = "privileges = (privileges | 3)"
 	}
-	_, err = md.DB.Exec("UPDATE users SET privileges = ?, ban_datetime = ? WHERE id = ?", newPrivileges, banDatetime, data.UserID)
+	_, err := md.DB.Exec("UPDATE users SET "+privsSet+", ban_datetime = ? WHERE id = ?", banDatetime, data.UserID)
 	if err != nil {
 		md.Err(err)
 		return Err500

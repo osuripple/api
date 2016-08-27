@@ -71,7 +71,7 @@ type blogPostContent struct {
 // BlogPostsContentGET retrieves the content of a specific blog post.
 func BlogPostsContentGET(md common.MethodData) common.CodeMessager {
 	field := "markdown"
-	if _, present := md.C.GetQuery("html"); present {
+	if md.HasQuery("html") {
 		field = "html"
 	}
 	var (

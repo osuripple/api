@@ -13,17 +13,25 @@ import (
 // GetTokenFull retrieves an user ID and their token privileges knowing their API token.
 func GetTokenFull(token string, db *sqlx.DB) (common.Token, bool) {
 	var t common.Token
-	var privs uint64
+	var (
+		tokenPrivsRaw uint64
+		userPrivsRaw  uint64
+	)
 	var priv8 bool
-	err := db.QueryRow("SELECT id, user, privileges, private FROM tokens WHERE token = ? LIMIT 1",
+	err := db.QueryRow(`SELECT 
+	t.id, t.user, t.privileges, t.private, u.privileges
+FROM tokens t
+LEFT JOIN users u ON u.id = t.user
+WHERE token = ? LIMIT 1`,
 		fmt.Sprintf("%x", md5.Sum([]byte(token)))).
 		Scan(
-			&t.ID, &t.UserID, &privs, &priv8,
+			&t.ID, &t.UserID, &tokenPrivsRaw, &priv8, &userPrivsRaw,
 		)
 	if priv8 {
-		privs = common.PrivilegeReadConfidential | common.PrivilegeWrite
+		tokenPrivsRaw = common.PrivilegeReadConfidential | common.PrivilegeWrite
 	}
-	t.Privileges = common.Privileges(privs)
+	t.TokenPrivileges = common.Privileges(tokenPrivsRaw)
+	t.UserPrivileges = common.UserPrivileges(userPrivsRaw)
 	switch {
 	case err == sql.ErrNoRows:
 		return common.Token{}, false

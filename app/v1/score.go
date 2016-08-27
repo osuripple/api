@@ -83,7 +83,8 @@ SELECT
 FROM scores
 INNER JOIN users ON users.id = scores.userid
 INNER JOIN users_stats ON users_stats.id = scores.userid
-WHERE scores.beatmap_md5 = ? AND scores.completed = '3' AND users.privileges & 1 > 0 `+genModeClause(md)+`
+WHERE scores.beatmap_md5 = ? AND scores.completed = '3' AND `+md.User.OnlyUserPublic(true)+
+		` `+genModeClause(md)+`
 `+sort+common.Paginate(md.Query("p"), md.Query("l"), 100), beatmapMD5)
 	if err != nil {
 		md.Err(err)

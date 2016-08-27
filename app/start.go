@@ -62,7 +62,6 @@ func Start(conf common.Conf, dbO *sqlx.DB) *gin.Engine {
 			// Auth-free API endpoints (public data)
 			gv1.GET("/ping", Method(v1.PingGET))
 			gv1.GET("/surprise_me", Method(v1.SurpriseMeGET))
-			gv1.GET("/privileges", Method(v1.PrivilegesGET))
 			gv1.GET("/doc", Method(v1.DocGET))
 			gv1.GET("/doc/content", Method(v1.DocContentGET))
 			gv1.GET("/doc/rules", Method(v1.DocRulesGET))
