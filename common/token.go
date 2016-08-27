@@ -19,5 +19,5 @@ func (t Token) OnlyUserPublic(userManagerSeesEverything bool) string {
 		return "1"
 	}
 	// It's safe to use sprintf directly even if it's a query, because UserID is an int.
-	return fmt.Sprintf("(user.privileges & 1 = 1 OR users.id = '%d')", t.UserID)
+	return fmt.Sprintf("(users.privileges & 1 = 1 OR users.id = '%d')", t.UserID)
 }
