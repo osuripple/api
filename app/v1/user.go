@@ -63,20 +63,6 @@ func userPuts(md common.MethodData, row *sqlx.Row) common.CodeMessager {
 	return user
 }
 
-func badgesToArray(badges string) []int {
-	var end []int
-	badgesSl := strings.Split(badges, ",")
-	for _, badge := range badgesSl {
-		if badge != "" && badge != "0" {
-			nb := common.Int(badge)
-			if nb != 0 {
-				end = append(end, nb)
-			}
-		}
-	}
-	return end
-}
-
 // UserSelfGET is a shortcut for /users/id/self. (/users/self)
 func UserSelfGET(md common.MethodData) common.CodeMessager {
 	md.C.Request.URL.RawQuery = "id=self&" + md.C.Request.URL.RawQuery
@@ -117,13 +103,13 @@ type modeData struct {
 type userFullResponse struct {
 	common.ResponseBase
 	userData
-	STD           modeData `json:"std"`
-	Taiko         modeData `json:"taiko"`
-	CTB           modeData `json:"ctb"`
-	Mania         modeData `json:"mania"`
-	PlayStyle     int      `json:"play_style"`
-	FavouriteMode int      `json:"favourite_mode"`
-	Badges        []int    `json:"badges"`
+	STD           modeData      `json:"std"`
+	Taiko         modeData      `json:"taiko"`
+	CTB           modeData      `json:"ctb"`
+	Mania         modeData      `json:"mania"`
+	PlayStyle     int           `json:"play_style"`
+	FavouriteMode int           `json:"favourite_mode"`
+	Badges        []singleBadge `json:"badges"`
 }
 
 // UserFullGET gets all of an user's information, with one exception: their userpage.
@@ -138,8 +124,7 @@ func UserFullGET(md common.MethodData) common.CodeMessager {
 SELECT
 	users.id, users.username, users.register_datetime, users.privileges, users.latest_activity,
 
-	users_stats.username_aka, users_stats.badges_shown, users_stats.country,
-	users_stats.play_style, users_stats.favourite_mode,
+	users_stats.username_aka, users_stats.country, users_stats.play_style, users_stats.favourite_mode,
 
 	users_stats.ranked_score_std, users_stats.total_score_std, users_stats.playcount_std,
 	users_stats.replays_watched_std, users_stats.total_hits_std,
@@ -173,13 +158,10 @@ LIMIT 1
 `
 	// Fuck.
 	r := userFullResponse{}
-	var (
-		badges string
-	)
 	err := md.DB.QueryRow(query, param).Scan(
 		&r.ID, &r.Username, &r.RegisteredOn, &r.Privileges, &r.LatestActivity,
 
-		&r.UsernameAKA, &badges, &r.Country,
+		&r.UsernameAKA, &r.Country,
 		&r.PlayStyle, &r.FavouriteMode,
 
 		&r.STD.RankedScore, &r.STD.TotalScore, &r.STD.PlayCount,
@@ -206,10 +188,24 @@ LIMIT 1
 		return Err500
 	}
 
-	r.Badges = badgesToArray(badges)
-
 	for _, m := range []*modeData{&r.STD, &r.Taiko, &r.CTB, &r.Mania} {
 		m.Level = ocl.GetLevelPrecise(int64(m.TotalScore))
+	}
+
+	rows, err := md.DB.Query("SELECT b.id, b.name, b.icon FROM user_badges ub "+
+		"LEFT JOIN badges b ON ub.badge = b.id WHERE user = ?", r.ID)
+	if err != nil {
+		md.Err(err)
+	}
+
+	for rows.Next() {
+		var badge singleBadge
+		err := rows.Scan(&badge.ID, &badge.Name, &badge.Icon)
+		if err != nil {
+			md.Err(err)
+			continue
+		}
+		r.Badges = append(r.Badges, badge)
 	}
 
 	r.Code = 200
