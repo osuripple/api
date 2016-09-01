@@ -25,10 +25,9 @@ func BadgesGET(md common.MethodData) common.CodeMessager {
 		err  error
 	)
 	if md.Query("id") != "" {
-		// TODO(howl): ID validation
-		rows, err = md.DB.Query("SELECT id, name, icon FROM badges WHERE id = ?", md.Query("id"))
+		rows, err = md.DB.Query("SELECT id, name, icon FROM badges WHERE id = ? LIMIT 1", md.Query("id"))
 	} else {
-		rows, err = md.DB.Query("SELECT id, name, icon FROM badges")
+		rows, err = md.DB.Query("SELECT id, name, icon FROM badges " + common.Paginate(md.Query("p"), md.Query("l"), 50))
 	}
 	if err != nil {
 		md.Err(err)
