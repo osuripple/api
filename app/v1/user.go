@@ -110,6 +110,7 @@ type userFullResponse struct {
 	PlayStyle     int           `json:"play_style"`
 	FavouriteMode int           `json:"favourite_mode"`
 	Badges        []singleBadge `json:"badges"`
+	CustomBadge   *singleBadge  `json:"custom_badge"`
 }
 
 // UserFullGET gets all of an user's information, with one exception: their userpage.
@@ -125,6 +126,9 @@ SELECT
 	users.id, users.username, users.register_datetime, users.privileges, users.latest_activity,
 
 	users_stats.username_aka, users_stats.country, users_stats.play_style, users_stats.favourite_mode,
+
+	users_stats.custom_badge_icon, users_stats.custom_badge_name, users_stats.can_custom_badge, 
+	users_stats.show_custom_badge,
 
 	users_stats.ranked_score_std, users_stats.total_score_std, users_stats.playcount_std,
 	users_stats.replays_watched_std, users_stats.total_hits_std,
@@ -158,11 +162,18 @@ LIMIT 1
 `
 	// Fuck.
 	r := userFullResponse{}
+	var (
+		b    singleBadge
+		can  bool
+		show bool
+	)
 	err := md.DB.QueryRow(query, param).Scan(
 		&r.ID, &r.Username, &r.RegisteredOn, &r.Privileges, &r.LatestActivity,
 
 		&r.UsernameAKA, &r.Country,
 		&r.PlayStyle, &r.FavouriteMode,
+
+		&b.Icon, &b.Name, &can, &show,
 
 		&r.STD.RankedScore, &r.STD.TotalScore, &r.STD.PlayCount,
 		&r.STD.ReplaysWatched, &r.STD.TotalHits,
@@ -186,6 +197,10 @@ LIMIT 1
 	case err != nil:
 		md.Err(err)
 		return Err500
+	}
+
+	if can && show && (b.Name != "" || b.Icon != "") {
+		r.CustomBadge = &b
 	}
 
 	for _, m := range []*modeData{&r.STD, &r.Taiko, &r.CTB, &r.Mania} {

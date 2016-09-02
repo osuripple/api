@@ -7,7 +7,7 @@ import (
 )
 
 type singleBadge struct {
-	ID   int    `json:"id"`
+	ID   int    `json:"id,omitempty"`
 	Name string `json:"name"`
 	Icon string `json:"icon"`
 }
