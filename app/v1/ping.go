@@ -87,8 +87,11 @@ func surpriseMe() string {
 
 type pingResponse struct {
 	common.ResponseBase
-	ID         int    `json:"user_id"`
-	Privileges uint64 `json:"privileges"`
+	ID              int                   `json:"user_id"`
+	Privileges      common.Privileges     `json:"privileges"`
+	UserPrivileges  common.UserPrivileges `json:"user_privileges"`
+	PrivilegesS     string                `json:"privileges_string"`
+	UserPrivilegesS string                `json:"user_privileges_string"`
 }
 
 // PingGET is a message to check with the API that we are logged in, and know what are our privileges.
@@ -103,7 +106,10 @@ func PingGET(md common.MethodData) common.CodeMessager {
 	}
 
 	r.ID = md.ID()
-	r.Privileges = uint64(md.User.TokenPrivileges)
+	r.Privileges = md.User.TokenPrivileges
+	r.UserPrivileges = md.User.UserPrivileges
+	r.PrivilegesS = md.User.TokenPrivileges.String()
+	r.UserPrivilegesS = md.User.UserPrivileges.String()
 
 	return r
 }

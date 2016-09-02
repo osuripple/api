@@ -34,7 +34,7 @@ SELECT users.id, users.username, register_datetime, privileges,
 	latest_activity, users_stats.username_aka,
 	users_stats.country
 FROM users
-LEFT JOIN users_stats
+INNER JOIN users_stats
 ON users.id=users_stats.id
 WHERE ` + whereClause + ` AND ` + md.User.OnlyUserPublic(true) + `
 LIMIT 1`
@@ -98,7 +98,7 @@ type modeData struct {
 	Level                 float64 `json:"level"`
 	Accuracy              float64 `json:"accuracy"`
 	PP                    int     `json:"pp"`
-	GlobalLeaderboardRank int     `json:"global_leaderboard_rank"`
+	GlobalLeaderboardRank *int    `json:"global_leaderboard_rank"`
 }
 type userFullResponse struct {
 	common.ResponseBase
