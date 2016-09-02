@@ -53,6 +53,16 @@ func Start(conf common.Conf, dbO *sqlx.DB) *gin.Engine {
 
 	api := r.Group("/api")
 	{
+		p := api.Group("/")
+		{
+			p.GET("/get_user", PeppyMethod(peppy.GetUser))
+			p.GET("/get_match", PeppyMethod(peppy.GetMatch))
+			p.GET("/get_user_recent", PeppyMethod(peppy.GetUserRecent))
+			p.GET("/get_user_best", PeppyMethod(peppy.GetUserBest))
+			p.GET("/get_scores", PeppyMethod(peppy.GetScores))
+			p.GET("/get_beatmaps", PeppyMethod(peppy.GetBeatmap))
+		}
+
 		gv1 := api.Group("/v1")
 		{
 			gv1.POST("/tokens", Method(v1.TokenNewPOST))
@@ -112,21 +122,9 @@ func Start(conf common.Conf, dbO *sqlx.DB) *gin.Engine {
 		}
 
 		api.GET("/status", internals.Status)
-
-		// peppyapi
-		api.GET("/get_user", PeppyMethod(peppy.GetUser))
-		api.GET("/get_match", PeppyMethod(peppy.GetMatch))
-		api.GET("/get_user_recent", PeppyMethod(peppy.GetUserRecent))
-		api.GET("/get_user_best", PeppyMethod(peppy.GetUserBest))
-		api.GET("/get_scores", PeppyMethod(peppy.GetScores))
-		api.GET("/get_beatmaps", PeppyMethod(peppy.GetBeatmap))
 	}
 
 	r.NoRoute(v1.Handle404)
 
 	return r
-	/*if conf.Unix {
-		panic(r.RunUnix(conf.ListenTo))
-	}
-	panic(r.Run(conf.ListenTo))*/
 }
