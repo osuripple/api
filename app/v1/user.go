@@ -229,7 +229,7 @@ LIMIT 1
 
 type userpageResponse struct {
 	common.ResponseBase
-	Userpage string `json:"userpage"`
+	Userpage *string `json:"userpage"`
 }
 
 // UserUserpageGET gets an user's userpage, as in the customisable thing.
