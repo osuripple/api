@@ -120,6 +120,14 @@ func Start(conf common.Conf, dbO *sqlx.DB) *gin.Engine {
 			// User Managing + meta
 			gv1.GET("/tokens/fix_privileges", Method(v1.TokenFixPrivilegesGET,
 				common.PrivilegeManageUser, common.PrivilegeAPIMeta))
+
+			// in the new osu-web, the old endpoints are also in /v1 it seems. So /shrug
+			p.GET("/get_user", PeppyMethod(peppy.GetUser))
+			p.GET("/get_match", PeppyMethod(peppy.GetMatch))
+			p.GET("/get_user_recent", PeppyMethod(peppy.GetUserRecent))
+			p.GET("/get_user_best", PeppyMethod(peppy.GetUserBest))
+			p.GET("/get_scores", PeppyMethod(peppy.GetScores))
+			p.GET("/get_beatmaps", PeppyMethod(peppy.GetBeatmap))
 		}
 
 		api.GET("/status", internals.Status)
