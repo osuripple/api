@@ -21,6 +21,7 @@ type Conf struct {
 	HanayoKey              string
 	BeatmapRequestsPerUser int
 	RankQueueSize          int
+	OsuAPIKey              string
 }
 
 var cachedConf *Conf

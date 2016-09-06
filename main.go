@@ -7,11 +7,13 @@ import (
 	"syscall"
 
 	"git.zxq.co/ripple/rippleapi/app"
+	"git.zxq.co/ripple/rippleapi/beatmapget"
 	"git.zxq.co/ripple/rippleapi/common"
 	"git.zxq.co/ripple/schiavolib"
 	// Golint pls dont break balls
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
+	"gopkg.in/thehowl/go-osuapi.v1"
 )
 
 // Version is the git hash of the application. Do not edit. This is
@@ -54,6 +56,10 @@ func main() {
 		schiavo.Bunker.Send(err.Error())
 		log.Fatalln(err)
 	}
+
+	beatmapget.Client = osuapi.NewClient(conf.OsuAPIKey)
+	beatmapget.DB = db
+
 	engine := app.Start(conf, db)
 
 	startuato(engine)
