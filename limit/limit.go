@@ -108,7 +108,7 @@ func (s *RateLimiter) check() {
 	if s.Map == nil {
 		s.Map = make(map[string]chan struct{})
 	}
-	if s.Mutex {
+	if s.Mutex == nil {
 		s.Mutex = new(sync.RWMutex)
 	}
 }
