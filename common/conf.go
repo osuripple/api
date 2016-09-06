@@ -13,12 +13,14 @@ var Version string
 // Conf is the configuration file data for the ripple API.
 // Conf uses https://github.com/thehowl/conf
 type Conf struct {
-	DatabaseType string `description:"At the moment, 'mysql' is the only supported database type."`
-	DSN          string `description:"The Data Source Name for the database. More: https://github.com/go-sql-driver/mysql#dsn-data-source-name"`
-	ListenTo     string `description:"The IP/Port combination from which to take connections, e.g. :8080"`
-	Unix         bool   `description:"Bool indicating whether ListenTo is a UNIX socket or an address."`
-	SentryDSN    string `description:"thing for sentry whatever"`
-	HanayoKey    string
+	DatabaseType           string `description:"At the moment, 'mysql' is the only supported database type."`
+	DSN                    string `description:"The Data Source Name for the database. More: https://github.com/go-sql-driver/mysql#dsn-data-source-name"`
+	ListenTo               string `description:"The IP/Port combination from which to take connections, e.g. :8080"`
+	Unix                   bool   `description:"Bool indicating whether ListenTo is a UNIX socket or an address."`
+	SentryDSN              string `description:"thing for sentry whatever"`
+	HanayoKey              string
+	BeatmapRequestsPerUser int
+	RankQueueSize          int
 }
 
 var cachedConf *Conf
@@ -33,14 +35,26 @@ func Load() (c Conf, halt bool) {
 	halt = err == conf.ErrNoFile
 	if halt {
 		conf.MustExport(Conf{
-			DatabaseType: "mysql",
-			DSN:          "root@/ripple",
-			ListenTo:     ":40001",
-			Unix:         false,
-			HanayoKey:    "Potato",
+			DatabaseType:           "mysql",
+			DSN:                    "root@/ripple",
+			ListenTo:               ":40001",
+			Unix:                   false,
+			HanayoKey:              "Potato",
+			BeatmapRequestsPerUser: 2,
+			RankQueueSize:          25,
 		}, "api.conf")
 		fmt.Println("Please compile the configuration file (api.conf).")
 	}
 	cachedConf = &c
 	return
+}
+
+// GetConf returns the cachedConf.
+func GetConf() *Conf {
+	if cachedConf == nil {
+		return nil
+	}
+	// so that the cachedConf cannot actually get modified
+	c := *cachedConf
+	return &c
 }

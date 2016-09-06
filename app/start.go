@@ -84,6 +84,7 @@ func Start(conf common.Conf, dbO *sqlx.DB) *gin.Engine {
 			gv1.GET("/users/scores/recent", Method(v1.UserScoresRecentGET))
 			gv1.GET("/badges", Method(v1.BadgesGET))
 			gv1.GET("/beatmaps", Method(v1.BeatmapGET))
+			gv1.GET("/beatmaps/rank_requests/status", Method(v1.BeatmapRankRequestsStatusGET))
 			gv1.GET("/leaderboard", Method(v1.LeaderboardGET))
 			gv1.GET("/tokens", Method(v1.TokenGET))
 			gv1.GET("/users/self", Method(v1.UserSelfGET))
@@ -122,12 +123,12 @@ func Start(conf common.Conf, dbO *sqlx.DB) *gin.Engine {
 				common.PrivilegeManageUser, common.PrivilegeAPIMeta))
 
 			// in the new osu-web, the old endpoints are also in /v1 it seems. So /shrug
-			p.GET("/get_user", PeppyMethod(peppy.GetUser))
-			p.GET("/get_match", PeppyMethod(peppy.GetMatch))
-			p.GET("/get_user_recent", PeppyMethod(peppy.GetUserRecent))
-			p.GET("/get_user_best", PeppyMethod(peppy.GetUserBest))
-			p.GET("/get_scores", PeppyMethod(peppy.GetScores))
-			p.GET("/get_beatmaps", PeppyMethod(peppy.GetBeatmap))
+			gv1.GET("/get_user", PeppyMethod(peppy.GetUser))
+			gv1.GET("/get_match", PeppyMethod(peppy.GetMatch))
+			gv1.GET("/get_user_recent", PeppyMethod(peppy.GetUserRecent))
+			gv1.GET("/get_user_best", PeppyMethod(peppy.GetUserBest))
+			gv1.GET("/get_scores", PeppyMethod(peppy.GetScores))
+			gv1.GET("/get_beatmaps", PeppyMethod(peppy.GetBeatmap))
 		}
 
 		api.GET("/status", internals.Status)
