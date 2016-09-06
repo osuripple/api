@@ -8,6 +8,7 @@ import (
 	"github.com/jmoiron/sqlx"
 
 	"git.zxq.co/ripple/rippleapi/common"
+	"git.zxq.co/ripple/rippleapi/limit"
 	"git.zxq.co/ripple/schiavolib"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -76,7 +77,7 @@ func TokenNewPOST(md common.MethodData) common.CodeMessager {
 	}
 	privileges := common.UserPrivileges(privilegesRaw)
 
-	if nFailedAttempts(r.ID) > 20 {
+	if !limit.NonBlockingRequest(fmt.Sprintf("loginattempt:%d:%s", r.ID, md.C.ClientIP()), 5) {
 		return common.SimpleResponse(429, "You've made too many login attempts. Try again later.")
 	}
 
@@ -85,7 +86,6 @@ func TokenNewPOST(md common.MethodData) common.CodeMessager {
 	}
 	if err := bcrypt.CompareHashAndPassword([]byte(pw), []byte(fmt.Sprintf("%x", md5.Sum([]byte(data.Password))))); err != nil {
 		if err == bcrypt.ErrMismatchedHashAndPassword {
-			go addFailedAttempt(r.ID)
 			return common.SimpleResponse(403, "That password doesn't match!")
 		}
 		md.Err(err)
