@@ -84,7 +84,6 @@ func Start(conf common.Conf, dbO *sqlx.DB) *gin.Engine {
 			gv1.GET("/users/scores/recent", Method(v1.UserScoresRecentGET))
 			gv1.GET("/badges", Method(v1.BadgesGET))
 			gv1.GET("/beatmaps", Method(v1.BeatmapGET))
-			gv1.GET("/beatmaps/rank_requests/status", Method(v1.BeatmapRankRequestsStatusGET))
 			gv1.GET("/leaderboard", Method(v1.LeaderboardGET))
 			gv1.GET("/tokens", Method(v1.TokenGET))
 			gv1.GET("/users/self", Method(v1.UserSelfGET))
@@ -97,6 +96,7 @@ func Start(conf common.Conf, dbO *sqlx.DB) *gin.Engine {
 			gv1.GET("/friends", Method(v1.FriendsGET, common.PrivilegeReadConfidential))
 			gv1.GET("/friends/with", Method(v1.FriendsWithGET, common.PrivilegeReadConfidential))
 			gv1.GET("/users/self/donor_info", Method(v1.UsersSelfDonorInfoGET, common.PrivilegeReadConfidential))
+			gv1.GET("/beatmaps/rank_requests/status", Method(v1.BeatmapRankRequestsStatusGET, common.PrivilegeReadConfidential))
 
 			// Write privilege required
 			gv1.GET("/friends/add", Method(v1.FriendsAddGET, common.PrivilegeWrite))
