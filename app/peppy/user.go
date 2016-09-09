@@ -23,6 +23,7 @@ func GetUser(c *gin.Context, db *sqlx.DB) {
 
 	mode := genmode(c.Query("m"))
 
+	var lbpos *int
 	err := db.QueryRow(fmt.Sprintf(
 		`SELECT
 			users.id, users.username,
@@ -38,7 +39,7 @@ func GetUser(c *gin.Context, db *sqlx.DB) {
 	), p).Scan(
 		&user.UserID, &user.Username,
 		&user.Playcount, &user.RankedScore, &user.TotalScore,
-		&user.Rank, &user.PP, &user.Accuracy,
+		&lbpos, &user.PP, &user.Accuracy,
 		&user.Country,
 	)
 	if err != nil {
@@ -47,6 +48,9 @@ func GetUser(c *gin.Context, db *sqlx.DB) {
 			c.Error(err)
 		}
 		return
+	}
+	if lbpos != nil {
+		user.Rank = *lbpos
 	}
 	user.Level = ocl.GetLevelPrecise(user.TotalScore)
 

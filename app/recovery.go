@@ -8,7 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/getsentry/raven-go"
+	raven "github.com/getsentry/raven-go"
 	"github.com/gin-gonic/gin"
 )
 
@@ -32,8 +32,8 @@ func Recovery(client *raven.Client, onlyCrashes bool) gin.HandlerFunc {
 			}
 
 			ravenUser := &raven.User{
-				ID: token,
-				IP: c.Request.RemoteAddr,
+				Username: token,
+				IP:       c.Request.RemoteAddr,
 			}
 
 			flags := map[string]string{
