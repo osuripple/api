@@ -2,6 +2,8 @@ package v1
 
 import (
 	"database/sql"
+	"fmt"
+	"net/url"
 
 	"git.zxq.co/ripple/rippleapi/common"
 )
@@ -82,7 +84,30 @@ func BeatmapSetStatusPOST(md common.MethodData) common.CodeMessager {
 		SET ranked = ?, ranked_status_freezed = ?
 		WHERE beatmapset_id = ?`, req.RankedStatus, req.Frozen, param)
 
+	var x = make(map[string]interface{}, 1)
+	if req.BeatmapID != 0 {
+		x["bb"] = req.BeatmapID
+	} else {
+		x["s"] = req.BeatmapsetID
+	}
+	md.C.Request.URL = genURL(x)
 	return getMultipleBeatmaps(md)
+}
+
+func genURL(d map[string]interface{}) *url.URL {
+	var s string
+	for k, v := range d {
+		if s != "" {
+			s += "&"
+		}
+		s += k + "=" + url.QueryEscape(fmt.Sprintf("%v", v))
+	}
+	u := new(url.URL)
+	if len(d) == 0 {
+		return u
+	}
+	u.RawQuery = s
+	return u
 }
 
 // BeatmapGET retrieves a beatmap.
@@ -124,7 +149,9 @@ func getMultipleBeatmaps(md common.MethodData) common.CodeMessager {
 		Default: "id DESC",
 		Table:   "beatmaps",
 	})
-	where := common.Where("beatmapset_id = ?", md.Query("s")).
+	where := common.
+		Where("beatmap_id = ?", md.Query("bb")).
+		Where("beatmapset_id = ?", md.Query("s")).
 		Where("song_name = ?", md.Query("song_name")).
 		Where("ranked_status_freezed = ?", md.Query("ranked_status_frozen"), "0", "1")
 
