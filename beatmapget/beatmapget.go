@@ -119,8 +119,7 @@ func UpdateRequired(b *BeatmapDefiningQuality) (bool, error) {
 		expire *= 6
 	}
 
-	if expire != 0 && time.Now().After(time.Time(data.LatestUpdate).Add(expire)) &&
-		!data.Frozen {
+	if expire != 0 && time.Now().After(time.Time(data.LatestUpdate).Add(expire)) && !data.Frozen {
 		return true, nil
 	}
 	return false, nil

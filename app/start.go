@@ -101,6 +101,7 @@ func Start(conf common.Conf, dbO *sqlx.DB) *gin.Engine {
 			// Write privilege required
 			gv1.GET("/friends/add", Method(v1.FriendsAddGET, common.PrivilegeWrite))
 			gv1.GET("/friends/del", Method(v1.FriendsDelGET, common.PrivilegeWrite))
+			//gv1.POST("/beatmaps/rank_requests", Method(v1.BeatmapRankRequestsSubmitPOST, common.PrivilegeWrite))
 
 			// Admin: beatmap
 			gv1.POST("/beatmaps/set_status", Method(v1.BeatmapSetStatusPOST, common.PrivilegeBeatmap))
