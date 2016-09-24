@@ -29,7 +29,10 @@ func BeatmapRankRequestsStatusGET(md common.MethodData) common.CodeMessager {
 		return Err500
 	}
 	var r rankRequestsStatusResponse
-	if md.ID() != 0 {
+	// if it's not auth-free access and we have got ReadConfidential, we can
+	// know if this user can submit beatmaps or not.
+	hasConfid := md.ID() != 0 && md.User.TokenPrivileges&common.PrivilegeReadConfidential > 0
+	if hasConfid {
 		r.SubmittedByUser = new(int)
 	}
 	isFirst := true
@@ -45,7 +48,7 @@ func BeatmapRankRequestsStatusGET(md common.MethodData) common.CodeMessager {
 		}
 		// if the user submitted this rank request, increase the number of
 		// rank requests submitted by this user
-		if user == md.ID() {
+		if user == md.ID() && r.SubmittedByUser != nil {
 			(*r.SubmittedByUser)++
 		}
 		// also, if this is the first result, it means it will be the next to
@@ -59,7 +62,7 @@ func BeatmapRankRequestsStatusGET(md common.MethodData) common.CodeMessager {
 	}
 	r.QueueSize = c.RankQueueSize
 	r.MaxPerUser = c.BeatmapRequestsPerUser
-	if md.ID() != 0 {
+	if hasConfid {
 		x := r.Submitted < r.QueueSize && *r.SubmittedByUser < r.MaxPerUser
 		r.CanSubmit = &x
 	}
