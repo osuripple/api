@@ -77,6 +77,7 @@ func DocContentGET(md common.MethodData) common.CodeMessager {
 // DocRulesGET gets the rules.
 func DocRulesGET(md common.MethodData) common.CodeMessager {
 	var r docContentResponse
+	r.Title = "Rules"
 	err := md.DB.QueryRow("SELECT doc_contents FROM docs WHERE is_rule = '1' LIMIT 1").Scan(&r.Content)
 	const ruleFree = "# This Ripple instance is rule-free! Yay!"
 	switch {
