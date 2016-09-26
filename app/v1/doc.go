@@ -45,6 +45,7 @@ func DocGET(md common.MethodData) common.CodeMessager {
 
 type docContentResponse struct {
 	common.ResponseBase
+	Title   string `json:"title"`
 	Content string `json:"content"`
 }
 
@@ -59,7 +60,7 @@ func DocContentGET(md common.MethodData) common.CodeMessager {
 		wc = "AND public = '1'"
 	}
 	var r docContentResponse
-	err := md.DB.QueryRow("SELECT doc_contents FROM docs WHERE id = ? "+wc+" LIMIT 1", docID).Scan(&r.Content)
+	err := md.DB.QueryRow("SELECT doc_name, doc_contents FROM docs WHERE id = ? "+wc+" LIMIT 1", docID).Scan(&r.Title, &r.Content)
 	switch {
 	case err == sql.ErrNoRows:
 		r.Code = 404
