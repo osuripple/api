@@ -97,6 +97,7 @@ func Start(conf common.Conf, dbO *sqlx.DB) *gin.Engine {
 			gv1.GET("/friends", Method(v1.FriendsGET, common.PrivilegeReadConfidential))
 			gv1.GET("/friends/with", Method(v1.FriendsWithGET, common.PrivilegeReadConfidential))
 			gv1.GET("/users/self/donor_info", Method(v1.UsersSelfDonorInfoGET, common.PrivilegeReadConfidential))
+			gv1.GET("/users/self/favourite_mode", Method(v1.UsersSelfFavouriteModeGET, common.PrivilegeReadConfidential))
 
 			// Write privilege required
 			gv1.GET("/friends/add", Method(v1.FriendsAddGET, common.PrivilegeWrite))

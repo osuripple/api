@@ -22,3 +22,24 @@ func UsersSelfDonorInfoGET(md common.MethodData) common.CodeMessager {
 	r.Code = 200
 	return r
 }
+
+type favouriteModeResponse struct {
+	common.ResponseBase
+	FavouriteMode int `json:"favourite_mode"`
+}
+
+// UsersSelfFavouriteModeGET gets the current user's favourite mode
+func UsersSelfFavouriteModeGET(md common.MethodData) common.CodeMessager {
+	var f favouriteModeResponse
+	f.Code = 200
+	if md.ID() == 0 {
+		return f
+	}
+	err := md.DB.QueryRow("SELECT users_stats.favourite_mode FROM users_stats WHERE id = ?", md.ID()).
+		Scan(&f.FavouriteMode)
+	if err != nil {
+		md.Err(err)
+		return Err500
+	}
+	return f
+}
