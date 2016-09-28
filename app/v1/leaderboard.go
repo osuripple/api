@@ -37,11 +37,15 @@ INNER JOIN users_stats ON users_stats.id = leaderboard_%[1]s.user
 // LeaderboardGET gets the leaderboard.
 func LeaderboardGET(md common.MethodData) common.CodeMessager {
 	m := getMode(md.Query("mode"))
+	w := &common.WhereClause{
+		Clause: "WHERE " + md.User.OnlyUserPublic(md.HasQuery("see_everything")),
+	}
+	w.Where("users_stats.country = ?", md.Query("country"))
 	// Admins may not want to see banned users on the leaderboard.
 	// This is the default setting. In case they do, they have to activate see_everything.
-	query := fmt.Sprintf(lbUserQuery, m, `WHERE `+md.User.OnlyUserPublic(md.HasQuery("see_everything"))+
+	query := fmt.Sprintf(lbUserQuery, m, w.Clause+
 		` ORDER BY leaderboard_`+m+`.position `+common.Paginate(md.Query("p"), md.Query("l"), 500))
-	rows, err := md.DB.Query(query)
+	rows, err := md.DB.Query(query, w.Params...)
 	if err != nil {
 		md.Err(err)
 		return Err500
