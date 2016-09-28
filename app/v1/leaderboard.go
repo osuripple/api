@@ -3,6 +3,7 @@ package v1
 import (
 	"fmt"
 
+	"git.zxq.co/ripple/ocl"
 	"git.zxq.co/ripple/rippleapi/common"
 )
 
@@ -61,6 +62,7 @@ func LeaderboardGET(md common.MethodData) common.CodeMessager {
 			md.Err(err)
 			continue
 		}
+		u.ChosenMode.Level = ocl.GetLevelPrecise(int64(u.ChosenMode.TotalScore))
 		resp.Users = append(resp.Users, u)
 	}
 	resp.Code = 200
