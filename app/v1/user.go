@@ -199,7 +199,8 @@ LIMIT 1
 		return Err500
 	}
 
-	if can && show && (b.Name != "" || b.Icon != "") {
+	can = can && show && common.UserPrivileges(r.Privileges)&common.UserPrivilegeDonor > 0
+	if can && (b.Name != "" || b.Icon != "") {
 		r.CustomBadge = &b
 	}
 
