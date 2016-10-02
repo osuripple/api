@@ -75,6 +75,7 @@ func initialCaretaker(c *gin.Context, f func(md common.MethodData) common.CodeMe
 	// requests from hanayo should not be rate limited.
 	if !(c.Request.Header.Get("H-Key") == cf.HanayoKey && c.Request.UserAgent() == "hanayo") {
 		perUserRequestLimiter(md.ID(), c.ClientIP())
+	} else {
 		doggoTags = append(doggoTags, "hanayo")
 	}
 
