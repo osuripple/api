@@ -11,7 +11,7 @@ func PeppyMethod(a func(c *gin.Context, db *sqlx.DB)) gin.HandlerFunc {
 		rateLimiter()
 		perUserRequestLimiter(0, c.ClientIP())
 
-		doggo.Incr("requests.peppy", nil, 1)
+		doggo.Incr("requestsbytype.peppy", nil, 1)
 
 		// I have no idea how, but I manged to accidentally string the first 4
 		// letters of the alphabet into a single function call.
