@@ -7,6 +7,7 @@ import (
 	"git.zxq.co/ripple/rippleapi/app/peppy"
 	"git.zxq.co/ripple/rippleapi/app/v1"
 	"git.zxq.co/ripple/rippleapi/common"
+	"github.com/DataDog/datadog-go/statsd"
 	"github.com/getsentry/raven-go"
 	"github.com/gin-gonic/contrib/gzip"
 	"github.com/gin-gonic/gin"
@@ -15,8 +16,9 @@ import (
 )
 
 var (
-	db *sqlx.DB
-	cf common.Conf
+	db    *sqlx.DB
+	cf    common.Conf
+	doggo *statsd.Client
 )
 
 var commonClusterfucks = map[string]string{
@@ -41,6 +43,7 @@ func Start(conf common.Conf, dbO *sqlx.DB) *gin.Engine {
 	r := gin.Default()
 	r.Use(gzip.Gzip(gzip.DefaultCompression))
 
+	// sentry
 	if conf.SentryDSN != "" {
 		ravenClient, err := raven.New(conf.SentryDSN)
 		ravenClient.SetRelease(common.Version)
@@ -50,6 +53,16 @@ func Start(conf common.Conf, dbO *sqlx.DB) *gin.Engine {
 			r.Use(Recovery(ravenClient, false))
 		}
 	}
+
+	// datadog
+	doggo, err := statsd.New("127.0.0.1:8125")
+	if err != nil {
+		fmt.Println(err)
+	}
+	doggo.Namespace = "api."
+	r.Use(func(c *gin.Context) {
+		doggo.Incr("requests", nil, 1)
+	})
 
 	api := r.Group("/api")
 	{

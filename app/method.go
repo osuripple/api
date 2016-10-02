@@ -45,6 +45,7 @@ func initialCaretaker(c *gin.Context, f func(md common.MethodData) common.CodeMe
 		DB:          db,
 		RequestData: data,
 		C:           c,
+		Doggo:       doggo,
 	}
 	if token != "" {
 		tokenReal, exists := GetTokenFull(token, db)
@@ -85,16 +86,6 @@ func initialCaretaker(c *gin.Context, f func(md common.MethodData) common.CodeMe
 	}
 
 	resp := f(md)
-	if resp.GetCode() == 0 {
-		// Dirty hack to set the code
-		type setCoder interface {
-			SetCode(int)
-		}
-		if newver, can := resp.(setCoder); can {
-			newver.SetCode(500)
-		}
-	}
-
 	if md.HasQuery("pls200") {
 		c.Writer.WriteHeader(200)
 	} else {

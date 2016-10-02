@@ -41,6 +41,8 @@ func TokenNewPOST(md common.MethodData) common.CodeMessager {
 		return ErrBadJSON
 	}
 
+	md.Doggo.Incr("tokens.new", nil, 1)
+
 	var miss []string
 	if data.Username == "" && data.UserID == 0 {
 		miss = append(miss, "username|id")

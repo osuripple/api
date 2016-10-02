@@ -3,6 +3,7 @@ package common
 import (
 	"encoding/json"
 
+	"github.com/DataDog/datadog-go/statsd"
 	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx"
 )
@@ -13,6 +14,7 @@ type MethodData struct {
 	DB          *sqlx.DB
 	RequestData RequestData
 	C           *gin.Context
+	Doggo       *statsd.Client
 }
 
 // Err logs an error into gin.
