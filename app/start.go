@@ -55,7 +55,8 @@ func Start(conf common.Conf, dbO *sqlx.DB) *gin.Engine {
 	}
 
 	// datadog
-	doggo, err := statsd.New("127.0.0.1:8125")
+	var err error
+	doggo, err = statsd.New("127.0.0.1:8125")
 	if err != nil {
 		fmt.Println(err)
 	}
