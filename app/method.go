@@ -78,7 +78,7 @@ func initialCaretaker(c *gin.Context, f func(md common.MethodData) common.CodeMe
 		doggoTags = append(doggoTags, "hanayo")
 	}
 
-	doggo.Incr("requestsbytype.v1", doggoTags, 1)
+	doggo.Incr("requests.v1", doggoTags, 1)
 
 	missingPrivileges := 0
 	for _, privilege := range privilegesNeeded {
