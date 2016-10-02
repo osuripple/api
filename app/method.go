@@ -23,6 +23,8 @@ func Method(f func(md common.MethodData) common.CodeMessager, privilegesNeeded .
 func initialCaretaker(c *gin.Context, f func(md common.MethodData) common.CodeMessager, privilegesNeeded ...int) {
 	rateLimiter()
 
+	var doggoTags []string
+
 	data, err := ioutil.ReadAll(c.Request.Body)
 	if err != nil {
 		c.Error(err)
@@ -51,6 +53,7 @@ func initialCaretaker(c *gin.Context, f func(md common.MethodData) common.CodeMe
 		tokenReal, exists := GetTokenFull(token, db)
 		if exists {
 			md.User = tokenReal
+			doggoTags = append(doggoTags, "authorised")
 		}
 	}
 
@@ -72,7 +75,10 @@ func initialCaretaker(c *gin.Context, f func(md common.MethodData) common.CodeMe
 	// requests from hanayo should not be rate limited.
 	if !(c.Request.Header.Get("H-Key") == cf.HanayoKey && c.Request.UserAgent() == "hanayo") {
 		perUserRequestLimiter(md.ID(), c.ClientIP())
+		doggoTags = append(doggoTags, "hanayo")
 	}
+
+	doggo.Incr("requests.v1", doggoTags, 1)
 
 	missingPrivileges := 0
 	for _, privilege := range privilegesNeeded {
