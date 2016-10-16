@@ -76,14 +76,14 @@ func userPutsMulti(md common.MethodData) common.CodeMessager {
 
 	// query composition
 	wh := common.
-		Where("users.username = ?", md.Query("nname")).
+		Where("users.username_safe = ?", common.SafeUsername(md.Query("nname"))).
 		Where("users.id = ?", md.Query("iid")).
 		Where("users.privileges = ?", md.Query("privileges")).
 		Where("users.privileges & ? > 0", md.Query("has_privileges")).
 		Where("users_stats.country = ?", md.Query("country")).
 		Where("users_stats.username_aka = ?", md.Query("name_aka")).
 		In("users.id", q["ids"]...).
-		In("users.username", q["names"]...).
+		In("users.username_safe", safeUsernameBulk(q["names"])...).
 		In("users_stats.username_aka", q["names_aka"]...).
 		In("users_stats.country", q["countries"]...)
 	query := "" +
@@ -128,6 +128,13 @@ func UserSelfGET(md common.MethodData) common.CodeMessager {
 	return UsersGET(md)
 }
 
+func safeUsernameBulk(us []string) []string {
+	for i, u := range us {
+		us[i] = common.SafeUsername(u)
+	}
+	return us
+}
+
 type whatIDResponse struct {
 	common.ResponseBase
 	ID int `json:"id"`
@@ -139,7 +146,7 @@ func UserWhatsTheIDGET(md common.MethodData) common.CodeMessager {
 		r          whatIDResponse
 		privileges uint64
 	)
-	err := md.DB.QueryRow("SELECT id, privileges FROM users WHERE username = ? LIMIT 1", md.Query("name")).Scan(&r.ID, &privileges)
+	err := md.DB.QueryRow("SELECT id, privileges FROM users WHERE username_safe = ? LIMIT 1", common.SafeUsername(md.Query("name"))).Scan(&r.ID, &privileges)
 	if err != nil || ((privileges&uint64(common.UserPrivilegePublic)) == 0 &&
 		(md.User.UserPrivileges&common.AdminPrivilegeManageUsers == 0)) {
 		return common.SimpleResponse(404, "That user could not be found!")
@@ -323,7 +330,7 @@ func whereClauseUser(md common.MethodData, tableName string) (*common.CodeMessag
 		}
 		return nil, tableName + ".id = ?", id
 	case md.Query("name") != "":
-		return nil, tableName + ".username = ?", md.Query("name")
+		return nil, tableName + ".username_safe = ?", common.SafeUsername(md.Query("name"))
 	}
 	a := common.SimpleResponse(400, "you need to pass either querystring parameters name or id")
 	return &a, "", nil
@@ -341,16 +348,18 @@ type lookupUser struct {
 // UserLookupGET does a quick lookup of users beginning with the passed
 // querystring value name.
 func UserLookupGET(md common.MethodData) common.CodeMessager {
-	name := strings.NewReplacer(
+	name := common.SafeUsername(md.Query("name"))
+	name = strings.NewReplacer(
 		"%", "\\%",
 		"_", "\\_",
 		"\\", "\\\\",
-	).Replace(md.Query("name"))
+	).Replace(name)
 	if name == "" {
 		return common.SimpleResponse(400, "please provide an username to start searching")
 	}
 	name = "%" + name + "%"
-	rows, err := md.DB.Query("SELECT users.id, users.username FROM users WHERE username LIKE ? AND "+
+
+	rows, err := md.DB.Query("SELECT users.id, users.username FROM users WHERE username_safe LIKE ? AND "+
 		md.User.OnlyUserPublic(true)+" LIMIT 25", name)
 	if err != nil {
 		md.Err(err)
@@ -358,7 +367,6 @@ func UserLookupGET(md common.MethodData) common.CodeMessager {
 	}
 
 	var r userLookupResponse
-
 	for rows.Next() {
 		var l lookupUser
 		err := rows.Scan(&l.ID, &l.Username)

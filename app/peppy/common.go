@@ -40,23 +40,23 @@ func genUser(c *gin.Context, db *sqlx.DB) (string, string) {
 	switch {
 	// We know for sure that it's an username.
 	case c.Query("type") == "string":
-		whereClause = "users.username = ?"
-		p = c.Query("u")
+		whereClause = "users.username_safe = ?"
+		p = common.SafeUsername(c.Query("u"))
 	// It could be an user ID, so we look for an user with that username first.
 	case err == nil:
 		err = db.QueryRow("SELECT id FROM users WHERE id = ? LIMIT 1", s).Scan(&p)
 		if err == sql.ErrNoRows {
 			// If no user with that userID were found, assume username.
-			p = c.Query("u")
-			whereClause = "users.username = ?"
+			whereClause = "users.username_safe = ?"
+			p = common.SafeUsername(c.Query("u"))
 		} else {
 			// An user with that userID was found. Thus it's an userID.
 			whereClause = "users.id = ?"
 		}
 	// u contains letters, so it's an username.
 	default:
-		p = c.Query("u")
-		whereClause = "users.username = ?"
+		whereClause = "users.username_safe = ?"
+		p = common.SafeUsername(c.Query("u"))
 	}
 	return whereClause, p
 }

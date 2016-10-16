@@ -59,7 +59,7 @@ func TokenNewPOST(md common.MethodData) common.CodeMessager {
 	if data.UserID != 0 {
 		q = md.DB.QueryRow(base+"WHERE id = ? LIMIT 1", data.UserID)
 	} else {
-		q = md.DB.QueryRow(base+"WHERE username = ? LIMIT 1", data.Username)
+		q = md.DB.QueryRow(base+"WHERE username = ? LIMIT 1", common.SafeUsername(data.Username))
 	}
 
 	var (
