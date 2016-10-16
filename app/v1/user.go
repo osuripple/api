@@ -22,33 +22,36 @@ type userData struct {
 	Country        string               `json:"country"`
 }
 
-// UsersGET is the API handler for GET /users
-func UsersGET(md common.MethodData) common.CodeMessager {
-	shouldRet, whereClause, param := whereClauseUser(md, "users")
-	if shouldRet != nil {
-		return *shouldRet
-	}
-
-	query := `
-SELECT users.id, users.username, register_datetime, privileges,
+const userFields = `users.id, users.username, register_datetime, privileges,
 	latest_activity, users_stats.username_aka,
 	users_stats.country
 FROM users
 INNER JOIN users_stats
 ON users.id=users_stats.id
+`
+
+// UsersGET is the API handler for GET /users
+func UsersGET(md common.MethodData) common.CodeMessager {
+	shouldRet, whereClause, param := whereClauseUser(md, "users")
+	if shouldRet != nil {
+		return userPutsMulti(md)
+	}
+
+	query := `
+SELECT ` + userFields + `
 WHERE ` + whereClause + ` AND ` + md.User.OnlyUserPublic(true) + `
 LIMIT 1`
-	return userPuts(md, md.DB.QueryRowx(query, param))
+	return userPutsSingle(md, md.DB.QueryRowx(query, param))
 }
 
-type userPutsUserData struct {
+type userPutsSingleUserData struct {
 	common.ResponseBase
 	userData
 }
 
-func userPuts(md common.MethodData, row *sqlx.Row) common.CodeMessager {
+func userPutsSingle(md common.MethodData, row *sqlx.Row) common.CodeMessager {
 	var err error
-	var user userPutsUserData
+	var user userPutsSingleUserData
 
 	err = row.StructScan(&user.userData)
 	switch {
@@ -61,6 +64,62 @@ func userPuts(md common.MethodData, row *sqlx.Row) common.CodeMessager {
 
 	user.Code = 200
 	return user
+}
+
+type userPutsMultiUserData struct {
+	common.ResponseBase
+	Users []userData `json:"users"`
+}
+
+func userPutsMulti(md common.MethodData) common.CodeMessager {
+	q := md.C.Request.URL.Query()
+
+	// query composition
+	wh := common.
+		Where("users.username = ?", md.Query("nname")).
+		Where("users.id = ?", md.Query("iid")).
+		Where("users.privileges = ?", md.Query("privileges")).
+		Where("users.privileges & ? > 0", md.Query("has_privileges")).
+		Where("users_stats.country = ?", md.Query("country")).
+		Where("users_stats.username_aka = ?", md.Query("name_aka")).
+		In("users.id", q["ids"]...).
+		In("users.username", q["names"]...).
+		In("users_stats.username_aka", q["names_aka"]...).
+		In("users_stats.country", q["countries"]...)
+	query := "" +
+		"SELECT " + userFields + wh.ClauseSafe() + " AND " + md.User.OnlyUserPublic(true) +
+		" " + common.Sort(md, common.SortConfiguration{
+		Allowed: []string{
+			"id",
+			"username",
+			"privileges",
+			"donor_expire",
+			"latest_activity",
+			"silence_end",
+		},
+		Default: "id ASC",
+		Table:   "users",
+	}) +
+		" " + common.Paginate(md.Query("p"), md.Query("l"), 100)
+
+	// query execution
+	rows, err := md.DB.Queryx(query, wh.Params...)
+	if err != nil {
+		md.Err(err)
+		return Err500
+	}
+	var r userPutsMultiUserData
+	for rows.Next() {
+		var u userData
+		err := rows.StructScan(&u)
+		if err != nil {
+			md.Err(err)
+			continue
+		}
+		r.Users = append(r.Users, u)
+	}
+	r.Code = 200
+	return r
 }
 
 // UserSelfGET is a shortcut for /users/id/self. (/users/self)

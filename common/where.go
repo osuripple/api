@@ -15,15 +15,56 @@ func (w *WhereClause) Where(clause, passedParam string, allowedValues ...string)
 	if len(allowedValues) != 0 && !contains(allowedValues, passedParam) {
 		return w
 	}
-	// checks passed, if string is empty add "WHERE"
+	w.addWhere()
+	w.Clause += clause
+	w.Params = append(w.Params, passedParam)
+	return w
+}
+
+func (w *WhereClause) addWhere() {
+	// if string is empty add "WHERE", else add AND
 	if w.Clause == "" {
 		w.Clause += "WHERE "
 	} else {
 		w.Clause += " AND "
 	}
-	w.Clause += clause
-	w.Params = append(w.Params, passedParam)
+}
+
+// In generates an IN clause.
+// initial is the initial part, e.g. "users.id".
+// Fields are the possible values.
+// Sample output: users.id IN ('1', '2', '3')
+func (w *WhereClause) In(initial string, fields ...string) *WhereClause {
+	if len(fields) == 0 {
+		return w
+	}
+	w.addWhere()
+	w.Clause += initial + " IN (" + generateQuestionMarks(len(fields)) + ")"
+	fieldsInterfaced := make([]interface{}, 0, len(fields))
+	for _, i := range fields {
+		fieldsInterfaced = append(fieldsInterfaced, interface{}(i))
+	}
+	w.Params = append(w.Params, fieldsInterfaced...)
 	return w
+}
+
+func generateQuestionMarks(x int) (qm string) {
+	for i := 0; i < x-1; i++ {
+		qm += "?, "
+	}
+	if x > 0 {
+		qm += "?"
+	}
+	return qm
+}
+
+// ClauseSafe returns the clause, always containing something. If w.Clause is
+// empty, it returns "WHERE 1".
+func (w *WhereClause) ClauseSafe() string {
+	if w.Clause == "" {
+		return "WHERE 1"
+	}
+	return w.Clause
 }
 
 // Where is the same as WhereClause.Where, but creates a new WhereClause.
