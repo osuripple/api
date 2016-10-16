@@ -39,8 +39,7 @@ func FriendsGET(md common.MethodData) common.CodeMessager {
 		md.Err(err)
 	}
 
-	// Yes.
-	const myFriendsQuery = `
+	myFriendsQuery := `
 SELECT
 	users.id, users.username, users.register_datetime, users.privileges, users.latest_activity,
 
@@ -52,9 +51,19 @@ ON users_relationships.user2 = users.id
 LEFT JOIN users_stats
 ON users_relationships.user2=users_stats.id
 WHERE users_relationships.user1=?
-ORDER BY users_relationships.id`
+`
 
-	results, err := md.DB.Query(myFriendsQuery+common.Paginate(md.Query("p"), md.Query("l"), 50), md.ID())
+	myFriendsQuery += common.Sort(md, common.SortConfiguration{
+		Allowed: []string{
+			"id",
+			"username",
+			"latest_activity",
+		},
+		Default: "users.id asc",
+		Table:   "users",
+	}) + "\n"
+
+	results, err := md.DB.Query(myFriendsQuery+common.Paginate(md.Query("p"), md.Query("l"), 100), md.ID())
 	if err != nil {
 		md.Err(err)
 		return Err500
