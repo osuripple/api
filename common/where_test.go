@@ -29,7 +29,7 @@ func Test_generateQuestionMarks(t *testing.T) {
 func TestWhereClause_In(t *testing.T) {
 	type args struct {
 		initial string
-		fields  []interface{}
+		fields  []string
 	}
 	tests := []struct {
 		name   string
@@ -40,13 +40,13 @@ func TestWhereClause_In(t *testing.T) {
 		{
 			"simple",
 			&WhereClause{},
-			args{"users.id", []interface{}{"1", "2", "3"}},
+			args{"users.id", []string{"1", "2", "3"}},
 			&WhereClause{"WHERE users.id IN (?, ?, ?)", []interface{}{"1", "2", "3"}},
 		},
 		{
 			"withExisting",
 			Where("users.username = ?", "Howl").Where("users.xd > ?", "6"),
-			args{"users.id", []interface{}{"1"}},
+			args{"users.id", []string{"1"}},
 			&WhereClause{
 				"WHERE users.username = ? AND users.xd > ? AND users.id IN (?)",
 				[]interface{}{"Howl", "6", "1"},
