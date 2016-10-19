@@ -22,7 +22,7 @@ type userData struct {
 	Country        string               `json:"country"`
 }
 
-const userFields = `users.id, users.username, register_datetime, privileges,
+const userFields = `SELECT users.id, users.username, register_datetime, users.privileges,
 	latest_activity, users_stats.username_aka,
 	users_stats.country
 FROM users
@@ -37,8 +37,7 @@ func UsersGET(md common.MethodData) common.CodeMessager {
 		return userPutsMulti(md)
 	}
 
-	query := `
-SELECT ` + userFields + `
+	query := userFields + `
 WHERE ` + whereClause + ` AND ` + md.User.OnlyUserPublic(true) + `
 LIMIT 1`
 	return userPutsSingle(md, md.DB.QueryRowx(query, param))
@@ -82,12 +81,18 @@ func userPutsMulti(md common.MethodData) common.CodeMessager {
 		Where("users.privileges & ? > 0", md.Query("has_privileges")).
 		Where("users_stats.country = ?", md.Query("country")).
 		Where("users_stats.username_aka = ?", md.Query("name_aka")).
+		Where("privileges_groups.name = ?", md.Query("privilege_group")).
 		In("users.id", q["ids"]...).
 		In("users.username_safe", safeUsernameBulk(q["names"])...).
 		In("users_stats.username_aka", q["names_aka"]...).
 		In("users_stats.country", q["countries"]...)
-	query := "" +
-		"SELECT " + userFields + wh.ClauseSafe() + " AND " + md.User.OnlyUserPublic(true) +
+
+	var extraJoin string
+	if md.Query("privilege_group") != "" {
+		extraJoin = " LEFT JOIN privileges_groups ON users.privileges & privileges_groups.privileges = privileges_groups.privileges "
+	}
+
+	query := userFields + extraJoin + wh.ClauseSafe() + " AND " + md.User.OnlyUserPublic(true) +
 		" " + common.Sort(md, common.SortConfiguration{
 		Allowed: []string{
 			"id",
