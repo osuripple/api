@@ -79,6 +79,7 @@ func userPutsMulti(md common.MethodData) common.CodeMessager {
 		Where("users.id = ?", md.Query("iid")).
 		Where("users.privileges = ?", md.Query("privileges")).
 		Where("users.privileges & ? > 0", md.Query("has_privileges")).
+		Where("users.privileges & ? = 0", md.Query("has_not_privileges")).
 		Where("users_stats.country = ?", md.Query("country")).
 		Where("users_stats.username_aka = ?", md.Query("name_aka")).
 		Where("privileges_groups.name = ?", md.Query("privilege_group")).
