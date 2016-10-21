@@ -183,6 +183,11 @@ type userFullResponse struct {
 	FavouriteMode int           `json:"favourite_mode"`
 	Badges        []singleBadge `json:"badges"`
 	CustomBadge   *singleBadge  `json:"custom_badge"`
+	SilenceInfo   silenceInfo   `json:"silence_info"`
+}
+type silenceInfo struct {
+	Reason string               `json:"reason"`
+	End    common.UnixTimestamp `json:"end"`
 }
 
 // UserFullGET gets all of an user's information, with one exception: their userpage.
@@ -216,7 +221,9 @@ SELECT
 
 	users_stats.ranked_score_mania, users_stats.total_score_mania, users_stats.playcount_mania,
 	users_stats.replays_watched_mania, users_stats.total_hits_mania,
-	users_stats.avg_accuracy_mania, users_stats.pp_mania, leaderboard_mania.position as mania_position
+	users_stats.avg_accuracy_mania, users_stats.pp_mania, leaderboard_mania.position as mania_position,
+
+	users.silence_reason, users.silence_end
 
 FROM users
 LEFT JOIN users_stats
@@ -262,6 +269,8 @@ LIMIT 1
 		&r.Mania.RankedScore, &r.Mania.TotalScore, &r.Mania.PlayCount,
 		&r.Mania.ReplaysWatched, &r.Mania.TotalHits,
 		&r.Mania.Accuracy, &r.Mania.PP, &r.Mania.GlobalLeaderboardRank,
+
+		&r.SilenceInfo.Reason, &r.SilenceInfo.End,
 	)
 	switch {
 	case err == sql.ErrNoRows:
