@@ -43,6 +43,7 @@ func GetScores(c *gin.Context, db *sqlx.DB) {
 		extraWhere = "AND " + w
 		extraParams = append(extraParams, p)
 	}
+	mods := common.Int(c.Query("mods"))
 	rows, err := db.Query(`
 SELECT
 	scores.id, scores.score, users.username, scores.300_count, scores.100_count,
@@ -55,9 +56,10 @@ WHERE scores.completed = '3'
   AND users.privileges & 1 > 0
   AND scores.beatmap_md5 = ?
   AND scores.play_mode = ?
+  AND scores.mods & ? = ?
   `+extraWhere+`
 ORDER BY `+sb+` DESC LIMIT `+strconv.Itoa(common.InString(1, c.Query("limit"), 100, 50)),
-		append([]interface{}{beatmapMD5, genmodei(c.Query("m"))}, extraParams...)...)
+		append([]interface{}{beatmapMD5, genmodei(c.Query("m")), mods, mods}, extraParams...)...)
 	if err != nil {
 		c.Error(err)
 		c.JSON(200, defaultResponse)
