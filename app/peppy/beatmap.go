@@ -112,6 +112,7 @@ var rippleToOsuRankedStatus = map[int]osuapi.ApprovedStatus{
 	2: osuapi.StatusRanked,
 	3: osuapi.StatusApproved,
 	4: osuapi.StatusQualified,
+	5: osuapi.StatusLoved,
 }
 
 // buggy diffname parser
