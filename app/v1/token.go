@@ -187,7 +187,8 @@ func TokenSelfGET(md common.MethodData) common.CodeMessager {
 	}
 	var r tokenSingleResponse
 	// md.User.ID = token id, userid would have been md.User.UserID. what a clusterfuck
-	err := md.DB.QueryRow("SELECT id, privileges, description FROM tokens WHERE id = ?", md.User.ID).Scan(
+	err := md.DB.QueryRow("SELECT id, privileges, description FROM tokens WHERE id = ? "+
+		common.Paginate(md.Query("p"), md.Query("l"), 50), md.User.ID).Scan(
 		&r.ID, &r.Privileges, &r.Description,
 	)
 	if err != nil {
