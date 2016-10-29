@@ -66,7 +66,7 @@ func ScoresGET(md common.MethodData) common.CodeMessager {
 	sort := common.Sort(md, common.SortConfiguration{
 		Default: "scores.pp DESC, scores.score DESC",
 		Table:   "scores",
-		Allowed: []string{"pp", "score", "accuracy", "time", "id"},
+		Allowed: []string{"pp", "score", "accuracy", "id"},
 	})
 
 	rows, err := md.DB.Query(`
