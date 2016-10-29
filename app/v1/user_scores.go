@@ -69,7 +69,7 @@ func UserScoresRecentGET(md common.MethodData) common.CodeMessager {
 			%s
 			%s
 			AND `+md.User.OnlyUserPublic(true)+`
-		ORDER BY scores.time DESC %s`,
+		ORDER BY scores.id DESC %s`,
 		wc, genModeClause(md), common.Paginate(md.Query("p"), md.Query("l"), 100),
 	), param)
 }
