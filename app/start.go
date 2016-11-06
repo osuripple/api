@@ -112,10 +112,12 @@ func Start(conf common.Conf, dbO *sqlx.DB) *gin.Engine {
 			gv1.GET("/friends/with", Method(v1.FriendsWithGET, common.PrivilegeReadConfidential))
 			gv1.GET("/users/self/donor_info", Method(v1.UsersSelfDonorInfoGET, common.PrivilegeReadConfidential))
 			gv1.GET("/users/self/favourite_mode", Method(v1.UsersSelfFavouriteModeGET, common.PrivilegeReadConfidential))
+			gv1.GET("/users/self/settings", Method(v1.UsersSelfSettingsGET, common.PrivilegeReadConfidential))
 
 			// Write privilege required
 			gv1.GET("/friends/add", Method(v1.FriendsAddGET, common.PrivilegeWrite))
 			gv1.GET("/friends/del", Method(v1.FriendsDelGET, common.PrivilegeWrite))
+			gv1.POST("/users/self/settings", Method(v1.UsersSelfSettingsPOST, common.PrivilegeWrite))
 			//gv1.POST("/beatmaps/rank_requests", Method(v1.BeatmapRankRequestsSubmitPOST, common.PrivilegeWrite))
 
 			// Admin: beatmap
