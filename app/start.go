@@ -118,6 +118,7 @@ func Start(conf common.Conf, dbO *sqlx.DB) *gin.Engine {
 			gv1.GET("/friends/add", Method(v1.FriendsAddGET, common.PrivilegeWrite))
 			gv1.GET("/friends/del", Method(v1.FriendsDelGET, common.PrivilegeWrite))
 			gv1.POST("/users/self/settings", Method(v1.UsersSelfSettingsPOST, common.PrivilegeWrite))
+			gv1.POST("/users/self/userpage", Method(v1.UserSelfUserpagePOST, common.PrivilegeWrite))
 			//gv1.POST("/beatmaps/rank_requests", Method(v1.BeatmapRankRequestsSubmitPOST, common.PrivilegeWrite))
 
 			// Admin: beatmap

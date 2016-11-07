@@ -333,6 +333,23 @@ func UserUserpageGET(md common.MethodData) common.CodeMessager {
 	return r
 }
 
+// UserSelfUserpagePOST allows to change the current user's userpage.
+func UserSelfUserpagePOST(md common.MethodData) common.CodeMessager {
+	var d struct {
+		Data *string `json:"data"`
+	}
+	md.RequestData.Unmarshal(&d)
+	if d.Data == nil {
+		return ErrMissingField("data")
+	}
+	_, err := md.DB.Exec("UPDATE users_stats SET userpage_content = ? WHERE id = ? LIMIT 1", *d.Data, md.ID())
+	if err != nil {
+		md.Err(err)
+	}
+	md.C.Request.URL.RawQuery += "&id=" + strconv.Itoa(md.ID())
+	return UserUserpageGET(md)
+}
+
 func whereClauseUser(md common.MethodData, tableName string) (*common.CodeMessager, string, interface{}) {
 	switch {
 	case md.Query("id") == "self":
