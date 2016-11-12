@@ -45,7 +45,6 @@ func UsersSelfFavouriteModeGET(md common.MethodData) common.CodeMessager {
 }
 
 type userSettingsData struct {
-	Email         string `json:"email"`
 	UsernameAKA   string `json:"username_aka"`
 	FavouriteMode *int   `json:"favourite_mode"`
 	CustomBadge   struct {
@@ -60,7 +59,6 @@ func UsersSelfSettingsPOST(md common.MethodData) common.CodeMessager {
 	var d userSettingsData
 	md.RequestData.Unmarshal(&d)
 	q := new(common.UpdateQuery).
-		Add("u.email", d.Email).
 		Add("s.username_aka", d.UsernameAKA).
 		Add("s.favourite_mode", d.FavouriteMode).
 		Add("s.custom_badge_name", d.CustomBadge.Name).
