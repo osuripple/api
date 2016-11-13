@@ -77,6 +77,7 @@ type userSettingsResponse struct {
 	common.ResponseBase
 	ID       int    `json:"id"`
 	Username string `json:"username"`
+	Email    string `json:"email"`
 	userSettingsData
 }
 
