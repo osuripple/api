@@ -329,6 +329,9 @@ func UserUserpageGET(md common.MethodData) common.CodeMessager {
 		md.Err(err)
 		return Err500
 	}
+	if r.Userpage == nil {
+		r.Userpage = new(string)
+	}
 	r.Code = 200
 	return r
 }
