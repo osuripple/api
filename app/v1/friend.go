@@ -129,9 +129,13 @@ func FriendsWithGET(md common.MethodData) common.CodeMessager {
 	return r
 }
 
-// FriendsAddGET is the GET version of FriendsAddPOST.
-func FriendsAddGET(md common.MethodData) common.CodeMessager {
-	return addFriend(md, common.Int(md.Query("id")))
+// FriendsAddPOST adds an user to the friends.
+func FriendsAddPOST(md common.MethodData) common.CodeMessager {
+	var u struct {
+		User int `json:"user"`
+	}
+	md.RequestData.Unmarshal(&u)
+	return addFriend(md, u.User)
 }
 
 func addFriend(md common.MethodData, u int) common.CodeMessager {
@@ -174,9 +178,13 @@ func userExists(md common.MethodData, u int) (r bool) {
 	return
 }
 
-// FriendsDelGET is the GET version of FriendDelPOST.
-func FriendsDelGET(md common.MethodData) common.CodeMessager {
-	return delFriend(md, common.Int(md.Query("id")))
+// FriendsDelPOST deletes an user's friend.
+func FriendsDelPOST(md common.MethodData) common.CodeMessager {
+	var u struct {
+		User int `json:"user"`
+	}
+	md.RequestData.Unmarshal(&u)
+	return delFriend(md, u.User)
 }
 
 func delFriend(md common.MethodData, u int) common.CodeMessager {
