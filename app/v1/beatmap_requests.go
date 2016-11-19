@@ -146,7 +146,7 @@ func BeatmapRankRequestsSubmitPOST(md common.MethodData) common.CodeMessager {
 	case nil:
 		// we're returning a success because if the request was already sent in the past 24
 		// hours, it's as if the user submitted it.
-		return common.SimpleResponse(200, "Your request has been submitted.")
+		return BeatmapRankRequestsStatusGET(md)
 	default:
 		md.Err(err)
 		return Err500
@@ -160,5 +160,5 @@ func BeatmapRankRequestsSubmitPOST(md common.MethodData) common.CodeMessager {
 		return Err500
 	}
 
-	return common.SimpleResponse(200, "Your request has been submitted.")
+	return BeatmapRankRequestsStatusGET(md)
 }
