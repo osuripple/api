@@ -5,7 +5,6 @@ import (
 	"strconv"
 	"time"
 
-	"git.zxq.co/ripple/rippleapi/beatmapget"
 	"git.zxq.co/ripple/rippleapi/common"
 	"git.zxq.co/ripple/rippleapi/limit"
 )
@@ -106,26 +105,45 @@ func BeatmapRankRequestsSubmitPOST(md common.MethodData) common.CodeMessager {
 		return common.SimpleResponse(403, "It's not possible to do a rank request at this time.")
 	}
 
-	if d.SetID == 0 {
-		d.SetID, err = beatmapget.Beatmap(d.ID)
-	} else {
-		err = beatmapget.Set(d.SetID)
+	w := common.
+		Where("beatmap_id = ?", strconv.Itoa(d.ID)).Or().
+		Where("beatmapset_id = ?", strconv.Itoa(d.SetID))
+
+	var ranked int
+	err = md.DB.QueryRow("SELECT ranked FROM beatmaps "+w.Clause+" LIMIT 1", w.Params...).Scan(&ranked)
+	if ranked >= 2 {
+		return common.SimpleResponse(406, "That beatmap is already ranked.")
 	}
-	if err == beatmapget.ErrBeatmapNotFound {
-		return common.SimpleResponse(404, "That beatmap could not be found anywhere!")
-	}
-	if err != nil {
+
+	switch err {
+	case nil:
+		// move on
+	case sql.ErrNoRows:
+		if d.SetID != 0 {
+			md.R.Publish("ripple:beatmap_updates:sets", strconv.Itoa(d.SetID))
+		} else {
+			md.R.Publish("ripple:beatmap_updates:single", strconv.Itoa(d.ID))
+		}
+	default:
 		md.Err(err)
 		return Err500
 	}
 
+	// type and value of beatmap rank request
+	t := "b"
+	v := d.ID
+	if d.SetID != 0 {
+		t = "s"
+		v = d.SetID
+	}
 	err = md.DB.QueryRow("SELECT 1 FROM rank_requests WHERE bid = ? AND type = ? AND time > ?",
-		d.SetID, "s", time.Now().Unix()).Scan(new(int))
+		v, t, time.Now().Add(-time.Hour*24).Unix()).Scan(new(int))
+
+	// error handling
 	switch err {
 	case sql.ErrNoRows:
 		break
 	case nil:
-		// TODO: return beatmap
 		// we're returning a success because if the request was already sent in the past 24
 		// hours, it's as if the user submitted it.
 		return common.SimpleResponse(200, "Your request has been submitted.")
@@ -136,12 +154,11 @@ func BeatmapRankRequestsSubmitPOST(md common.MethodData) common.CodeMessager {
 
 	_, err = md.DB.Exec(
 		"INSERT INTO rank_requests (userid, bid, type, time, blacklisted) VALUES (?, ?, ?, ?, 0)",
-		md.ID(), d.SetID, "s", time.Now().Unix())
+		md.ID(), v, t, time.Now().Unix())
 	if err != nil {
 		md.Err(err)
 		return Err500
 	}
 
-	// TODO: return beatmap
 	return common.SimpleResponse(200, "Your request has been submitted.")
 }

@@ -22,6 +22,9 @@ type Conf struct {
 	BeatmapRequestsPerUser int
 	RankQueueSize          int
 	OsuAPIKey              string
+	RedisAddr              string
+	RedisPassword          string
+	RedisDB                int
 }
 
 var cachedConf *Conf
@@ -43,6 +46,7 @@ func Load() (c Conf, halt bool) {
 			HanayoKey:              "Potato",
 			BeatmapRequestsPerUser: 2,
 			RankQueueSize:          25,
+			RedisAddr:              "localhost:6379",
 		}, "api.conf")
 		fmt.Println("Please compile the configuration file (api.conf).")
 	}

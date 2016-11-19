@@ -6,6 +6,7 @@ import (
 	"github.com/DataDog/datadog-go/statsd"
 	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx"
+	"gopkg.in/redis.v5"
 )
 
 // MethodData is a struct containing the data passed over to an API method.
@@ -15,6 +16,7 @@ type MethodData struct {
 	RequestData RequestData
 	C           *gin.Context
 	Doggo       *statsd.Client
+	R           *redis.Client
 }
 
 // Err logs an error into gin.

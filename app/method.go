@@ -48,6 +48,7 @@ func initialCaretaker(c *gin.Context, f func(md common.MethodData) common.CodeMe
 		RequestData: data,
 		C:           c,
 		Doggo:       doggo,
+		R:           red,
 	}
 	if token != "" {
 		tokenReal, exists := GetTokenFull(token, db)

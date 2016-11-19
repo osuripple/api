@@ -13,12 +13,14 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx"
 	"github.com/serenize/snaker"
+	"gopkg.in/redis.v5"
 )
 
 var (
 	db    *sqlx.DB
 	cf    common.Conf
 	doggo *statsd.Client
+	red   *redis.Client
 )
 
 var commonClusterfucks = map[string]string{
@@ -63,6 +65,13 @@ func Start(conf common.Conf, dbO *sqlx.DB) *gin.Engine {
 	doggo.Namespace = "api."
 	r.Use(func(c *gin.Context) {
 		doggo.Incr("requests", nil, 1)
+	})
+
+	// redis
+	red = redis.NewClient(&redis.Options{
+		Addr:     conf.RedisAddr,
+		Password: conf.RedisPassword,
+		DB:       conf.RedisDB,
 	})
 
 	api := r.Group("/api")
@@ -119,7 +128,7 @@ func Start(conf common.Conf, dbO *sqlx.DB) *gin.Engine {
 			gv1.POST("/friends/del", Method(v1.FriendsDelPOST, common.PrivilegeWrite))
 			gv1.POST("/users/self/settings", Method(v1.UsersSelfSettingsPOST, common.PrivilegeWrite))
 			gv1.POST("/users/self/userpage", Method(v1.UserSelfUserpagePOST, common.PrivilegeWrite))
-			//gv1.POST("/beatmaps/rank_requests", Method(v1.BeatmapRankRequestsSubmitPOST, common.PrivilegeWrite))
+			gv1.POST("/beatmaps/rank_requests", Method(v1.BeatmapRankRequestsSubmitPOST, common.PrivilegeWrite))
 
 			// Admin: beatmap
 			gv1.POST("/beatmaps/set_status", Method(v1.BeatmapSetStatusPOST, common.PrivilegeBeatmap))

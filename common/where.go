@@ -5,6 +5,7 @@ package common
 type WhereClause struct {
 	Clause string
 	Params []interface{}
+	useOr  bool
 }
 
 // Where adds a new WHERE clause to the WhereClause.
@@ -26,8 +27,24 @@ func (w *WhereClause) addWhere() {
 	if w.Clause == "" {
 		w.Clause += "WHERE "
 	} else {
+		if w.useOr {
+			w.Clause += " OR "
+			return
+		}
 		w.Clause += " AND "
 	}
+}
+
+// Or enables using OR instead of AND
+func (w *WhereClause) Or() *WhereClause {
+	w.useOr = true
+	return w
+}
+
+// And enables using AND instead of OR
+func (w *WhereClause) And() *WhereClause {
+	w.useOr = false
+	return w
 }
 
 // In generates an IN clause.
