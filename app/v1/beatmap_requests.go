@@ -2,6 +2,7 @@ package v1
 
 import (
 	"database/sql"
+	"encoding/json"
 	"strconv"
 	"time"
 
@@ -119,11 +120,8 @@ func BeatmapRankRequestsSubmitPOST(md common.MethodData) common.CodeMessager {
 	case nil:
 		// move on
 	case sql.ErrNoRows:
-		if d.SetID != 0 {
-			md.R.Publish("lets:beatmap_updates:sets", strconv.Itoa(d.SetID))
-		} else {
-			md.R.Publish("lets:beatmap_updates:single", strconv.Itoa(d.ID))
-		}
+		data, _ := json.Marshal(d)
+		md.R.Publish("lets:beatmap_updates", string(data))
 	default:
 		md.Err(err)
 		return Err500
