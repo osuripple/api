@@ -120,9 +120,9 @@ func BeatmapRankRequestsSubmitPOST(md common.MethodData) common.CodeMessager {
 		// move on
 	case sql.ErrNoRows:
 		if d.SetID != 0 {
-			md.R.Publish("ripple:beatmap_updates:sets", strconv.Itoa(d.SetID))
+			md.R.Publish("lets:beatmap_updates:sets", strconv.Itoa(d.SetID))
 		} else {
-			md.R.Publish("ripple:beatmap_updates:single", strconv.Itoa(d.ID))
+			md.R.Publish("lets:beatmap_updates:single", strconv.Itoa(d.ID))
 		}
 	default:
 		md.Err(err)
