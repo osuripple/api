@@ -47,7 +47,7 @@ func main() {
 		if strings.Contains(conf.DSN, "?") {
 			c = "&"
 		}
-		conf.DSN += c + "parseTime=true"
+		conf.DSN += c + "parseTime=true&charset=utf8mb4,utf8&collation=utf8mb4_general_ci"
 	}
 
 	var err error
