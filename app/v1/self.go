@@ -58,6 +58,12 @@ type userSettingsData struct {
 func UsersSelfSettingsPOST(md common.MethodData) common.CodeMessager {
 	var d userSettingsData
 	md.RequestData.Unmarshal(&d)
+
+	// input sanitisation
+	d.UsernameAKA = common.SanitiseString(d.UsernameAKA)
+	d.CustomBadge.Name = common.SanitiseString(d.CustomBadge.Name)
+	d.FavouriteMode = intPtrIn(0, d.FavouriteMode, 3)
+
 	q := new(common.UpdateQuery).
 		Add("s.username_aka", d.UsernameAKA).
 		Add("s.favourite_mode", d.FavouriteMode).
@@ -113,4 +119,17 @@ WHERE u.id = ?`, md.ID()).Scan(
 		}{}
 	}
 	return r
+}
+
+func intPtrIn(x int, y *int, z int) *int {
+	if y == nil {
+		return nil
+	}
+	if *y > z {
+		return nil
+	}
+	if *y < x {
+		return nil
+	}
+	return y
 }

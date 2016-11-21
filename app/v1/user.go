@@ -345,7 +345,8 @@ func UserSelfUserpagePOST(md common.MethodData) common.CodeMessager {
 	if d.Data == nil {
 		return ErrMissingField("data")
 	}
-	_, err := md.DB.Exec("UPDATE users_stats SET userpage_content = ? WHERE id = ? LIMIT 1", *d.Data, md.ID())
+	cont := common.SanitiseString(*d.Data)
+	_, err := md.DB.Exec("UPDATE users_stats SET userpage_content = ? WHERE id = ? LIMIT 1", cont, md.ID())
 	if err != nil {
 		md.Err(err)
 	}
