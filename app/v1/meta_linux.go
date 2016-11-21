@@ -1,5 +1,7 @@
 // +build !windows
 
+// TODO: Make all these methods POST
+
 package v1
 
 import (

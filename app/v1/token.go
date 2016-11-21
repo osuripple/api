@@ -131,8 +131,8 @@ func TokenNewPOST(md common.MethodData) common.CodeMessager {
 	return r
 }
 
-// TokenSelfDeleteGET deletes the token the user is connecting with.
-func TokenSelfDeleteGET(md common.MethodData) common.CodeMessager {
+// TokenSelfDeletePOST deletes the token the user is connecting with.
+func TokenSelfDeletePOST(md common.MethodData) common.CodeMessager {
 	if md.ID() == 0 {
 		return common.SimpleResponse(400, "How should we delete your token if you haven't even given us one?!")
 	}
@@ -199,9 +199,9 @@ func TokenSelfGET(md common.MethodData) common.CodeMessager {
 	return r
 }
 
-// TokenFixPrivilegesGET fixes the privileges on the token of the given user,
+// TokenFixPrivilegesPOST fixes the privileges on the token of the given user,
 // or of all the users if no user is given.
-func TokenFixPrivilegesGET(md common.MethodData) common.CodeMessager {
+func TokenFixPrivilegesPOST(md common.MethodData) common.CodeMessager {
 	id := common.Int(md.Query("id"))
 	if md.Query("id") == "self" {
 		id = md.ID()
