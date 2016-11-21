@@ -41,7 +41,7 @@ func TestWhereClause_In(t *testing.T) {
 			"simple",
 			&WhereClause{},
 			args{"users.id", []string{"1", "2", "3"}},
-			&WhereClause{"WHERE users.id IN (?, ?, ?)", []interface{}{"1", "2", "3"}},
+			&WhereClause{"WHERE users.id IN (?, ?, ?)", []interface{}{"1", "2", "3"}, false},
 		},
 		{
 			"withExisting",
@@ -50,6 +50,7 @@ func TestWhereClause_In(t *testing.T) {
 			&WhereClause{
 				"WHERE users.username = ? AND users.xd > ? AND users.id IN (?)",
 				[]interface{}{"Howl", "6", "1"},
+				false,
 			},
 		},
 	}
@@ -75,12 +76,12 @@ func TestWhere(t *testing.T) {
 		{
 			"simple",
 			args{"users.id = ?", "5", nil},
-			&WhereClause{"WHERE users.id = ?", []interface{}{"5"}},
+			&WhereClause{"WHERE users.id = ?", []interface{}{"5"}, false},
 		},
 		{
 			"allowed",
 			args{"users.id = ?", "5", []string{"1", "3", "5"}},
-			&WhereClause{"WHERE users.id = ?", []interface{}{"5"}},
+			&WhereClause{"WHERE users.id = ?", []interface{}{"5"}, false},
 		},
 		{
 			"notAllowed",
