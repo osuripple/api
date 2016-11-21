@@ -90,7 +90,7 @@ func Start(conf common.Conf, dbO *sqlx.DB) *gin.Engine {
 		{
 			gv1.POST("/tokens", Method(v1.TokenNewPOST))
 			gv1.POST("/tokens/new", Method(v1.TokenNewPOST))
-			gv1.GET("/tokens/self/delete", Method(v1.TokenSelfDeleteGET))
+			gv1.POST("/tokens/self/delete", Method(v1.TokenSelfDeleteGET))
 
 			// Auth-free API endpoints (public data)
 			gv1.GET("/ping", Method(v1.PingGET))
