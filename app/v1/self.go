@@ -50,8 +50,8 @@ func UsersSelfFavouriteModeGET(md common.MethodData) common.CodeMessager {
 }
 
 type userSettingsData struct {
-	UsernameAKA   string `json:"username_aka"`
-	FavouriteMode *int   `json:"favourite_mode"`
+	UsernameAKA   *string `json:"username_aka"`
+	FavouriteMode *int    `json:"favourite_mode"`
 	CustomBadge   struct {
 		singleBadge
 		Show *bool `json:"show"`
@@ -65,7 +65,7 @@ func UsersSelfSettingsPOST(md common.MethodData) common.CodeMessager {
 	md.RequestData.Unmarshal(&d)
 
 	// input sanitisation
-	d.UsernameAKA = common.SanitiseString(d.UsernameAKA)
+	*d.UsernameAKA = common.SanitiseString(*d.UsernameAKA)
 	if md.User.UserPrivileges&common.UserPrivilegeDonor > 0 {
 		d.CustomBadge.Name = common.SanitiseString(d.CustomBadge.Name)
 		d.CustomBadge.Icon = sanitiseIconName(d.CustomBadge.Icon)
