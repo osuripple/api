@@ -1,6 +1,11 @@
 package v1
 
-import "git.zxq.co/ripple/rippleapi/common"
+import (
+	"strings"
+
+	"git.zxq.co/ripple/rippleapi/common"
+	"git.zxq.co/ripple/semantic-icons-ugc"
+)
 
 type donorInfoResponse struct {
 	common.ResponseBase
@@ -61,7 +66,13 @@ func UsersSelfSettingsPOST(md common.MethodData) common.CodeMessager {
 
 	// input sanitisation
 	d.UsernameAKA = common.SanitiseString(d.UsernameAKA)
-	d.CustomBadge.Name = common.SanitiseString(d.CustomBadge.Name)
+	if md.User.UserPrivileges&common.UserPrivilegeDonor > 0 {
+		d.CustomBadge.Name = common.SanitiseString(d.CustomBadge.Name)
+		d.CustomBadge.Icon = sanitiseIconName(d.CustomBadge.Icon)
+	} else {
+		d.CustomBadge.singleBadge = singleBadge{}
+		d.CustomBadge.Show = nil
+	}
 	d.FavouriteMode = intPtrIn(0, d.FavouriteMode, 3)
 
 	q := new(common.UpdateQuery).
@@ -77,6 +88,26 @@ func UsersSelfSettingsPOST(md common.MethodData) common.CodeMessager {
 		return Err500
 	}
 	return UsersSelfSettingsGET(md)
+}
+
+func sanitiseIconName(s string) string {
+	classes := strings.Split(s, " ")
+	n := make([]string, 0, len(classes))
+	for _, c := range classes {
+		if !in(c, n) && in(c, semanticiconsugc.SaneIcons) {
+			n = append(n, c)
+		}
+	}
+	return strings.Join(n, " ")
+}
+
+func in(a string, b []string) bool {
+	for _, x := range b {
+		if x == a {
+			return true
+		}
+	}
+	return false
 }
 
 type userSettingsResponse struct {

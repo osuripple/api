@@ -8,7 +8,7 @@ import (
 func SanitiseString(s string) string {
 	n := make([]rune, 0, len(s))
 	for _, c := range s {
-		if !unicode.Is(unicode.Other, c) {
+		if c == '\n' || !unicode.Is(unicode.Other, c) {
 			n = append(n, c)
 		}
 	}
