@@ -74,6 +74,9 @@ func Start(conf common.Conf, dbO *sqlx.DB) *gin.Engine {
 		DB:       conf.RedisDB,
 	})
 
+	// token updater
+	go tokenUpdater(db)
+
 	api := r.Group("/api")
 	{
 		p := api.Group("/")

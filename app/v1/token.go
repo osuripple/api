@@ -4,6 +4,7 @@ import (
 	"crypto/md5"
 	"database/sql"
 	"fmt"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 
@@ -121,7 +122,8 @@ func TokenNewPOST(md common.MethodData) common.CodeMessager {
 			return Err500
 		}
 	}
-	_, err = md.DB.Exec("INSERT INTO tokens(user, privileges, description, token, private) VALUES (?, ?, ?, ?, '0')", r.ID, r.Privileges, data.Description, tokenMD5)
+	_, err = md.DB.Exec("INSERT INTO tokens(user, privileges, description, token, private, last_updated) VALUES (?, ?, ?, ?, '0', ?)",
+		r.ID, r.Privileges, data.Description, tokenMD5, time.Now().Unix())
 	if err != nil {
 		md.Err(err)
 		return Err500
@@ -146,9 +148,10 @@ func TokenSelfDeletePOST(md common.MethodData) common.CodeMessager {
 }
 
 type token struct {
-	ID          int    `json:"id"`
-	Privileges  uint64 `json:"privileges"`
-	Description string `json:"description"`
+	ID          int                  `json:"id"`
+	Privileges  uint64               `json:"privileges"`
+	Description string               `json:"description"`
+	LastUpdated common.UnixTimestamp `json:"last_updated"`
 }
 type tokenResponse struct {
 	common.ResponseBase
@@ -157,14 +160,14 @@ type tokenResponse struct {
 
 // TokenGET retrieves a list listing all the user's public tokens.
 func TokenGET(md common.MethodData) common.CodeMessager {
-	rows, err := md.DB.Query("SELECT id, privileges, description FROM tokens WHERE user = ? AND private = '0'", md.ID())
+	rows, err := md.DB.Query("SELECT id, privileges, description, last_updated FROM tokens WHERE user = ? AND private = '0'", md.ID())
 	if err != nil {
 		return Err500
 	}
 	var r tokenResponse
 	for rows.Next() {
 		var t token
-		err = rows.Scan(&t.ID, &t.Privileges, &t.Description)
+		err = rows.Scan(&t.ID, &t.Privileges, &t.Description, &t.LastUpdated)
 		if err != nil {
 			md.Err(err)
 			continue
@@ -187,9 +190,9 @@ func TokenSelfGET(md common.MethodData) common.CodeMessager {
 	}
 	var r tokenSingleResponse
 	// md.User.ID = token id, userid would have been md.User.UserID. what a clusterfuck
-	err := md.DB.QueryRow("SELECT id, privileges, description FROM tokens WHERE id = ? "+
+	err := md.DB.QueryRow("SELECT id, privileges, description, last_updated FROM tokens WHERE id = ? "+
 		common.Paginate(md.Query("p"), md.Query("l"), 50), md.User.ID).Scan(
-		&r.ID, &r.Privileges, &r.Description,
+		&r.ID, &r.Privileges, &r.Description, &r.LastUpdated,
 	)
 	if err != nil {
 		md.Err(err)
@@ -220,7 +223,7 @@ func fixPrivileges(user int, db *sqlx.DB) {
 	}
 	rows, err := db.Query(`
 SELECT
-	tokens.id, tokens.privileges, users.privileges
+	tokens.id, tokens.privileges, users.privileges 
 FROM tokens
 LEFT JOIN users ON users.id = tokens.user
 `+wc, params...)
