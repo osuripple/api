@@ -29,10 +29,11 @@ WHERE token = ? LIMIT 1`,
 		)
 	updateTokens <- t.ID
 	if priv8 {
-		tokenPrivsRaw = common.PrivilegeReadConfidential | common.PrivilegeWrite
+		// all privileges, they'll get removed by canOnly anyway.
+		tokenPrivsRaw = (common.PrivilegeBeatmap << 1) - 1
 	}
-	t.TokenPrivileges = common.Privileges(tokenPrivsRaw)
 	t.UserPrivileges = common.UserPrivileges(userPrivsRaw)
+	t.TokenPrivileges = common.Privileges(tokenPrivsRaw).CanOnly(t.UserPrivileges)
 	switch {
 	case err == sql.ErrNoRows:
 		return common.Token{}, false

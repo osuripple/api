@@ -395,8 +395,15 @@ func UserLookupGET(md common.MethodData) common.CodeMessager {
 	}
 	name = "%" + name + "%"
 
-	rows, err := md.DB.Query("SELECT users.id, users.username FROM users WHERE username_safe LIKE ? AND "+
-		md.User.OnlyUserPublic(true)+" LIMIT 25", name)
+	var email string
+	if md.User.TokenPrivileges&common.PrivilegeManageUser != 0 &&
+		strings.Contains(md.Query("name"), "@") {
+		email = md.Query("name")
+	}
+
+	rows, err := md.DB.Query("SELECT users.id, users.username FROM users WHERE "+
+		"(username_safe LIKE ? OR email = ?) AND "+
+		md.User.OnlyUserPublic(true)+" LIMIT 25", name, email)
 	if err != nil {
 		md.Err(err)
 		return Err500
