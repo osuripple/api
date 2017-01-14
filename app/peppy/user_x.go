@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"git.zxq.co/ripple/rippleapi/common"
-	"git.zxq.co/x/getrank"
+	"zxq.co/ripple/rippleapi/common"
+	"zxq.co/x/getrank"
 	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx"
 	"gopkg.in/thehowl/go-osuapi.v1"

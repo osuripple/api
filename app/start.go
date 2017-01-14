@@ -3,10 +3,10 @@ package app
 import (
 	"fmt"
 
-	"git.zxq.co/ripple/rippleapi/app/internals"
-	"git.zxq.co/ripple/rippleapi/app/peppy"
-	"git.zxq.co/ripple/rippleapi/app/v1"
-	"git.zxq.co/ripple/rippleapi/common"
+	"zxq.co/ripple/rippleapi/app/internals"
+	"zxq.co/ripple/rippleapi/app/peppy"
+	"zxq.co/ripple/rippleapi/app/v1"
+	"zxq.co/ripple/rippleapi/common"
 	"github.com/DataDog/datadog-go/statsd"
 	"github.com/getsentry/raven-go"
 	"github.com/gin-gonic/contrib/gzip"

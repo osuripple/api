@@ -3,8 +3,8 @@ package v1
 import (
 	"fmt"
 
-	"git.zxq.co/ripple/ocl"
-	"git.zxq.co/ripple/rippleapi/common"
+	"zxq.co/ripple/ocl"
+	"zxq.co/ripple/rippleapi/common"
 )
 
 type leaderboardUser struct {

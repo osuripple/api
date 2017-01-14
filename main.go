@@ -6,10 +6,10 @@ import (
 	"strings"
 	"syscall"
 
-	"git.zxq.co/ripple/rippleapi/app"
-	"git.zxq.co/ripple/rippleapi/beatmapget"
-	"git.zxq.co/ripple/rippleapi/common"
-	"git.zxq.co/ripple/schiavolib"
+	"zxq.co/ripple/rippleapi/app"
+	"zxq.co/ripple/rippleapi/beatmapget"
+	"zxq.co/ripple/rippleapi/common"
+	"zxq.co/ripple/schiavolib"
 	// Golint pls dont break balls
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"

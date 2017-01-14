@@ -14,7 +14,7 @@ import (
 	"syscall"
 	"time"
 
-	"git.zxq.co/ripple/rippleapi/common"
+	"zxq.co/ripple/rippleapi/common"
 )
 
 // MetaRestartGET restarts the API with Zero Downtime™.

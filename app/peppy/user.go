@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	"git.zxq.co/ripple/ocl"
+	"zxq.co/ripple/ocl"
 	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx"
 	"github.com/thehowl/go-osuapi"

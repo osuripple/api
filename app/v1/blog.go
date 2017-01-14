@@ -3,7 +3,7 @@ package v1
 import (
 	"time"
 
-	"git.zxq.co/ripple/rippleapi/common"
+	"zxq.co/ripple/rippleapi/common"
 )
 
 type blogPost struct {

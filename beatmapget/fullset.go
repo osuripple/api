@@ -5,7 +5,7 @@ import (
 	"errors"
 	"time"
 
-	"git.zxq.co/ripple/rippleapi/common"
+	"zxq.co/ripple/rippleapi/common"
 	"gopkg.in/thehowl/go-osuapi.v1"
 )
 

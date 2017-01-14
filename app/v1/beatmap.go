@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/url"
 
-	"git.zxq.co/ripple/rippleapi/common"
+	"zxq.co/ripple/rippleapi/common"
 )
 
 type difficulty struct {

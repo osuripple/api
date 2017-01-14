@@ -8,9 +8,9 @@ import (
 
 	"github.com/jmoiron/sqlx"
 
-	"git.zxq.co/ripple/rippleapi/common"
-	"git.zxq.co/ripple/rippleapi/limit"
-	"git.zxq.co/ripple/schiavolib"
+	"zxq.co/ripple/rippleapi/common"
+	"zxq.co/ripple/rippleapi/limit"
+	"zxq.co/ripple/schiavolib"
 	"golang.org/x/crypto/bcrypt"
 )
 

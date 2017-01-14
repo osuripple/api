@@ -9,7 +9,7 @@ import (
 	"regexp"
 	"strings"
 
-	"git.zxq.co/ripple/rippleapi/common"
+	"zxq.co/ripple/rippleapi/common"
 	"github.com/gin-gonic/gin"
 )
 

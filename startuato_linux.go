@@ -9,8 +9,8 @@ import (
 	"fmt"
 	"time"
 
-	"git.zxq.co/ripple/schiavolib"
-	"git.zxq.co/ripple/rippleapi/common"
+	"zxq.co/ripple/schiavolib"
+	"zxq.co/ripple/rippleapi/common"
 	"github.com/gin-gonic/gin"
 	"github.com/rcrowley/goagain"
 )

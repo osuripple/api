@@ -4,7 +4,7 @@ import (
 	"strconv"
 	"strings"
 
-	"git.zxq.co/ripple/rippleapi/common"
+	"zxq.co/ripple/rippleapi/common"
 	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx"
 	"github.com/thehowl/go-osuapi"

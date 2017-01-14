@@ -3,7 +3,7 @@ package v1
 import (
 	"database/sql"
 
-	"git.zxq.co/ripple/rippleapi/common"
+	"zxq.co/ripple/rippleapi/common"
 )
 
 type friendData struct {

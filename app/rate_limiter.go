@@ -4,7 +4,7 @@ import (
 	"strconv"
 	"time"
 
-	"git.zxq.co/ripple/rippleapi/limit"
+	"zxq.co/ripple/rippleapi/limit"
 )
 
 const reqsPerSecond = 5000

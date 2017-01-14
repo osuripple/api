@@ -3,8 +3,8 @@ package v1
 import (
 	"strings"
 
-	"git.zxq.co/ripple/rippleapi/common"
-	"git.zxq.co/ripple/semantic-icons-ugc"
+	"zxq.co/ripple/rippleapi/common"
+	"zxq.co/ripple/semantic-icons-ugc"
 )
 
 type donorInfoResponse struct {

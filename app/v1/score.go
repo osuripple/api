@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"git.zxq.co/ripple/rippleapi/common"
+	"zxq.co/ripple/rippleapi/common"
 )
 
 type score struct {
