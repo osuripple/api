@@ -3,10 +3,6 @@ package app
 import (
 	"fmt"
 
-	"zxq.co/ripple/rippleapi/app/internals"
-	"zxq.co/ripple/rippleapi/app/peppy"
-	"zxq.co/ripple/rippleapi/app/v1"
-	"zxq.co/ripple/rippleapi/common"
 	"github.com/DataDog/datadog-go/statsd"
 	"github.com/getsentry/raven-go"
 	"github.com/gin-gonic/contrib/gzip"
@@ -14,6 +10,10 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/serenize/snaker"
 	"gopkg.in/redis.v5"
+	"zxq.co/ripple/rippleapi/app/internals"
+	"zxq.co/ripple/rippleapi/app/peppy"
+	"zxq.co/ripple/rippleapi/app/v1"
+	"zxq.co/ripple/rippleapi/common"
 )
 
 var (
@@ -115,7 +115,6 @@ func Start(conf common.Conf, dbO *sqlx.DB) *gin.Engine {
 			gv1.GET("/users/self", Method(v1.UserSelfGET))
 			gv1.GET("/tokens/self", Method(v1.TokenSelfGET))
 			gv1.GET("/blog/posts", Method(v1.BlogPostsGET))
-			gv1.GET("/blog/posts/content", Method(v1.BlogPostsContentGET))
 			gv1.GET("/scores", Method(v1.ScoresGET))
 			gv1.GET("/beatmaps/rank_requests/status", Method(v1.BeatmapRankRequestsStatusGET))
 
