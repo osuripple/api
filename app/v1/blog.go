@@ -103,7 +103,7 @@ func BlogPostsGET(md common.MethodData) common.CodeMessager {
 		// create response and return
 		var r blogPostsResponse
 		r.Code = 200
-		r.Posts = posts
+		r.Posts = blogLimit(posts, md.Query("l"))
 		return r
 	}
 
@@ -173,6 +173,14 @@ func BlogPostsGET(md common.MethodData) common.CodeMessager {
 
 	var r blogPostsResponse
 	r.Code = 200
-	r.Posts = posts
+	r.Posts = blogLimit(posts, md.Query("l"))
 	return r
+}
+
+func blogLimit(posts []blogPost, s string) []blogPost {
+	i := common.Int(s)
+	if i >= len(posts) || i < 1 {
+		return posts
+	}
+	return posts[:i]
 }
