@@ -1,23 +1,26 @@
 // +build windows
 
+// The Ripple API on Windows is not officially supported and you're probably
+// gonna swear a lot if you intend to use it on Windows. Caveat emptor.
+
 package main
 
 import (
-	"net"
 	"log"
-	"net/http"
+	"net"
 
-	"github.com/gin-gonic/gin"
+	"github.com/valyala/fasthttp"
 	"zxq.co/ripple/rippleapi/common"
 )
 
-func startuato(engine *gin.Engine) {
+func startuato(hn fasthttp.RequestHandler) {
 	conf, _ := common.Load()
 	var (
-		l net.Listener
+		l   net.Listener
 		err error
 	)
-	// Listen on a TCP or a UNIX domain socket (TCP here).
+
+	// Listen on a TCP or a UNIX domain socket.
 	if conf.Unix {
 		l, err = net.Listen("unix", conf.ListenTo)
 	} else {
@@ -27,5 +30,5 @@ func startuato(engine *gin.Engine) {
 		log.Fatalln(err)
 	}
 
-	http.Serve(l, engine)
+	fasthttp.Serve(l, hn)
 }

@@ -62,5 +62,5 @@ func main() {
 
 	engine := app.Start(conf, db)
 
-	startuato(engine)
+	startuato(engine.Handler)
 }

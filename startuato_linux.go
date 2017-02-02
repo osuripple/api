@@ -3,19 +3,18 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net"
-	"net/http"
-	"fmt"
 	"time"
 
-	"zxq.co/ripple/schiavolib"
-	"zxq.co/ripple/rippleapi/common"
-	"github.com/gin-gonic/gin"
 	"github.com/rcrowley/goagain"
+	"github.com/valyala/fasthttp"
+	"zxq.co/ripple/rippleapi/common"
+	"zxq.co/ripple/schiavolib"
 )
 
-func startuato(engine *gin.Engine) {
+func startuato(hn fasthttp.RequestHandler) {
 	conf, _ := common.Load()
 	// Inherit a net.Listener from our parent process or listen anew.
 	l, err := goagain.Listener()
@@ -35,13 +34,12 @@ func startuato(engine *gin.Engine) {
 		schiavo.Bunker.Send(fmt.Sprint("LISTENINGU STARTUATO ON ", l.Addr()))
 
 		// Accept connections in a new goroutine.
-		go http.Serve(l, engine)
-
+		go fasthttp.Serve(l, hn)
 	} else {
 
 		// Resume accepting connections in a new goroutine.
 		schiavo.Bunker.Send(fmt.Sprint("LISTENINGU RESUMINGU ON ", l.Addr()))
-		go http.Serve(l, engine)
+		go fasthttp.Serve(l, hn)
 
 		// Kill the parent, now that the child has started successfully.
 		if err := goagain.Kill(); nil != err {
