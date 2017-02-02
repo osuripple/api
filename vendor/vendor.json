@@ -9,6 +9,12 @@
 			"revisionTime": "2016-12-13T18:18:37Z"
 		},
 		{
+			"checksumSHA1": "oRe30fSZIP2Z0G+eNUgu/Km0uOU=",
+			"path": "github.com/buaazp/fasthttprouter",
+			"revision": "ade4e2031af3aed7fffd241084aad80a58faf421",
+			"revisionTime": "2016-12-15T12:12:41Z"
+		},
+		{
 			"checksumSHA1": "D8gUHzS23ynNPS4imXcAqGnfTck=",
 			"path": "github.com/certifi/gocertifi",
 			"revision": "a61bf5eafa3aee233ec8043e9da052447e5463dd",
@@ -69,6 +75,36 @@
 			"revisionTime": "2016-12-09T02:45:31Z"
 		},
 		{
+			"checksumSHA1": "+CqJGh7NIDMnHgScq9sl9tPrnVM=",
+			"path": "github.com/klauspost/compress/flate",
+			"revision": "461e8fd8397ae84a23f56e385801e4feda2048ce",
+			"revisionTime": "2017-01-14T13:08:32Z"
+		},
+		{
+			"checksumSHA1": "V1lQwkoDR1fPmZBSgkmZjgZofeU=",
+			"path": "github.com/klauspost/compress/gzip",
+			"revision": "461e8fd8397ae84a23f56e385801e4feda2048ce",
+			"revisionTime": "2017-01-14T13:08:32Z"
+		},
+		{
+			"checksumSHA1": "+azPXaZpPF14YHRghNAer13ThQU=",
+			"path": "github.com/klauspost/compress/zlib",
+			"revision": "461e8fd8397ae84a23f56e385801e4feda2048ce",
+			"revisionTime": "2017-01-14T13:08:32Z"
+		},
+		{
+			"checksumSHA1": "iKPMvbAueGfdyHcWCgzwKzm8WVo=",
+			"path": "github.com/klauspost/cpuid",
+			"revision": "09cded8978dc9e80714c4d85b0322337b0a1e5e0",
+			"revisionTime": "2016-03-02T07:53:16Z"
+		},
+		{
+			"checksumSHA1": "BM6ZlNJmtKy3GBoWwg2X55gnZ4A=",
+			"path": "github.com/klauspost/crc32",
+			"revision": "cb6bfca970f6908083f26f39a79009d608efd5cd",
+			"revisionTime": "2016-10-16T15:41:25Z"
+		},
+		{
 			"checksumSHA1": "b0T0Hzd+zYk+OCDTFMps+jwa/nY=",
 			"path": "github.com/manucorporat/sse",
 			"revision": "ee05b128a739a0fb76c7ebd3ae4810c1de808d6d",
@@ -103,6 +139,30 @@
 			"path": "github.com/thehowl/go-osuapi",
 			"revision": "77ef7867f23cd52e80dcf97e62447d3b36b1d26a",
 			"revisionTime": "2016-10-17T20:25:41Z"
+		},
+		{
+			"checksumSHA1": "LTOa3BADhwvT0wFCknPueQALm8I=",
+			"path": "github.com/valyala/bytebufferpool",
+			"revision": "e746df99fe4a3986f4d4f79e13c1e0117ce9c2f7",
+			"revisionTime": "2016-08-17T18:16:52Z"
+		},
+		{
+			"checksumSHA1": "Gctj3Vl8yCL+0G9V09E6r7EYegg=",
+			"path": "github.com/valyala/fasthttp",
+			"revision": "2ada93a6dff49eb212acf5d7faf2f6d9cfca729b",
+			"revisionTime": "2017-01-18T17:20:47Z"
+		},
+		{
+			"checksumSHA1": "nMWLZCTKLciURGG8o/KeEPUExkY=",
+			"path": "github.com/valyala/fasthttp/fasthttputil",
+			"revision": "2ada93a6dff49eb212acf5d7faf2f6d9cfca729b",
+			"revisionTime": "2017-01-18T17:20:47Z"
+		},
+		{
+			"checksumSHA1": "8qIEFviyMSKhh3e2vWdZFC6TNu4=",
+			"path": "github.com/valyala/fasthttp/stackless",
+			"revision": "2ada93a6dff49eb212acf5d7faf2f6d9cfca729b",
+			"revisionTime": "2017-01-18T17:20:47Z"
 		},
 		{
 			"checksumSHA1": "vE43s37+4CJ2CDU6TlOUOYE0K9c=",
