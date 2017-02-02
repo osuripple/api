@@ -29,8 +29,8 @@ func rateLimiter() {
 }
 func perUserRequestLimiter(uid int, ip string) {
 	if uid == 0 {
-		limit.Request("ip:"+ip, 60)
+		limit.Request("ip:"+ip, 200)
 	} else {
-		limit.Request("user:"+strconv.Itoa(uid), 2000)
+		limit.Request("user:"+strconv.Itoa(uid), 3000)
 	}
 }
