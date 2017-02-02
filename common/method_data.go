@@ -47,36 +47,30 @@ func (md MethodData) ClientIP() string {
 // Err logs an error. If RavenClient is set, it will use the client to report
 // the error to sentry, otherwise it will just write the error to stdout.
 func (md MethodData) Err(err error) {
-	if RavenClient == nil {
-		fmt.Println("ERROR!!!!")
-		fmt.Println(err)
-		return
+	user := &raven.User{
+		ID:       strconv.Itoa(md.User.UserID),
+		Username: md.User.Value,
+		IP:       md.Ctx.RemoteAddr().String(),
 	}
-
-	// Create stacktrace
-	st := raven.NewStacktrace(0, 3, []string{"zxq.co/ripple", "git.zxq.co/ripple"})
-
 	// Generate tags for error
 	tags := map[string]string{
-		"endpoint": b2s(md.Ctx.RequestURI()),
+		"endpoint": string(md.Ctx.RequestURI()),
 		"token":    md.User.Value,
 	}
-
-	RavenClient.CaptureError(
-		err,
-		tags,
-		st,
-		generateRavenHTTP(md.Ctx),
-		&raven.User{
-			ID:       strconv.Itoa(md.User.UserID),
-			Username: md.User.Value,
-			IP:       md.Ctx.RemoteAddr().String(),
-		},
-	)
+	_err(err, tags, user, md.Ctx)
 }
 
 // Err for peppy API calls
 func Err(c *fasthttp.RequestCtx, err error) {
+	// Generate tags for error
+	tags := map[string]string{
+		"endpoint": string(c.RequestURI()),
+	}
+
+	_err(err, tags, nil, c)
+}
+
+func _err(err error, tags map[string]string, user *raven.User, c *fasthttp.RequestCtx) {
 	if RavenClient == nil {
 		fmt.Println("ERROR!!!!")
 		fmt.Println(err)
@@ -86,16 +80,15 @@ func Err(c *fasthttp.RequestCtx, err error) {
 	// Create stacktrace
 	st := raven.NewStacktrace(0, 3, []string{"zxq.co/ripple", "git.zxq.co/ripple"})
 
-	// Generate tags for error
-	tags := map[string]string{
-		"endpoint": b2s(c.RequestURI()),
+	ifaces := []raven.Interface{st, generateRavenHTTP(c)}
+	if user != nil {
+		ifaces = append(ifaces, user)
 	}
 
 	RavenClient.CaptureError(
 		err,
 		tags,
-		st,
-		generateRavenHTTP(c),
+		ifaces...,
 	)
 }
 
