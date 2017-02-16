@@ -19,13 +19,16 @@ import (
 type mediumResp struct {
 	Success bool `json:"success"`
 	Payload struct {
-		Posts []mediumPost `json:"posts"`
+		Posts      []mediumPost `json:"posts"`
+		References struct {
+			User map[string]mediumUser
+		} `json:"references"`
 	} `json:"payload"`
 }
 
 type mediumPost struct {
 	ID          string             `json:"id"`
-	Creator     mediumUser         `json:"creator"`
+	CreatorID   string             `json:"creatorId"`
 	Title       string             `json:"title"`
 	CreatedAt   int64              `json:"createdAt"`
 	UpdatedAt   int64              `json:"updatedAt"`
@@ -41,11 +44,9 @@ type mediumUser struct {
 }
 
 type mediumPostVirtuals struct {
-	CreatedAtRelative string  `json:"createdAtRelative"`
-	UpdatedAtRelative string  `json:"updatedAtRelative"`
-	Snippet           string  `json:"snippet"`
-	WordCount         int     `json:"wordCount"`
-	ReadingTime       float64 `json:"readingTime"`
+	Snippet     string  `json:"snippet"`
+	WordCount   int     `json:"wordCount"`
+	ReadingTime float64 `json:"readingTime"`
 }
 
 // there's gotta be a better way
@@ -59,11 +60,9 @@ type blogPost struct {
 	ImportedURL string    `json:"imported_url"`
 	UniqueSlug  string    `json:"unique_slug"`
 
-	CreatedAtRelative string  `json:"created_at_relative"`
-	UpdatedAtRelative string  `json:"updated_at_relative"`
-	Snippet           string  `json:"snippet"`
-	WordCount         int     `json:"word_count"`
-	ReadingTime       float64 `json:"reading_time"`
+	Snippet     string  `json:"snippet"`
+	WordCount   int     `json:"word_count"`
+	ReadingTime float64 `json:"reading_time"`
 }
 
 type blogUser struct {
@@ -149,12 +148,11 @@ func BlogPostsGET(md common.MethodData) common.CodeMessager {
 		p.ImportedURL = mp.ImportedURL
 		p.UniqueSlug = mp.UniqueSlug
 
-		p.Creator.UserID = mp.Creator.UserID
-		p.Creator.Name = mp.Creator.Name
-		p.Creator.Username = mp.Creator.Username
+		cr := mResp.Payload.References.User[mp.CreatorID]
+		p.Creator.UserID = cr.UserID
+		p.Creator.Name = cr.Name
+		p.Creator.Username = cr.Username
 
-		p.CreatedAtRelative = mp.Virtuals.CreatedAtRelative
-		p.UpdatedAtRelative = mp.Virtuals.UpdatedAtRelative
 		p.Snippet = mp.Virtuals.Snippet
 		p.WordCount = mp.Virtuals.WordCount
 		p.ReadingTime = mp.Virtuals.ReadingTime
