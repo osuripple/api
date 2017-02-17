@@ -44,7 +44,7 @@ type mediumUser struct {
 }
 
 type mediumPostVirtuals struct {
-	Snippet     string  `json:"snippet"`
+	Subtitle    string  `json:"subtitle"`
 	WordCount   int     `json:"wordCount"`
 	ReadingTime float64 `json:"readingTime"`
 }
@@ -153,7 +153,7 @@ func BlogPostsGET(md common.MethodData) common.CodeMessager {
 		p.Creator.Name = cr.Name
 		p.Creator.Username = cr.Username
 
-		p.Snippet = mp.Virtuals.Snippet
+		p.Snippet = mp.Virtuals.Subtitle
 		p.WordCount = mp.Virtuals.WordCount
 		p.ReadingTime = mp.Virtuals.ReadingTime
 
