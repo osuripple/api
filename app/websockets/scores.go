@@ -40,7 +40,7 @@ func SubscribeScores(c *conn, message incomingMessage) {
 
 	scoreSubscriptionsMtx.Unlock()
 
-	c.WriteJSON(TypeSubscribed, message)
+	c.WriteJSON(TypeSubscribed, ssu)
 }
 
 type scoreSubscription struct {
