@@ -7,7 +7,7 @@ import (
 )
 
 type userScore struct {
-	score
+	Score
 	Beatmap beatmap `json:"beatmap"`
 }
 

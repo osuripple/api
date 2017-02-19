@@ -13,6 +13,7 @@ import (
 	// Golint pls dont break balls
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
+	"github.com/serenize/snaker"
 	"gopkg.in/thehowl/go-osuapi.v1"
 )
 
@@ -57,10 +58,30 @@ func main() {
 		log.Fatalln(err)
 	}
 
+	db.MapperFunc(func(s string) string {
+		if x, ok := commonClusterfucks[s]; ok {
+			return x
+		}
+		return snaker.CamelToSnake(s)
+	})
+
 	beatmapget.Client = osuapi.NewClient(conf.OsuAPIKey)
 	beatmapget.DB = db
 
 	engine := app.Start(conf, db)
 
 	startuato(engine.Handler)
+}
+
+var commonClusterfucks = map[string]string{
+	"RegisteredOn": "register_datetime",
+	"UsernameAKA":  "username_aka",
+	"BeatmapMD5":   "beatmap_md5",
+	"Count300":     "300_count",
+	"Count100":     "100_count",
+	"Count50":      "50_count",
+	"CountGeki":    "gekis_count",
+	"CountKatu":    "katus_count",
+	"CountMiss":    "misses_count",
+	"PP":           "pp",
 }

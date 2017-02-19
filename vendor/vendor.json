@@ -75,6 +75,12 @@
 			"revisionTime": "2016-10-16T15:41:25Z"
 		},
 		{
+			"checksumSHA1": "n10276aHoXupg649LyC5MpLVc3M=",
+			"path": "github.com/leavengood/websocket",
+			"revision": "470559ebf58e05eb72622724e17269a20de5cd39",
+			"revisionTime": "2017-01-04T14:51:53Z"
+		},
+		{
 			"checksumSHA1": "076hAQdt7gF8W6O4yA/x0uNFEtc=",
 			"path": "github.com/rcrowley/goagain",
 			"revision": "f2f192b5d1a96e21dd4026ce67cda85e49659a48",

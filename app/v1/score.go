@@ -8,7 +8,8 @@ import (
 	"zxq.co/ripple/rippleapi/common"
 )
 
-type score struct {
+// Score is a score done on Ripple.
+type Score struct {
 	ID         int                  `json:"id"`
 	BeatmapMD5 string               `json:"beatmap_md5"`
 	Score      int64                `json:"score"`
@@ -31,7 +32,7 @@ type score struct {
 // beatmapScore is to differentiate from userScore, as beatmapScore contains
 // also an user, while userScore contains the beatmap.
 type beatmapScore struct {
-	score
+	Score
 	User userData `json:"user"`
 }
 

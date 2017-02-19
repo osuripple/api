@@ -7,11 +7,11 @@ import (
 	fhr "github.com/buaazp/fasthttprouter"
 	"github.com/getsentry/raven-go"
 	"github.com/jmoiron/sqlx"
-	"github.com/serenize/snaker"
 	"gopkg.in/redis.v5"
 	"zxq.co/ripple/rippleapi/app/internals"
 	"zxq.co/ripple/rippleapi/app/peppy"
 	"zxq.co/ripple/rippleapi/app/v1"
+	"zxq.co/ripple/rippleapi/app/websockets"
 	"zxq.co/ripple/rippleapi/common"
 )
 
@@ -22,22 +22,10 @@ var (
 	red   *redis.Client
 )
 
-var commonClusterfucks = map[string]string{
-	"RegisteredOn": "register_datetime",
-	"UsernameAKA":  "username_aka",
-}
-
 // Start begins taking HTTP connections.
 func Start(conf common.Conf, dbO *sqlx.DB) *fhr.Router {
 	db = dbO
 	cf = conf
-
-	db.MapperFunc(func(s string) string {
-		if x, ok := commonClusterfucks[s]; ok {
-			return x
-		}
-		return snaker.CamelToSnake(s)
-	})
 
 	rawRouter := fhr.New()
 	r := router{rawRouter}
@@ -77,6 +65,9 @@ func Start(conf common.Conf, dbO *sqlx.DB) *fhr.Router {
 
 	// token updater
 	go tokenUpdater(db)
+
+	// start websocket
+	websockets.Start(red, db)
 
 	// peppyapi
 	{
@@ -150,6 +141,11 @@ func Start(conf common.Conf, dbO *sqlx.DB) *fhr.Router {
 		// User Managing + meta
 		r.POSTMethod("/api/v1/tokens/fix_privileges", v1.TokenFixPrivilegesPOST,
 			common.PrivilegeManageUser, common.PrivilegeAPIMeta)
+	}
+
+	// Websocket API
+	{
+		r.PlainGET("/api/v1/ws", websockets.WebsocketV1Entry)
 	}
 
 	// in the new osu-web, the old endpoints are also in /v1 it seems. So /shrug

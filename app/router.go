@@ -28,6 +28,9 @@ func (r router) Peppy(path string, a func(c *fasthttp.RequestCtx, db *sqlx.DB)) 
 func (r router) GET(path string, handle fasthttp.RequestHandler) {
 	r.r.GET(path, wrap(handle))
 }
+func (r router) PlainGET(path string, handle fasthttp.RequestHandler) {
+	r.r.GET(path, handle)
+}
 
 const (
 	// \x1b is escape code for ESC
