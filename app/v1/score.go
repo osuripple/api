@@ -97,7 +97,7 @@ WHERE scores.beatmap_md5 = ? AND scores.completed = '3' AND `+md.User.OnlyUserPu
 			u userData
 		)
 		err := rows.Scan(
-			&s.ID, &s.BeatmapMD5, &s.Score,
+			&s.ID, &s.BeatmapMD5, &s.Score.Score,
 			&s.MaxCombo, &s.FullCombo, &s.Mods,
 			&s.Count300, &s.Count100, &s.Count50,
 			&s.CountGeki, &s.CountKatu, &s.CountMiss,

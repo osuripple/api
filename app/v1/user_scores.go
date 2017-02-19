@@ -87,7 +87,7 @@ func scoresPuts(md common.MethodData, whereClause string, params ...interface{})
 			b  beatmap
 		)
 		err = rows.Scan(
-			&us.ID, &us.BeatmapMD5, &us.Score,
+			&us.ID, &us.BeatmapMD5, &us.Score.Score,
 			&us.MaxCombo, &us.FullCombo, &us.Mods,
 			&us.Count300, &us.Count100, &us.Count50,
 			&us.CountGeki, &us.CountKatu, &us.CountMiss,
