@@ -2,6 +2,12 @@ package v1
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
+
+	"github.com/jmoiron/sqlx"
+
+	redis "gopkg.in/redis.v5"
 
 	"zxq.co/ripple/ocl"
 	"zxq.co/ripple/rippleapi/common"
@@ -28,29 +34,48 @@ SELECT
 
 	users_stats.ranked_score_%[1]s, users_stats.total_score_%[1]s, users_stats.playcount_%[1]s,
 	users_stats.replays_watched_%[1]s, users_stats.total_hits_%[1]s,
-	users_stats.avg_accuracy_%[1]s, users_stats.pp_%[1]s, leaderboard_%[1]s.position as %[1]s_position
-FROM leaderboard_%[1]s
-INNER JOIN users ON users.id = leaderboard_%[1]s.user
-INNER JOIN users_stats ON users_stats.id = leaderboard_%[1]s.user
-%[2]s`
+	users_stats.avg_accuracy_%[1]s, users_stats.pp_%[1]s
+FROM users
+INNER JOIN users_stats ON users_stats.id = users.id
+WHERE users.id IN (?)
+`
 
 // LeaderboardGET gets the leaderboard.
 func LeaderboardGET(md common.MethodData) common.CodeMessager {
 	m := getMode(md.Query("mode"))
-	w := &common.WhereClause{
-		Clause: "WHERE " + md.User.OnlyUserPublic(md.HasQuery("see_everything")),
+
+	// md.Query.Country
+	p := common.Int(md.Query("p")) - 1
+	if p < 0 {
+		p = 0
 	}
-	w.Where("users_stats.country = ?", md.Query("country"))
-	// Admins may not want to see banned users on the leaderboard.
-	// This is the default setting. In case they do, they have to activate see_everything.
-	query := fmt.Sprintf(lbUserQuery, m, w.Clause+
-		` ORDER BY leaderboard_`+m+`.position `+common.Paginate(md.Query("p"), md.Query("l"), 500))
-	rows, err := md.DB.Query(query, w.Params...)
+	l := common.InString(1, md.Query("l"), 500, 50)
+
+	key := "ripple:leaderboard:" + m
+	if md.Query("country") != "" {
+		key += ":" + md.Query("country")
+	}
+
+	results, err := md.R.ZRevRange(key, int64(p*l), int64(p*l+l-1)).Result()
 	if err != nil {
 		md.Err(err)
 		return Err500
 	}
+
 	var resp leaderboardResponse
+	resp.Code = 200
+
+	if len(results) == 0 {
+		return resp
+	}
+
+	query := fmt.Sprintf(lbUserQuery+` ORDER BY users_stats.pp_%[1]s DESC, users_stats.ranked_score_%[1]s DESC`, m)
+	query, params, _ := sqlx.In(query, results)
+	rows, err := md.DB.Query(query, params...)
+	if err != nil {
+		md.Err(err)
+		return Err500
+	}
 	for rows.Next() {
 		var u leaderboardUser
 		err := rows.Scan(
@@ -60,15 +85,28 @@ func LeaderboardGET(md common.MethodData) common.CodeMessager {
 
 			&u.ChosenMode.RankedScore, &u.ChosenMode.TotalScore, &u.ChosenMode.PlayCount,
 			&u.ChosenMode.ReplaysWatched, &u.ChosenMode.TotalHits,
-			&u.ChosenMode.Accuracy, &u.ChosenMode.PP, &u.ChosenMode.GlobalLeaderboardRank,
+			&u.ChosenMode.Accuracy, &u.ChosenMode.PP,
 		)
 		if err != nil {
 			md.Err(err)
 			continue
 		}
 		u.ChosenMode.Level = ocl.GetLevelPrecise(int64(u.ChosenMode.TotalScore))
+		if i := leaderboardPosition(md.R, m, u.ID); i != 0 {
+			u.ChosenMode.GlobalLeaderboardRank = &i
+		}
+		if i := countryPosition(md.R, m, u.ID, u.Country); i != 0 {
+			u.ChosenMode.CountryLeaderboardRank = &i
+		}
 		resp.Users = append(resp.Users, u)
 	}
-	resp.Code = 200
 	return resp
+}
+
+func leaderboardPosition(r *redis.Client, mode string, user int) int {
+	return int(r.ZRevRank("ripple:leaderboard:"+mode, strconv.Itoa(user)).Val()) + 1
+}
+
+func countryPosition(r *redis.Client, mode string, user int, country string) int {
+	return int(r.ZRevRank("ripple:leaderboard:"+mode+":"+strings.ToLower(country), strconv.Itoa(user)).Val()) + 1
 }

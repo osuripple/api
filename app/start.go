@@ -62,6 +62,7 @@ func Start(conf common.Conf, dbO *sqlx.DB) *fhr.Router {
 		Password: conf.RedisPassword,
 		DB:       conf.RedisDB,
 	})
+	peppy.R = red
 
 	// token updater
 	go tokenUpdater(db)
