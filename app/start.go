@@ -52,9 +52,6 @@ func Start(conf common.Conf, dbO *sqlx.DB) *fhr.Router {
 		fmt.Println(err)
 	}
 	doggo.Namespace = "api."
-	// r.Use(func(c *gin.Context) {
-	// 	doggo.Incr("requests", nil, 1)
-	// })
 
 	// redis
 	red = redis.NewClient(&redis.Options{

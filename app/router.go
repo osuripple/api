@@ -56,6 +56,8 @@ func wrap(handle fasthttp.RequestHandler) fasthttp.RequestHandler {
 	return func(c *fasthttp.RequestCtx) {
 		start := time.Now()
 
+		doggo.Incr("requests", nil, 1)
+
 		defer func() {
 			if rval := recover(); rval != nil {
 				var err error
