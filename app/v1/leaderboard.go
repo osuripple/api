@@ -92,21 +92,30 @@ func LeaderboardGET(md common.MethodData) common.CodeMessager {
 			continue
 		}
 		u.ChosenMode.Level = ocl.GetLevelPrecise(int64(u.ChosenMode.TotalScore))
-		if i := leaderboardPosition(md.R, m, u.ID); i != 0 {
-			u.ChosenMode.GlobalLeaderboardRank = &i
+		if i := leaderboardPosition(md.R, m, u.ID); i != nil {
+			u.ChosenMode.GlobalLeaderboardRank = i
 		}
-		if i := countryPosition(md.R, m, u.ID, u.Country); i != 0 {
-			u.ChosenMode.CountryLeaderboardRank = &i
+		if i := countryPosition(md.R, m, u.ID, u.Country); i != nil {
+			u.ChosenMode.CountryLeaderboardRank = i
 		}
 		resp.Users = append(resp.Users, u)
 	}
 	return resp
 }
 
-func leaderboardPosition(r *redis.Client, mode string, user int) int {
-	return int(r.ZRevRank("ripple:leaderboard:"+mode, strconv.Itoa(user)).Val()) + 1
+func leaderboardPosition(r *redis.Client, mode string, user int) *int {
+	return _position(r, "ripple:leaderboard:"+mode, user)
 }
 
-func countryPosition(r *redis.Client, mode string, user int, country string) int {
-	return int(r.ZRevRank("ripple:leaderboard:"+mode+":"+strings.ToLower(country), strconv.Itoa(user)).Val()) + 1
+func countryPosition(r *redis.Client, mode string, user int, country string) *int {
+	return _position(r, "ripple:leaderboard:"+mode+":"+strings.ToLower(country), user)
+}
+
+func _position(r *redis.Client, key string, user int) *int {
+	res := r.ZRevRank(key, strconv.Itoa(user))
+	if res.Err() == redis.Nil {
+		return nil
+	}
+	x := int(res.Val()) + 1
+	return &x
 }
