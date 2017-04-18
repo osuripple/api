@@ -12,6 +12,7 @@ import (
 var stepNumber uint64
 
 func handler(rawConn *websocket.Conn) {
+	defer catchPanic()
 	defer rawConn.Close()
 
 	step := atomic.AddUint64(&stepNumber, 1)

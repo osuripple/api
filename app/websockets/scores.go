@@ -75,6 +75,7 @@ type score struct {
 }
 
 func handleNewScore(id string) {
+	defer catchPanic()
 	var s score
 	err := db.Get(&s, `
 SELECT
@@ -130,4 +131,12 @@ func inModes(modes []int, i int) bool {
 		}
 	}
 	return false
+}
+
+func catchPanic() {
+	r := recover()
+	if r != nil {
+		fmt.Println(r)
+		// TODO: sentry
+	}
 }
