@@ -201,10 +201,10 @@
 			"revisionTime": "2016-11-23T19:03:31Z"
 		},
 		{
-			"checksumSHA1": "ItsAqvnH+Qa+ewmWbnSxT6EzSBk=",
+			"checksumSHA1": "9wL5kcCkaY+bXT/mEp+67/M+6rU=",
 			"path": "zxq.co/x/getrank",
-			"revision": "e62f5bd6998d8d75fe3a2ff1becc9df06e88e3a6",
-			"revisionTime": "2016-05-28T18:25:35Z"
+			"revision": "97d2823cf77de9e0c95e89485df768518b6262a9",
+			"revisionTime": "2017-04-18T18:31:09Z"
 		}
 	],
 	"rootPath": "zxq.co/ripple/rippleapi"

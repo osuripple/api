@@ -13,7 +13,7 @@ func GetRank(gameMode osuapi.Mode, mods osuapi.Mods, acc float64, c300, c100, c5
 	total := c300 + c100 + c50 + cmiss
 
 	switch gameMode {
-	case osuapi.ModeOsu:
+	case osuapi.ModeOsu, osuapi.ModeTaiko:
 		var (
 			c300f   = float64(c300)
 			totalf  = float64(total)
@@ -29,22 +29,6 @@ func GetRank(gameMode osuapi.Mode, mods osuapi.Mods, acc float64, c300, c100, c5
 		case (perc300 > 0.70 && cmiss == 0) || (perc300 > 0.80):
 			return "b"
 		case perc300 > 0.60:
-			return "c"
-		}
-		return "d"
-
-	case osuapi.ModeTaiko:
-		switch {
-		case acc == 100:
-			return s(true, mods)
-		case acc >= 95:
-			return s(false, mods)
-		case acc >= 90:
-			return "a"
-		case acc >= 80:
-			return "b"
-		// untested
-		case acc >= 70:
 			return "c"
 		}
 		return "d"

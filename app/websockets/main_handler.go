@@ -69,10 +69,10 @@ var messageHandler = map[string]func(c *conn, message incomingMessage){
 
 // Server Message Types
 const (
-	TypeConnected      = "connected"
-	TypeInvalidMessage = "invalid_message_type"
-	TypeSubscribed     = "subscribed"
-	TypeNewScore       = "new_score"
+	TypeConnected          = "connected"
+	TypeInvalidMessage     = "invalid_message_type"
+	TypeSubscribedToScores = "subscribed_to_scores"
+	TypeNewScore           = "new_score"
 )
 
 // Client Message Types

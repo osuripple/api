@@ -3,9 +3,12 @@ package websockets
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"sync"
 
+	"gopkg.in/thehowl/go-osuapi.v1"
 	"zxq.co/ripple/rippleapi/app/v1"
+	"zxq.co/x/getrank"
 )
 
 type subscribeScoresUser struct {
@@ -40,7 +43,7 @@ func SubscribeScores(c *conn, message incomingMessage) {
 
 	scoreSubscriptionsMtx.Unlock()
 
-	c.WriteJSON(TypeSubscribed, ssu)
+	c.WriteJSON(TypeSubscribedToScores, ssu)
 }
 
 type scoreSubscription struct {
@@ -83,6 +86,15 @@ FROM scores WHERE id = ?`, id)
 		fmt.Println(err)
 		return
 	}
+	s.Rank = strings.ToUpper(getrank.GetRank(
+		osuapi.Mode(s.PlayMode),
+		osuapi.Mods(s.Mods),
+		s.Accuracy,
+		s.Count300,
+		s.Count100,
+		s.Count50,
+		s.CountMiss,
+	))
 	scoreSubscriptionsMtx.RLock()
 	cp := make([]scoreSubscription, len(scoreSubscriptions))
 	copy(cp, scoreSubscriptions)

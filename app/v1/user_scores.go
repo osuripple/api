@@ -2,8 +2,11 @@ package v1
 
 import (
 	"fmt"
+	"strings"
 
+	"gopkg.in/thehowl/go-osuapi.v1"
 	"zxq.co/ripple/rippleapi/common"
+	"zxq.co/x/getrank"
 )
 
 type userScore struct {
@@ -106,6 +109,15 @@ func scoresPuts(md common.MethodData, whereClause string, params ...interface{})
 		}
 		b.Difficulty = b.Diff2.STD
 		us.Beatmap = b
+		us.Rank = strings.ToUpper(getrank.GetRank(
+			osuapi.Mode(us.PlayMode),
+			osuapi.Mods(us.Mods),
+			us.Accuracy,
+			us.Count300,
+			us.Count100,
+			us.Count50,
+			us.CountMiss,
+		))
 		scores = append(scores, us)
 	}
 	r := userScoresResponse{}

@@ -4,8 +4,11 @@ import (
 	"database/sql"
 	"fmt"
 	"strconv"
+	"strings"
 
+	"gopkg.in/thehowl/go-osuapi.v1"
 	"zxq.co/ripple/rippleapi/common"
+	"zxq.co/x/getrank"
 )
 
 // Score is a score done on Ripple.
@@ -26,6 +29,7 @@ type Score struct {
 	PlayMode   int                  `json:"play_mode"`
 	Accuracy   float64              `json:"accuracy"`
 	PP         float32              `json:"pp"`
+	Rank       string               `json:"rank"`
 	Completed  int                  `json:"completed"`
 }
 
@@ -112,6 +116,15 @@ WHERE scores.beatmap_md5 = ? AND scores.completed = '3' AND `+md.User.OnlyUserPu
 			continue
 		}
 		s.User = u
+		s.Rank = strings.ToUpper(getrank.GetRank(
+			osuapi.Mode(s.PlayMode),
+			osuapi.Mods(s.Mods),
+			s.Accuracy,
+			s.Count300,
+			s.Count100,
+			s.Count50,
+			s.CountMiss,
+		))
 		r.Scores = append(r.Scores, s)
 	}
 	r.Code = 200
