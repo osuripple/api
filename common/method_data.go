@@ -143,3 +143,8 @@ func (md MethodData) HasQuery(q string) bool {
 func (md MethodData) Unmarshal(into interface{}) error {
 	return json.Unmarshal(md.Ctx.PostBody(), into)
 }
+
+// IsBearer tells whether the current token is a Bearer (oauth) token.
+func (md MethodData) IsBearer() bool {
+	return md.User.ID == -1
+}

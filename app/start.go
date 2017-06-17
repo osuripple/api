@@ -79,8 +79,10 @@ func Start(conf common.Conf, dbO *sqlx.DB) *fhr.Router {
 
 	// v1 API
 	{
-		r.POSTMethod("/api/v1/tokens", v1.TokenNewPOST)
-		r.POSTMethod("/api/v1/tokens/new", v1.TokenNewPOST)
+		// These require an user to pass the password in cleartext and are
+		// as such really insecure.
+		//r.POSTMethod("/api/v1/tokens", v1.TokenNewPOST)
+		//r.POSTMethod("/api/v1/tokens/new", v1.TokenNewPOST)
 		r.POSTMethod("/api/v1/tokens/self/delete", v1.TokenSelfDeletePOST)
 
 		// Auth-free API endpoints (public data)

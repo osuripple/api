@@ -2,12 +2,14 @@ package app
 
 import (
 	"crypto/md5"
+	"crypto/sha256"
 	"database/sql"
 	"fmt"
+	"strings"
 	"time"
 
-	"zxq.co/ripple/rippleapi/common"
 	"github.com/jmoiron/sqlx"
+	"zxq.co/ripple/rippleapi/common"
 )
 
 // GetTokenFull retrieves an user ID and their token privileges knowing their API token.
@@ -18,7 +20,7 @@ func GetTokenFull(token string, db *sqlx.DB) (common.Token, bool) {
 		userPrivsRaw  uint64
 		priv8         bool
 	)
-	err := db.QueryRow(`SELECT 
+	err := db.QueryRow(`SELECT
 	t.id, t.user, t.privileges, t.private, u.privileges
 FROM tokens t
 LEFT JOIN users u ON u.id = t.user
@@ -83,4 +85,42 @@ func tokenUpdater(db *sqlx.DB) {
 			fmt.Println(err)
 		}
 	}
+}
+
+// BearerToken parses a Token guiven in the Authorization header, with the
+// Bearer prefix.
+func BearerToken(token string, db *sqlx.DB) (common.Token, bool) {
+	var x struct {
+		Scope string
+		Extra int
+	}
+	db.Get(&x, "SELECT scope, extra FROM osin_access WHERE access_token = ? LIMIT 1", fmt.Sprintf("%x", sha256.Sum256([]byte(token))))
+	if x.Extra == 0 {
+		return common.Token{}, false
+	}
+
+	var privs uint64
+	db.Get(&privs, "SELECT privileges FROM users WHERE id = ? LIMIT 1", x.Extra)
+
+	var t common.Token
+	t.ID = -1
+	t.UserID = x.Extra
+	t.Value = token
+	t.UserPrivileges = common.UserPrivileges(privs)
+	t.TokenPrivileges = oauthPrivileges(x.Scope).CanOnly(t.UserPrivileges)
+
+	return t, true
+}
+
+var privilegeMap = map[string]common.Privileges{
+	"read_confidential": common.PrivilegeReadConfidential,
+	"write":             common.PrivilegeWrite,
+}
+
+func oauthPrivileges(scopes string) common.Privileges {
+	var p common.Privileges
+	for _, x := range strings.Split(scopes, " ") {
+		p |= privilegeMap[x]
+	}
+	return p
 }
