@@ -47,7 +47,9 @@ func handler(rawConn *websocket.Conn) {
 			c.WriteJSON(TypeInvalidMessage, "invalid message type")
 			continue
 		}
-		f(c, i)
+		if f != nil {
+			f(c, i)
+		}
 	}
 }
 
@@ -66,6 +68,7 @@ func (c *conn) WriteJSON(t string, data interface{}) error {
 
 var messageHandler = map[string]func(c *conn, message incomingMessage){
 	TypeSubscribeScores: SubscribeScores,
+	TypePing:            pingHandler,
 }
 
 // Server Message Types
@@ -74,12 +77,18 @@ const (
 	TypeInvalidMessage     = "invalid_message_type"
 	TypeSubscribedToScores = "subscribed_to_scores"
 	TypeNewScore           = "new_score"
+	TypePong               = "pong"
 )
 
 // Client Message Types
 const (
 	TypeSubscribeScores = "subscribe_scores"
+	TypePing            = "ping"
 )
+
+func pingHandler(c *conn, message incomingMessage) {
+	c.WriteJSON(TypePong, nil)
+}
 
 // Message is the wrapped information for a message sent to the client.
 type Message struct {
