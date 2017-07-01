@@ -4,6 +4,7 @@ import (
 	"crypto/md5"
 	"database/sql"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -160,7 +161,12 @@ type tokenResponse struct {
 
 // TokenGET retrieves a list listing all the user's public tokens.
 func TokenGET(md common.MethodData) common.CodeMessager {
-	rows, err := md.DB.Query("SELECT id, privileges, description, last_updated FROM tokens WHERE user = ? AND private = '0'", md.ID())
+	wc := common.Where("user = ? AND private = 0", strconv.Itoa(md.ID()))
+	if md.Query("id") != "" {
+		wc.Where("id = ?", md.Query("id"))
+	}
+	rows, err := md.DB.Query("SELECT id, privileges, description, last_updated FROM tokens "+
+		wc.Clause+common.Paginate(md.Query("p"), md.Query("l"), 50), wc.Params...)
 	if err != nil {
 		return Err500
 	}
