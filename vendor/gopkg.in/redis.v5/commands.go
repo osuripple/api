@@ -50,16 +50,14 @@ type Cmdable interface {
 	Unlink(keys ...string) *IntCmd
 	Dump(key string) *StringCmd
 	Exists(key string) *BoolCmd
-	// TODO: merge with Exists in v6
-	ExistsMulti(keys ...string) *IntCmd
 	Expire(key string, expiration time.Duration) *BoolCmd
 	ExpireAt(key string, tm time.Time) *BoolCmd
 	Keys(pattern string) *StringSliceCmd
 	Migrate(host, port, key string, db int64, timeout time.Duration) *StatusCmd
 	Move(key string, db int64) *BoolCmd
-	ObjectRefCount(key string) *IntCmd
-	ObjectEncoding(key string) *StringCmd
-	ObjectIdleTime(key string) *DurationCmd
+	ObjectRefCount(keys ...string) *IntCmd
+	ObjectEncoding(keys ...string) *StringCmd
+	ObjectIdleTime(keys ...string) *DurationCmd
 	Persist(key string) *BoolCmd
 	PExpire(key string, expiration time.Duration) *BoolCmd
 	PExpireAt(key string, tm time.Time) *BoolCmd
@@ -172,7 +170,6 @@ type Cmdable interface {
 	ZRem(key string, members ...interface{}) *IntCmd
 	ZRemRangeByRank(key string, start, stop int64) *IntCmd
 	ZRemRangeByScore(key, min, max string) *IntCmd
-	ZRemRangeByLex(key, min, max string) *IntCmd
 	ZRevRange(key string, start, stop int64) *StringSliceCmd
 	ZRevRangeWithScores(key string, start, stop int64) *ZSliceCmd
 	ZRevRangeByScore(key string, opt ZRangeBy) *StringSliceCmd
@@ -273,13 +270,6 @@ func (c *cmdable) Ping() *StatusCmd {
 	return cmd
 }
 
-func (c *cmdable) Wait(numSlaves int, timeout time.Duration) *IntCmd {
-
-	cmd := NewIntCmd("wait", numSlaves, int(timeout/time.Millisecond))
-	c.process(cmd)
-	return cmd
-}
-
 func (c *cmdable) Quit() *StatusCmd {
 	panic("not implemented")
 }
@@ -326,17 +316,6 @@ func (c *cmdable) Exists(key string) *BoolCmd {
 	return cmd
 }
 
-func (c *cmdable) ExistsMulti(keys ...string) *IntCmd {
-	args := make([]interface{}, 1+len(keys))
-	args[0] = "exists"
-	for i, key := range keys {
-		args[1+i] = key
-	}
-	cmd := NewIntCmd(args...)
-	c.process(cmd)
-	return cmd
-}
-
 func (c *cmdable) Expire(key string, expiration time.Duration) *BoolCmd {
 	cmd := NewBoolCmd("expire", key, formatSec(expiration))
 	c.process(cmd)
@@ -375,20 +354,38 @@ func (c *cmdable) Move(key string, db int64) *BoolCmd {
 	return cmd
 }
 
-func (c *cmdable) ObjectRefCount(key string) *IntCmd {
-	cmd := NewIntCmd("object", "refcount", key)
+func (c *cmdable) ObjectRefCount(keys ...string) *IntCmd {
+	args := make([]interface{}, 2+len(keys))
+	args[0] = "object"
+	args[1] = "refcount"
+	for i, key := range keys {
+		args[2+i] = key
+	}
+	cmd := NewIntCmd(args...)
 	c.process(cmd)
 	return cmd
 }
 
-func (c *cmdable) ObjectEncoding(key string) *StringCmd {
-	cmd := NewStringCmd("object", "encoding", key)
+func (c *cmdable) ObjectEncoding(keys ...string) *StringCmd {
+	args := make([]interface{}, 2+len(keys))
+	args[0] = "object"
+	args[1] = "encoding"
+	for i, key := range keys {
+		args[2+i] = key
+	}
+	cmd := NewStringCmd(args...)
 	c.process(cmd)
 	return cmd
 }
 
-func (c *cmdable) ObjectIdleTime(key string) *DurationCmd {
-	cmd := NewDurationCmd(time.Second, "object", "idletime", key)
+func (c *cmdable) ObjectIdleTime(keys ...string) *DurationCmd {
+	args := make([]interface{}, 2+len(keys))
+	args[0] = "object"
+	args[1] = "idletime"
+	for i, key := range keys {
+		args[2+i] = key
+	}
+	cmd := NewDurationCmd(time.Second, args...)
 	c.process(cmd)
 	return cmd
 }
@@ -734,7 +731,6 @@ func (c *cmdable) MSetNX(pairs ...interface{}) *BoolCmd {
 
 // Redis `SET key value [expiration]` command.
 //
-// Use expiration for `SETEX`-like behavior.
 // Zero expiration means the key has no expiration time.
 func (c *cmdable) Set(key string, value interface{}, expiration time.Duration) *StatusCmd {
 	args := make([]interface{}, 3, 4)
@@ -1468,12 +1464,6 @@ func (c *cmdable) ZRemRangeByRank(key string, start, stop int64) *IntCmd {
 
 func (c *cmdable) ZRemRangeByScore(key, min, max string) *IntCmd {
 	cmd := NewIntCmd("zremrangebyscore", key, min, max)
-	c.process(cmd)
-	return cmd
-}
-
-func (c *cmdable) ZRemRangeByLex(key, min, max string) *IntCmd {
-	cmd := NewIntCmd("zremrangebylex", key, min, max)
 	c.process(cmd)
 	return cmd
 }

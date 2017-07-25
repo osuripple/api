@@ -3,7 +3,6 @@ package redis
 import (
 	"crypto/tls"
 	"errors"
-	"fmt"
 	"net"
 	"net/url"
 	"strconv"
@@ -152,7 +151,7 @@ func ParseURL(redisURL string) (*Options, error) {
 		o.DB = 0
 	case 1:
 		if o.DB, err = strconv.Atoi(f[0]); err != nil {
-			return nil, fmt.Errorf("invalid redis database number: %q", f[0])
+			return nil, errors.New("invalid redis database number: " + err.Error())
 		}
 	default:
 		return nil, errors.New("invalid redis URL path: " + u.Path)

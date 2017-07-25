@@ -328,8 +328,8 @@ func (c *Ring) heartbeat() {
 // It is rare to Close a Ring, as the Ring is meant to be long-lived
 // and shared between many goroutines.
 func (c *Ring) Close() error {
-	c.mu.Lock()
 	defer c.mu.Unlock()
+	c.mu.Lock()
 
 	if c.closed {
 		return nil

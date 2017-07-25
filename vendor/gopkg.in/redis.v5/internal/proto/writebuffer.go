@@ -8,13 +8,11 @@ import (
 
 const bufferSize = 4096
 
-type WriteBuffer struct {
-	b []byte
-}
+type WriteBuffer struct{ b []byte }
 
 func NewWriteBuffer() *WriteBuffer {
 	return &WriteBuffer{
-		b: make([]byte, 0, 4096),
+		b: make([]byte, 0, bufferSize),
 	}
 }
 

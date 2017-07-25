@@ -29,12 +29,8 @@ type Reader struct {
 func NewReader(rd io.Reader) *Reader {
 	return &Reader{
 		src: bufio.NewReader(rd),
-		buf: make([]byte, 4096),
+		buf: make([]byte, 0, bufferSize),
 	}
-}
-
-func (r *Reader) Reset(rd io.Reader) {
-	r.src.Reset(rd)
 }
 
 func (p *Reader) PeekBuffered() []byte {
@@ -46,12 +42,7 @@ func (p *Reader) PeekBuffered() []byte {
 }
 
 func (p *Reader) ReadN(n int) ([]byte, error) {
-	b, err := readN(p.src, p.buf, n)
-	if err != nil {
-		return nil, err
-	}
-	p.buf = b
-	return b, nil
+	return readN(p.src, p.buf, n)
 }
 
 func (p *Reader) ReadLine() ([]byte, error) {
@@ -81,11 +72,11 @@ func (p *Reader) ReadReply(m MultiBulkParse) (interface{}, error) {
 	case ErrorReply:
 		return nil, ParseErrorReply(line)
 	case StatusReply:
-		return parseStatusValue(line), nil
+		return parseStatusValue(line)
 	case IntReply:
 		return parseInt(line[1:], 10, 64)
 	case StringReply:
-		return p.readTmpBytesValue(line)
+		return p.readBytesValue(line)
 	case ArrayReply:
 		n, err := parseArrayLen(line)
 		if err != nil {
@@ -120,9 +111,9 @@ func (p *Reader) ReadTmpBytesReply() ([]byte, error) {
 	case ErrorReply:
 		return nil, ParseErrorReply(line)
 	case StringReply:
-		return p.readTmpBytesValue(line)
+		return p.readBytesValue(line)
 	case StatusReply:
-		return parseStatusValue(line), nil
+		return parseStatusValue(line)
 	default:
 		return nil, fmt.Errorf("redis: can't parse string reply: %.100q", line)
 	}
@@ -219,7 +210,7 @@ func (p *Reader) ReadScanReply() ([]string, uint64, error) {
 	return keys, cursor, err
 }
 
-func (p *Reader) readTmpBytesValue(line []byte) ([]byte, error) {
+func (p *Reader) readBytesValue(line []byte) ([]byte, error) {
 	if isNilReply(line) {
 		return nil, internal.Nil
 	}
@@ -306,8 +297,8 @@ func ParseErrorReply(line []byte) error {
 	return internal.RedisError(string(line[1:]))
 }
 
-func parseStatusValue(line []byte) []byte {
-	return line[1:]
+func parseStatusValue(line []byte) ([]byte, error) {
+	return line[1:], nil
 }
 
 func parseArrayLen(line []byte) (int64, error) {
