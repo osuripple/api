@@ -5,7 +5,6 @@ import (
 	"crypto/sha256"
 	"database/sql"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -87,7 +86,7 @@ func tokenUpdater(db *sqlx.DB) {
 	}
 }
 
-// BearerToken parses a Token guiven in the Authorization header, with the
+// BearerToken parses a Token given in the Authorization header, with the
 // Bearer prefix.
 func BearerToken(token string, db *sqlx.DB) (common.Token, bool) {
 	var x struct {
@@ -107,20 +106,7 @@ func BearerToken(token string, db *sqlx.DB) (common.Token, bool) {
 	t.UserID = x.Extra
 	t.Value = token
 	t.UserPrivileges = common.UserPrivileges(privs)
-	t.TokenPrivileges = oauthPrivileges(x.Scope).CanOnly(t.UserPrivileges)
+	t.TokenPrivileges = common.OAuthPrivileges(x.Scope).CanOnly(t.UserPrivileges)
 
 	return t, true
-}
-
-var privilegeMap = map[string]common.Privileges{
-	"read_confidential": common.PrivilegeReadConfidential,
-	"write":             common.PrivilegeWrite,
-}
-
-func oauthPrivileges(scopes string) common.Privileges {
-	var p common.Privileges
-	for _, x := range strings.Split(scopes, " ") {
-		p |= privilegeMap[x]
-	}
-	return p
 }

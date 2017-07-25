@@ -8,6 +8,7 @@ import (
 
 	"gopkg.in/thehowl/go-osuapi.v1"
 	"zxq.co/ripple/rippleapi/app/v1"
+	"zxq.co/ripple/rippleapi/common"
 	"zxq.co/x/getrank"
 )
 
@@ -69,9 +70,21 @@ func scoreRetriever() {
 	}
 }
 
+type scoreUser struct {
+	UserID     int    `json:"id"`
+	Username   string `json:"username"`
+	Privileges uint64 `json:"privileges"`
+}
+
 type score struct {
 	v1.Score
-	UserID int `json:"user_id"`
+	scoreUser
+}
+
+type scoreJSON struct {
+	v1.Score
+	UserID int       `json:"user_id"`
+	User   scoreUser `json:"user"`
 }
 
 func handleNewScore(id string) {
@@ -79,10 +92,13 @@ func handleNewScore(id string) {
 	var s score
 	err := db.Get(&s, `
 SELECT
-	id, beatmap_md5, score, max_combo, full_combo, mods,
-	300_count, 100_count, 50_count, gekis_count, katus_count, misses_count,
-	time, play_mode, accuracy, pp, completed, userid AS user_id
-FROM scores WHERE id = ?`, id)
+	s.id, s.beatmap_md5, s.score, s.max_combo, s.full_combo, s.mods,
+	s.300_count, s.100_count, s.50_count, s.gekis_count, s.katus_count, s.misses_count,
+	s.time, s.play_mode, s.accuracy, s.pp, s.completed, s.userid AS user_id,
+	u.username, u.privileges
+FROM scores s
+INNER JOIN users u ON s.userid = u.id
+WHERE s.id = ?`, id)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -96,21 +112,32 @@ FROM scores WHERE id = ?`, id)
 		s.Count50,
 		s.CountMiss,
 	))
+
+	sj := scoreJSON{
+		Score:  s.Score,
+		UserID: s.UserID,
+		User:   s.scoreUser,
+	}
+
 	scoreSubscriptionsMtx.RLock()
 	cp := make([]scoreSubscription, len(scoreSubscriptions))
 	copy(cp, scoreSubscriptions)
 	scoreSubscriptionsMtx.RUnlock()
 
 	for _, el := range cp {
-		if len(el.Users) > 0 && !scoreUserValid(el.Users, s) {
+		if len(el.Users) > 0 && !scoreUserValid(el.Users, sj) {
 			continue
 		}
 
-		el.Conn.WriteJSON(TypeNewScore, s)
+		if sj.User.Privileges&3 != 3 && !el.Conn.RestrictedVisible {
+			continue
+		}
+
+		el.Conn.WriteJSON(TypeNewScore, sj)
 	}
 }
 
-func scoreUserValid(users []subscribeScoresUser, s score) bool {
+func scoreUserValid(users []subscribeScoresUser, s scoreJSON) bool {
 	for _, u := range users {
 		if u.User == s.UserID {
 			if len(u.Modes) > 0 {
@@ -136,7 +163,11 @@ func inModes(modes []int, i int) bool {
 func catchPanic() {
 	r := recover()
 	if r != nil {
-		fmt.Println(r)
-		// TODO: sentry
+		switch r := r.(type) {
+		case error:
+			common.WSErr(r)
+		default:
+			fmt.Println("PANIC", r)
+		}
 	}
 }

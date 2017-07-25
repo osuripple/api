@@ -26,6 +26,8 @@ func handler(rawConn *websocket.Conn) {
 		rawConn,
 		sync.Mutex{},
 		step | uint64(time.Now().UnixNano()<<10),
+		false,
+		nil,
 	}
 
 	c.WriteJSON(TypeConnected, nil)
@@ -54,9 +56,11 @@ func handler(rawConn *websocket.Conn) {
 }
 
 type conn struct {
-	Conn *websocket.Conn
-	Mtx  sync.Mutex
-	ID   uint64
+	Conn                 *websocket.Conn
+	Mtx                  sync.Mutex
+	ID                   uint64
+	RestrictedVisible bool
+	User                 *websocketUser
 }
 
 func (c *conn) WriteJSON(t string, data interface{}) error {
@@ -67,23 +71,31 @@ func (c *conn) WriteJSON(t string, data interface{}) error {
 }
 
 var messageHandler = map[string]func(c *conn, message incomingMessage){
-	TypeSubscribeScores: SubscribeScores,
-	TypePing:            pingHandler,
+	TypeSubscribeScores:         SubscribeScores,
+	TypeSetRestrictedVisibility: SetRestrictedVisibility,
+	TypeIdentify:                Identify,
+	TypePing:                    pingHandler,
 }
 
 // Server Message Types
 const (
-	TypeConnected          = "connected"
-	TypeInvalidMessage     = "invalid_message_type"
-	TypeSubscribedToScores = "subscribed_to_scores"
-	TypeNewScore           = "new_score"
-	TypePong               = "pong"
+	TypeConnected               = "connected"
+	TypeInvalidMessage          = "invalid_message_type"
+	TypeUnexpectedError         = "unexpected_error"
+	TypeNotFound                = "not_found"
+	TypeSubscribedToScores      = "subscribed_to_scores"
+	TypeNewScore                = "new_score"
+	TypeIdentified              = "identified"
+	TypeRestrictedVisibilitySet = "restricted_visibility_set"
+	TypePong                    = "pong"
 )
 
 // Client Message Types
 const (
-	TypeSubscribeScores = "subscribe_scores"
-	TypePing            = "ping"
+	TypeSubscribeScores         = "subscribe_scores"
+	TypeIdentify                = "identify"
+	TypeSetRestrictedVisibility = "set_restricted_visibility"
+	TypePing                    = "ping"
 )
 
 func pingHandler(c *conn, message incomingMessage) {
