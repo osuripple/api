@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 	"regexp"
+	"strings"
 	"unsafe"
 
 	"github.com/valyala/fasthttp"
@@ -23,9 +24,13 @@ func initialCaretaker(c *fasthttp.RequestCtx, f func(md common.MethodData) commo
 
 	qa := c.Request.URI().QueryArgs()
 	var token string
+	var bearerToken bool
 	switch {
 	case len(c.Request.Header.Peek("X-Ripple-Token")) > 0:
 		token = string(c.Request.Header.Peek("X-Ripple-Token"))
+	case strings.HasPrefix(string(c.Request.Header.Peek("Authorization")), "Bearer "):
+		token = strings.TrimPrefix(string(c.Request.Header.Peek("Authorization")), "Bearer ")
+		bearerToken = true
 	case len(qa.Peek("token")) > 0:
 		token = string(qa.Peek("token"))
 	case len(qa.Peek("k")) > 0:
@@ -41,7 +46,15 @@ func initialCaretaker(c *fasthttp.RequestCtx, f func(md common.MethodData) commo
 		R:     red,
 	}
 	if token != "" {
-		tokenReal, exists := GetTokenFull(token, db)
+		var (
+			tokenReal common.Token
+			exists    bool
+		)
+		if bearerToken {
+			tokenReal, exists = BearerToken(token, db)
+		} else {
+			tokenReal, exists = GetTokenFull(token, db)
+		}
 		if exists {
 			md.User = tokenReal
 			doggoTags = append(doggoTags, "authorised")
