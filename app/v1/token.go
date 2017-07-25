@@ -112,8 +112,8 @@ func TokenNewPOST(md common.MethodData) common.CodeMessager {
 		tokenStr = common.RandomString(32)
 		tokenMD5 = fmt.Sprintf("%x", md5.Sum([]byte(tokenStr)))
 		r.Token = tokenStr
-		var id int
 
+		var id int
 		err := md.DB.QueryRow("SELECT id FROM tokens WHERE token=? LIMIT 1", tokenMD5).Scan(&id)
 		if err == sql.ErrNoRows {
 			break
@@ -229,7 +229,7 @@ func fixPrivileges(user int, db *sqlx.DB) {
 	}
 	rows, err := db.Query(`
 SELECT
-	tokens.id, tokens.privileges, users.privileges 
+	tokens.id, tokens.privileges, users.privileges
 FROM tokens
 LEFT JOIN users ON users.id = tokens.user
 `+wc, params...)
