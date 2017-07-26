@@ -79,10 +79,6 @@ func Start(conf common.Conf, dbO *sqlx.DB) *fhr.Router {
 
 	// v1 API
 	{
-		// These require an user to pass the password in cleartext and are
-		// as such really insecure.
-		//r.POSTMethod("/api/v1/tokens", v1.TokenNewPOST)
-		//r.POSTMethod("/api/v1/tokens/new", v1.TokenNewPOST)
 		r.POSTMethod("/api/v1/tokens/self/delete", v1.TokenSelfDeletePOST)
 
 		// Auth-free API endpoints (public data)
@@ -132,7 +128,6 @@ func Start(conf common.Conf, dbO *sqlx.DB) *fhr.Router {
 		// T     E                  -- the one who said "wow thats so meta"
 		// A T E M
 		r.Method("/api/v1/meta/restart", v1.MetaRestartGET, common.PrivilegeAPIMeta)
-		r.Method("/api/v1/meta/kill", v1.MetaKillGET, common.PrivilegeAPIMeta)
 		r.Method("/api/v1/meta/up_since", v1.MetaUpSinceGET, common.PrivilegeAPIMeta)
 		r.Method("/api/v1/meta/update", v1.MetaUpdateGET, common.PrivilegeAPIMeta)
 

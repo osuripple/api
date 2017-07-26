@@ -5,7 +5,6 @@
 package v1
 
 import (
-	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
@@ -28,26 +27,6 @@ func MetaRestartGET(md common.MethodData) common.CodeMessager {
 		proc.Signal(syscall.SIGUSR2)
 	}()
 	return common.SimpleResponse(200, "brb")
-}
-
-// MetaKillGET kills the API process. NOTE TO EVERYONE: NEVER. EVER. USE IN PROD.
-// Mainly created because I couldn't bother to fire up a terminal, do htop and kill the API each time.
-func MetaKillGET(md common.MethodData) common.CodeMessager {
-	proc, err := os.FindProcess(syscall.Getpid())
-	if err != nil {
-		return common.SimpleResponse(500, "couldn't find process. what the fuck?")
-	}
-	const form = "02/01/2006"
-	r := common.ResponseBase{
-		Code:    200,
-		Message: fmt.Sprintf("RIP ripple API %s - %s", upSince.Format(form), time.Now().Format(form)),
-	}
-	// yes
-	go func() {
-		time.Sleep(time.Second)
-		proc.Kill()
-	}()
-	return r
 }
 
 var upSince = time.Now()

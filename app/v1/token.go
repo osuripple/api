@@ -3,7 +3,6 @@ package v1
 import (
 	"crypto/md5"
 	"crypto/sha256"
-	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -12,130 +11,9 @@ import (
 
 	"github.com/jmoiron/sqlx"
 
-	"golang.org/x/crypto/bcrypt"
 	"zxq.co/ripple/rippleapi/common"
-	"zxq.co/ripple/rippleapi/limit"
 	"zxq.co/ripple/schiavolib"
 )
-
-type tokenNewInData struct {
-	// either username or userid must be given in the request.
-	// if none is given, the request is trashed.
-	Username    string `json:"username"`
-	UserID      int    `json:"id"`
-	Password    string `json:"password"`
-	Privileges  int    `json:"privileges"`
-	Description string `json:"description"`
-}
-
-type tokenNewResponse struct {
-	common.ResponseBase
-	Username   string `json:"username"`
-	ID         int    `json:"id"`
-	Privileges int    `json:"privileges"`
-	Token      string `json:"token,omitempty"`
-	Banned     bool   `json:"banned"`
-}
-
-// TokenNewPOST is the handler for POST /token/new.
-func TokenNewPOST(md common.MethodData) common.CodeMessager {
-	var r tokenNewResponse
-	data := tokenNewInData{}
-	err := md.Unmarshal(&data)
-	if err != nil {
-		return ErrBadJSON
-	}
-
-	md.Doggo.Incr("tokens.new", nil, 1)
-
-	var miss []string
-	if data.Username == "" && data.UserID == 0 {
-		miss = append(miss, "username|id")
-	}
-	if data.Password == "" {
-		miss = append(miss, "password")
-	}
-	if len(miss) != 0 {
-		return ErrMissingField(miss...)
-	}
-
-	var q *sql.Row
-	const base = "SELECT id, username, privileges, password_md5, password_version, privileges FROM users "
-	if data.UserID != 0 {
-		q = md.DB.QueryRow(base+"WHERE id = ? LIMIT 1", data.UserID)
-	} else {
-		q = md.DB.QueryRow(base+"WHERE username = ? LIMIT 1", common.SafeUsername(data.Username))
-	}
-
-	var (
-		rank          int
-		pw            string
-		pwVersion     int
-		privilegesRaw uint64
-	)
-
-	err = q.Scan(&r.ID, &r.Username, &rank, &pw, &pwVersion, &privilegesRaw)
-	switch {
-	case err == sql.ErrNoRows:
-		return common.SimpleResponse(404, "No user with that username/id was found.")
-	case err != nil:
-		md.Err(err)
-		return Err500
-	}
-	privileges := common.UserPrivileges(privilegesRaw)
-
-	if !limit.NonBlockingRequest(fmt.Sprintf("loginattempt:%d:%s", r.ID, md.ClientIP()), 5) {
-		return common.SimpleResponse(429, "You've made too many login attempts. Try again later.")
-	}
-
-	if pwVersion == 1 {
-		return common.SimpleResponse(418, "That user still has a password in version 1. Unfortunately, in order for the API to check for the password to be OK, the user has to first log in through the website.")
-	}
-	if err := bcrypt.CompareHashAndPassword([]byte(pw), []byte(fmt.Sprintf("%x", md5.Sum([]byte(data.Password))))); err != nil {
-		if err == bcrypt.ErrMismatchedHashAndPassword {
-			return common.SimpleResponse(403, "That password doesn't match!")
-		}
-		md.Err(err)
-		return Err500
-	}
-	const want = (common.UserPrivilegePublic | common.UserPrivilegeNormal)
-	if (privileges & want) != want {
-		r.Code = 402
-		r.Message = "That user is banned."
-		r.Banned = true
-		return r
-	}
-	r.Privileges = int(common.Privileges(data.Privileges).CanOnly(privileges))
-
-	var (
-		tokenStr string
-		tokenMD5 string
-	)
-	for {
-		tokenStr = common.RandomString(32)
-		tokenMD5 = fmt.Sprintf("%x", md5.Sum([]byte(tokenStr)))
-		r.Token = tokenStr
-
-		var id int
-		err := md.DB.QueryRow("SELECT id FROM tokens WHERE token=? LIMIT 1", tokenMD5).Scan(&id)
-		if err == sql.ErrNoRows {
-			break
-		}
-		if err != nil {
-			md.Err(err)
-			return Err500
-		}
-	}
-	_, err = md.DB.Exec("INSERT INTO tokens(user, privileges, description, token, private, last_updated) VALUES (?, ?, ?, ?, '0', ?)",
-		r.ID, r.Privileges, data.Description, tokenMD5, time.Now().Unix())
-	if err != nil {
-		md.Err(err)
-		return Err500
-	}
-
-	r.Code = 200
-	return r
-}
 
 // TokenSelfDeletePOST deletes the token the user is connecting with.
 func TokenSelfDeletePOST(md common.MethodData) common.CodeMessager {
@@ -177,7 +55,7 @@ func TokenGET(md common.MethodData) common.CodeMessager {
 	rows, err := md.DB.Query("SELECT id, privileges, description, last_updated FROM tokens "+
 		wc.Clause+common.Paginate(md.Query("p"), md.Query("l"), 50), wc.Params...)
 
-		if err != nil {
+	if err != nil {
 		return Err500
 	}
 	var r tokenResponse
