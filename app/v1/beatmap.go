@@ -129,12 +129,13 @@ func getMultipleBeatmaps(md common.MethodData) common.CodeMessager {
 		Default: "id DESC",
 		Table:   "beatmaps",
 	})
+	pm := md.Ctx.Request.URI().QueryArgs().PeekMulti
 	where := common.
-		Where("beatmap_id = ?", md.Query("bb")).
-		Where("beatmapset_id = ?", md.Query("s")).
 		Where("song_name = ?", md.Query("song_name")).
-		Where("beatmap_md5 = ?", md.Query("md5")).
-		Where("ranked_status_freezed = ?", md.Query("ranked_status_frozen"), "0", "1")
+		Where("ranked_status_freezed = ?", md.Query("ranked_status_frozen"), "0", "1").
+		In("beatmap_id", pm("bb")...).
+		In("beatmapset_id", pm("s")...).
+		In("beatmap_md5", pm("md5")...)
 
 	rows, err := md.DB.Query(baseBeatmapSelect+
 		where.Clause+" "+sort+" "+
