@@ -16,6 +16,7 @@ func Start(r *redis.Client, _db *sqlx.DB) error {
 	red = r
 	db = _db
 	go scoreRetriever()
+	go matchRetriever()
 	return nil
 }
 
@@ -29,4 +30,13 @@ func cleanup(connID uint64) {
 		}
 	}
 	scoreSubscriptionsMtx.Unlock()
+	multiSubscriptionsMtx.Lock()
+	for idx, el := range multiSubscriptions {
+		if el.ID == connID {
+			multiSubscriptions[idx] = multiSubscriptions[len(multiSubscriptions)-1]
+			multiSubscriptions = multiSubscriptions[:len(multiSubscriptions)-1]
+			break
+		}
+	}
+	multiSubscriptionsMtx.Unlock()
 }

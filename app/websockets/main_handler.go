@@ -56,11 +56,11 @@ func handler(rawConn *websocket.Conn) {
 }
 
 type conn struct {
-	Conn                 *websocket.Conn
-	Mtx                  sync.Mutex
-	ID                   uint64
+	Conn              *websocket.Conn
+	Mtx               sync.Mutex
+	ID                uint64
 	RestrictedVisible bool
-	User                 *websocketUser
+	User              *websocketUser
 }
 
 func (c *conn) WriteJSON(t string, data interface{}) error {
@@ -72,6 +72,7 @@ func (c *conn) WriteJSON(t string, data interface{}) error {
 
 var messageHandler = map[string]func(c *conn, message incomingMessage){
 	TypeSubscribeScores:         SubscribeScores,
+	TypeSubscribeMultiMatches:   SubscribeMultiMatches,
 	TypeSetRestrictedVisibility: SetRestrictedVisibility,
 	TypeIdentify:                Identify,
 	TypePing:                    pingHandler,
@@ -79,20 +80,23 @@ var messageHandler = map[string]func(c *conn, message incomingMessage){
 
 // Server Message Types
 const (
-	TypeConnected               = "connected"
-	TypeInvalidMessage          = "invalid_message_type"
-	TypeUnexpectedError         = "unexpected_error"
-	TypeNotFound                = "not_found"
-	TypeSubscribedToScores      = "subscribed_to_scores"
-	TypeNewScore                = "new_score"
-	TypeIdentified              = "identified"
-	TypeRestrictedVisibilitySet = "restricted_visibility_set"
-	TypePong                    = "pong"
+	TypeConnected                = "connected"
+	TypeInvalidMessage           = "invalid_message_type"
+	TypeUnexpectedError          = "unexpected_error"
+	TypeNotFound                 = "not_found"
+	TypeSubscribedToScores       = "subscribed_to_scores"
+	TypeNewScore                 = "new_score"
+	TypeSubscribedToMultiMatches = "subscribed_mp_complete_match"
+	TypeNewMatch                 = "new_completed_match"
+	TypeIdentified               = "identified"
+	TypeRestrictedVisibilitySet  = "restricted_visibility_set"
+	TypePong                     = "pong"
 )
 
 // Client Message Types
 const (
 	TypeSubscribeScores         = "subscribe_scores"
+	TypeSubscribeMultiMatches   = "subscribe_mp_complete_match"
 	TypeIdentify                = "identify"
 	TypeSetRestrictedVisibility = "set_restricted_visibility"
 	TypePing                    = "ping"
