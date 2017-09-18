@@ -46,8 +46,8 @@ func UserScoresBestGET(md common.MethodData) common.CodeMessager {
 		return *cm
 	}
 	mc := genModeClause(md)
-	// Do not print 0pp scores on std
-	if getMode(md.Query("mode")) == "std" {
+	// For all modes that have PP, we leave out 0 PP scores.
+	if getMode(md.Query("mode")) != "ctb" {
 		mc += " AND scores.pp > 0"
 	}
 	return scoresPuts(md, fmt.Sprintf(

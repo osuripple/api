@@ -27,7 +27,7 @@ func genmodei(m string) int {
 }
 func rankable(m string) bool {
 	x := genmodei(m)
-	return x == 0 || x == 3
+	return x != 2
 }
 
 func genUser(c *fasthttp.RequestCtx, db *sqlx.DB) (string, string) {
