@@ -113,11 +113,12 @@ func UserEditPOST(md common.MethodData) common.CodeMessager {
 		if usernameAvailable(md, *data.Username, data.ID) {
 			return common.SimpleResponse(409, "User with that username exists")
 		}
-		data, _ := json.Marshal(struct {
+		jsonData, _ := json.Marshal(struct {
 			UserID      int    `json:"userID"`
 			NewUsername string `json:"newUsername"`
 		}{data.ID, *data.Username})
-		md.R.Publish("peppy:change_username", string(data))
+		md.R.Publish("peppy:change_username", string(jsonData))
+		appendToUserNotes(md, "Username change: "+prevUser.Username+" -> "+*data.Username, data.ID)
 	}
 	if data.UsernameAKA != nil {
 		statsQ += "username_aka = ?,\n"
@@ -139,6 +140,7 @@ func UserEditPOST(md common.MethodData) common.CodeMessager {
 		statsQ += "country = ?,\n"
 		statsArgs = append(statsArgs, *data.Country)
 		rapLog(md, fmt.Sprintf("has changed %s country to %s", prevUser.Username, *data.Country))
+		appendToUserNotes(md, "country changed to "+*data.Country, data.ID)
 	}
 	if data.SilenceInfo != nil && md.User.UserPrivileges&common.AdminPrivilegeSilenceUsers != 0 {
 		q += "silence_end = ?, silence_reason = ?,\n"
@@ -184,6 +186,15 @@ func rapLog(md common.MethodData, message string) {
 
 	_, err := md.DB.Exec("INSERT INTO rap_logs(userid, text, datetime, through) VALUES (?, ?, ?, ?)",
 		md.User.UserID, message, time.Now().Unix(), through)
+	if err != nil {
+		md.Err(err)
+	}
+}
+
+func appendToUserNotes(md common.MethodData, message string, user int) {
+	message = "\n[" + time.Now().Format("2006-01-02 15:04:05") + "] API: " + message
+	_, err := md.DB.Exec("UPDATE users SET notes = CONCAT(notes, ?) WHERE id = ?",
+		message, user)
 	if err != nil {
 		md.Err(err)
 	}
