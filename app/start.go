@@ -122,6 +122,7 @@ func Start(conf common.Conf, dbO *sqlx.DB) *fhr.Router {
 
 		// Admin: user managing
 		r.POSTMethod("/api/v1/users/manage/set_allowed", v1.UserManageSetAllowedPOST, common.PrivilegeManageUser)
+		r.POSTMethod("/api/v1/users/edit", v1.UserEditPOST, common.PrivilegeManageUser)
 
 		// M E T A
 		// E     T    "wow thats so meta"
