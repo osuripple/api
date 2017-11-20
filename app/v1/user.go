@@ -188,15 +188,17 @@ type modeData struct {
 type userFullResponse struct {
 	common.ResponseBase
 	userData
-	STD           modeData      `json:"std"`
-	Taiko         modeData      `json:"taiko"`
-	CTB           modeData      `json:"ctb"`
-	Mania         modeData      `json:"mania"`
-	PlayStyle     int           `json:"play_style"`
-	FavouriteMode int           `json:"favourite_mode"`
-	Badges        []singleBadge `json:"badges"`
-	CustomBadge   *singleBadge  `json:"custom_badge"`
-	SilenceInfo   silenceInfo   `json:"silence_info"`
+	STD           modeData              `json:"std"`
+	Taiko         modeData              `json:"taiko"`
+	CTB           modeData              `json:"ctb"`
+	Mania         modeData              `json:"mania"`
+	PlayStyle     int                   `json:"play_style"`
+	FavouriteMode int                   `json:"favourite_mode"`
+	Badges        []singleBadge         `json:"badges"`
+	CustomBadge   *singleBadge          `json:"custom_badge"`
+	SilenceInfo   silenceInfo           `json:"silence_info"`
+	CMNotes       *string               `json:"cm_notes,omitempty"`
+	BanDate       *common.UnixTimestamp `json:"ban_date,omitempty"`
 }
 type silenceInfo struct {
 	Reason string               `json:"reason"`
@@ -217,7 +219,7 @@ SELECT
 
 	users_stats.username_aka, users_stats.country, users_stats.play_style, users_stats.favourite_mode,
 
-	users_stats.custom_badge_icon, users_stats.custom_badge_name, users_stats.can_custom_badge, 
+	users_stats.custom_badge_icon, users_stats.custom_badge_name, users_stats.can_custom_badge,
 	users_stats.show_custom_badge,
 
 	users_stats.ranked_score_std, users_stats.total_score_std, users_stats.playcount_std,
@@ -236,7 +238,8 @@ SELECT
 	users_stats.replays_watched_mania, users_stats.total_hits_mania,
 	users_stats.avg_accuracy_mania, users_stats.pp_mania,
 
-	users.silence_reason, users.silence_end
+	users.silence_reason, users.silence_end,
+	users.notes, users.ban_datetime
 
 FROM users
 LEFT JOIN users_stats
@@ -276,6 +279,7 @@ LIMIT 1
 		&r.Mania.Accuracy, &r.Mania.PP,
 
 		&r.SilenceInfo.Reason, &r.SilenceInfo.End,
+		&r.CMNotes, &r.BanDate,
 	)
 	switch {
 	case err == sql.ErrNoRows:
@@ -315,6 +319,11 @@ LIMIT 1
 			continue
 		}
 		r.Badges = append(r.Badges, badge)
+	}
+
+	if md.User.TokenPrivileges&common.PrivilegeManageUser == 0 {
+		r.CMNotes = nil
+		r.BanDate = nil
 	}
 
 	r.Code = 200
