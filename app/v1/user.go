@@ -199,6 +199,7 @@ type userFullResponse struct {
 	SilenceInfo   silenceInfo           `json:"silence_info"`
 	CMNotes       *string               `json:"cm_notes,omitempty"`
 	BanDate       *common.UnixTimestamp `json:"ban_date,omitempty"`
+	Email         string                `json:"email,omitempty"`
 }
 type silenceInfo struct {
 	Reason string               `json:"reason"`
@@ -239,7 +240,7 @@ SELECT
 	users_stats.avg_accuracy_mania, users_stats.pp_mania,
 
 	users.silence_reason, users.silence_end,
-	users.notes, users.ban_datetime
+	users.notes, users.ban_datetime, users.email
 
 FROM users
 LEFT JOIN users_stats
@@ -279,7 +280,7 @@ LIMIT 1
 		&r.Mania.Accuracy, &r.Mania.PP,
 
 		&r.SilenceInfo.Reason, &r.SilenceInfo.End,
-		&r.CMNotes, &r.BanDate,
+		&r.CMNotes, &r.BanDate, &r.Email,
 	)
 	switch {
 	case err == sql.ErrNoRows:
@@ -324,6 +325,7 @@ LIMIT 1
 	if md.User.TokenPrivileges&common.PrivilegeManageUser == 0 {
 		r.CMNotes = nil
 		r.BanDate = nil
+		r.Email = ""
 	}
 
 	r.Code = 200
