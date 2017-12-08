@@ -193,7 +193,7 @@ func rapLog(md common.MethodData, message string) {
 
 func appendToUserNotes(md common.MethodData, message string, user int) {
 	message = "\n[" + time.Now().Format("2006-01-02 15:04:05") + "] API: " + message
-	_, err := md.DB.Exec("UPDATE users SET notes = CONCAT(notes, ?) WHERE id = ?",
+	_, err := md.DB.Exec("UPDATE users SET notes = CONCAT(COALESCE(notes, ''), ?) WHERE id = ?",
 		message, user)
 	if err != nil {
 		md.Err(err)
