@@ -21,6 +21,7 @@ type Achievement struct {
 // amount of time.
 func LoadAchievementsEvery(db *sqlx.DB, d time.Duration) {
 	for {
+		achievs = nil
 		err := db.Select(&achievs,
 			"SELECT id, name, description, icon FROM achievements ORDER BY id ASC")
 		if err != nil {
@@ -53,7 +54,7 @@ func UserAchievementsGET(md common.MethodData) common.CodeMessager {
 	var ids []int
 	err := md.DB.Select(&ids, `SELECT ua.achievement_id FROM users_achievements ua
 INNER JOIN users ON users.id = ua.user_id
-WHERE `+whereClause, param)
+WHERE `+whereClause+` ORDER BY ua.achievement_id ASC`, param)
 	switch {
 	case err == sql.ErrNoRows:
 		return common.SimpleResponse(404, "No such user!")
