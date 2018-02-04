@@ -183,6 +183,12 @@
 			"revisionTime": "2016-10-17T20:25:41Z"
 		},
 		{
+			"checksumSHA1": "vTjp3tQOr8z8CNjZWwPzgR+t2qQ=",
+			"path": "zxq.co/ripple/agplwarning",
+			"revision": "d3a3d0ee424fcb0bd09a651354c1735285f59f8c",
+			"revisionTime": "2018-02-04T10:46:38Z"
+		},
+		{
 			"checksumSHA1": "SI9tgNMlnMhxP7t6cAGuDjvoAHg=",
 			"path": "zxq.co/ripple/ocl",
 			"revision": "b499c4fc6bcd791b59dc994059e6f53cd939cf24",
