@@ -174,6 +174,65 @@ func UserEditPOST(md common.MethodData) common.CodeMessager {
 	return userPutsSingle(md, md.DB.QueryRowx(userFields+" WHERE users.id = ? LIMIT 1", data.ID))
 }
 
+type wipeUserData struct {
+	ID    int   `json:"id"`
+	Modes []int `json:"modes"`
+}
+
+// WipeUserPOST wipes an user's scores.
+func WipeUserPOST(md common.MethodData) common.CodeMessager {
+	var data wipeUserData
+	if err := md.Unmarshal(&data); err != nil {
+		return ErrBadJSON
+	}
+	if data.ID == 0 {
+		return ErrMissingField("id")
+	}
+	if len(data.Modes) == 0 {
+		return ErrMissingField("modes")
+	}
+
+	var userData struct {
+		Username   string
+		Privileges uint64
+	}
+	err := md.DB.Get(&userData, "SELECT username, privileges FROM users WHERE id = ?", data.ID)
+	switch err {
+	case sql.ErrNoRows:
+		return common.SimpleResponse(404, "That user could not be found!")
+	case nil: // carry on
+	default:
+		md.Err(err)
+		return Err500
+	}
+
+	if common.UserPrivileges(userData.Privileges)&common.AdminPrivilegeManageUsers != 0 {
+		return common.SimpleResponse(403, "Can't edit that user")
+	}
+
+	for _, mode := range data.Modes {
+		if mode < 0 || mode > 3 {
+			continue
+		}
+		_, err = md.DB.Exec("DELETE FROM scores WHERE userid = ? AND play_mode = ?", data.ID, mode)
+		if err != nil {
+			md.Err(err)
+		}
+		_, err = md.DB.Exec(strings.Replace(
+			`UPDATE users_stats SET total_score_MODE = 0, ranked_score_MODE = 0, replays_watched_MODE = 0,
+			playcount_MODE = 0, avg_accuracy_MODE = 0, total_hits_MODE = 0, level_MODE = 0, pp_MODE = 0
+			WHERE id = ?`, "MODE", modesToReadable[mode], -1,
+		), data.ID)
+		if err != nil {
+			md.Err(err)
+		}
+	}
+
+	rapLog(md, fmt.Sprintf("has wiped %s's account", userData.Username))
+
+	return userPutsSingle(md, md.DB.QueryRowx(userFields+" WHERE users.id = ? LIMIT 1", data.ID))
+}
+
 func appendToUserNotes(md common.MethodData, message string, user int) {
 	message = "\n[" + time.Now().Format("2006-01-02 15:04:05") + "] API: " + message
 	_, err := md.DB.Exec("UPDATE users SET notes = CONCAT(COALESCE(notes, ''), ?) WHERE id = ?",
