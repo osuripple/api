@@ -118,7 +118,6 @@ func UserEditPOST(md common.MethodData) common.CodeMessager {
 			NewUsername string `json:"newUsername"`
 		}{data.ID, *data.Username})
 		md.R.Publish("peppy:change_username", string(jsonData))
-		appendToUserNotes(md, "Username change: "+prevUser.Username+" -> "+*data.Username, data.ID)
 	}
 	if data.UsernameAKA != nil {
 		statsQ += "username_aka = ?,\n"
