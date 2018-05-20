@@ -4,9 +4,11 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
+	redis "gopkg.in/redis.v5"
 	"zxq.co/ripple/rippleapi/common"
 )
 
@@ -53,14 +55,21 @@ LIMIT 1`
 }
 
 type userEditData struct {
-	ID          int     `json:"id"`
-	Username    *string `json:"username"`
-	UsernameAKA *string `json:"username_aka"`
-	//Privileges    *uint64      `json:"privileges"`
+	ID            int          `json:"id"`
+	Username      *string      `json:"username"`
+	UsernameAKA   *string      `json:"username_aka"`
+	Privileges    *uint64      `json:"privileges"`
 	Country       *string      `json:"country"`
 	SilenceInfo   *silenceInfo `json:"silence_info"`
 	ResetUserpage bool         `json:"reset_userpage"`
 	//ResetAvatar bool `json:"reset_avatar"`
+}
+
+var privChangeList = [...]string{
+	"banned",
+	"locked",
+	"restricted",
+	"removed all restrictions on",
 }
 
 // UserEditPOST allows to edit an user's information.
@@ -106,6 +115,33 @@ func UserEditPOST(md common.MethodData) common.CodeMessager {
 		return common.SimpleResponse(403, "Can't edit that user")
 	}
 
+	var isBanned bool
+	if data.Privileges != nil {
+		// If we want to modify privileges other than Normal/Public, we need to have
+		// the right privilege ourselves and AdminManageUsers won't suffice.
+		if (*data.Privileges&^3) != (prevUser.Privileges&^3) &&
+			md.User.UserPrivileges&common.AdminPrivilegeManagePrivilege == 0 {
+			return common.SimpleResponse(403, "Can't modify user privileges without AdminManagePrivileges")
+		}
+		q += "privileges = ?,\n"
+		args = append(args, *data.Privileges)
+
+		// UserPublic became 0, so banned or restricted
+		const uPublic = uint64(common.UserPrivilegePublic)
+		if *data.Privileges&uPublic == 0 && prevUser.Privileges&uPublic != 0 {
+			q += "ban_datetime = ?,\n"
+			args = append(args, time.Now().Unix())
+			isBanned = true
+		}
+
+		// If we modified other privileges apart from Normal and Public, we use a generic
+		// "changed user's privileges". Otherwise, we are more descriptive.
+		if *data.Privileges^prevUser.Privileges > 3 {
+			rapLog(md, fmt.Sprintf("has changed %s's privileges", prevUser.Username))
+		} else {
+			rapLog(md, fmt.Sprintf("has %s %s", privChangeList[*data.Privileges&3], prevUser.Username))
+		}
+	}
 	if data.Username != nil {
 		if strings.Contains(*data.Username, " ") && strings.Contains(*data.Username, "_") {
 			return common.SimpleResponse(400, "Mixed spaces and underscores")
@@ -123,18 +159,6 @@ func UserEditPOST(md common.MethodData) common.CodeMessager {
 		statsQ += "username_aka = ?,\n"
 		statsArgs = append(statsArgs, *data.UsernameAKA)
 	}
-	/*if data.Privileges != nil {
-		q += "privileges = ?,\n"
-		args = append(args, *data.Privileges)
-		// UserNormal or UserPublic changed
-		if *data.Privileges & 3 != 3 && *data.Privileges & 3 != prevUser.Privileges & 3 {
-			q += "ban_datetime = ?"
-			args = append(args, meme)
-		}
-		// https://zxq.co/ripple/old-frontend/src/master/inc/Do.php#L355 ?
-		// should also check for AdminManagePrivileges
-		// should also check out the code for CM restring/banning
-	}*/
 	if data.Country != nil {
 		statsQ += "country = ?,\n"
 		statsArgs = append(statsArgs, *data.Country)
@@ -157,6 +181,7 @@ func UserEditPOST(md common.MethodData) common.CodeMessager {
 			md.Err(err)
 			return Err500
 		}
+
 	}
 	if statsQ != statsInitQuery {
 		statsQ = statsQ[:len(statsQ)-2] + " WHERE id = ? LIMIT 1"
@@ -168,9 +193,20 @@ func UserEditPOST(md common.MethodData) common.CodeMessager {
 		}
 	}
 
+	if isBanned {
+		if err := updateBanBancho(md.R, data.ID); err != nil {
+			md.Err(err)
+			return Err500
+		}
+	}
+
 	rapLog(md, fmt.Sprintf("has updated user %s", prevUser.Username))
 
 	return userPutsSingle(md, md.DB.QueryRowx(userFields+" WHERE users.id = ? LIMIT 1", data.ID))
+}
+
+func updateBanBancho(r *redis.Client, user int) error {
+	return r.Publish("peppy:ban", strconv.Itoa(user)).Err()
 }
 
 type wipeUserData struct {
