@@ -245,15 +245,25 @@ func WipeUserPOST(md common.MethodData) common.CodeMessager {
 		return common.SimpleResponse(403, "Can't edit that user")
 	}
 
+	tx, err := md.DB.Beginx()
+	if err != nil {
+		md.Err(err)
+		return Err500
+	}
+
 	for _, mode := range data.Modes {
 		if mode < 0 || mode > 3 {
 			continue
 		}
-		_, err = md.DB.Exec("DELETE FROM scores WHERE userid = ? AND play_mode = ?", data.ID, mode)
+		_, err = tx.Exec("INSERT INTO scores_removed SELECT * FROM scores WHERE userid = ? AND play_mode = ?", data.ID, mode)
 		if err != nil {
 			md.Err(err)
 		}
-		_, err = md.DB.Exec(strings.Replace(
+		_, err = tx.Exec("DELETE FROM scores WHERE userid = ? AND play_mode = ?", data.ID, mode)
+		if err != nil {
+			md.Err(err)
+		}
+		_, err = tx.Exec(strings.Replace(
 			`UPDATE users_stats SET total_score_MODE = 0, ranked_score_MODE = 0, replays_watched_MODE = 0,
 			playcount_MODE = 0, avg_accuracy_MODE = 0, total_hits_MODE = 0, level_MODE = 0, pp_MODE = 0
 			WHERE id = ?`, "MODE", modesToReadable[mode], -1,
@@ -261,6 +271,11 @@ func WipeUserPOST(md common.MethodData) common.CodeMessager {
 		if err != nil {
 			md.Err(err)
 		}
+	}
+
+	if err = tx.Commit(); err != nil {
+		md.Err(err)
+		return Err500
 	}
 
 	rapLog(md, fmt.Sprintf("has wiped %s's account", userData.Username))
