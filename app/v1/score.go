@@ -76,6 +76,9 @@ func ScoresGET(md common.MethodData) common.CodeMessager {
 		Table:   "scores",
 		Allowed: []string{"pp", "score", "accuracy", "id"},
 	})
+	if where.Clause == "" {
+		return ErrMissingField("must specify at least one queried item")
+	}
 
 	where.Where(` scores.completed = '3' AND `+md.User.OnlyUserPublic(false)+` `+
 		genModeClause(md)+` `+sort+common.Paginate(md.Query("p"), md.Query("l"), 100), "FIF")
