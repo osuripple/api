@@ -31,9 +31,12 @@ func UserManageSetAllowedPOST(md common.MethodData) common.CodeMessager {
 	if data.Allowed == 0 {
 		banDatetime = time.Now().Unix()
 		privsSet = "privileges = (privileges & ~3)"
-	} else {
+	} else if data.Allowed == 1 {
 		banDatetime = 0
 		privsSet = "privileges = (privileges | 3)"
+	} else if data.Allowed == 2 {
+		banDatetime = time.Now().Unix()
+		privsSet = "privileges = (privileges | 2) & (privileges & ~1)"
 	}
 	_, err := md.DB.Exec("UPDATE users SET "+privsSet+", ban_datetime = ? WHERE id = ?", banDatetime, data.UserID)
 	if err != nil {
