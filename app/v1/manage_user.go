@@ -276,6 +276,10 @@ func WipeUserPOST(md common.MethodData) common.CodeMessager {
 		if err != nil {
 			md.Err(err)
 		}
+		_, err = tx.Exec("DELETE FROM users_beatmap_playcount WHERE user_id = ? AND game_mode = ?", data.ID, mode)
+		if err != nil {
+			md.Err(err)
+		}
 	}
 
 	if err = tx.Commit(); err != nil {
