@@ -258,15 +258,22 @@ func getMode(m string) string {
 }
 
 func genModeClause(md common.MethodData) string {
-	return genModeClauseColumn(md, "scores.play_mode")
+	return genModeClauseColumn(md, "scores.play_mode", false)
 }
 
-func genModeClauseColumn(md common.MethodData, column string) string {
+func genModeClauseColumn(md common.MethodData, column string, relaxless bool) string {
 	var modeClause string
 	if md.Query("mode") != "" {
 		m, err := strconv.Atoi(md.Query("mode"))
 		if err == nil && m >= 0 && m <= 3 {
-			modeClause = fmt.Sprintf("AND " + column + " = '%d'", m)
+			modeClause = fmt.Sprintf("AND "+column+" = '%d'", m)
+		}
+		if !relaxless {
+			r := 0
+			if md.Query("relax") == "1" {
+				r = 1
+			}
+			modeClause += fmt.Sprintf(" AND scores.is_relax = '%d'", r)
 		}
 	}
 	return modeClause
