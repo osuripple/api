@@ -3,11 +3,13 @@ package v1
 
 import (
 	"database/sql"
+	"errors"
 	"strconv"
 	"strings"
 	"unicode"
 
 	"github.com/jmoiron/sqlx"
+	redis "gopkg.in/redis.v5"
 	"zxq.co/ripple/ocl"
 	"zxq.co/ripple/rippleapi/common"
 )
@@ -186,83 +188,97 @@ type modeData struct {
 	GlobalLeaderboardRank  *int    `json:"global_leaderboard_rank"`
 	CountryLeaderboardRank *int    `json:"country_leaderboard_rank"`
 }
+type combinedModeData struct {
+	STD   *modeData `json:"std,omitempty"`
+	Taiko *modeData `json:"taiko,omitempty"`
+	CTB   *modeData `json:"ctb,omitempty"`
+	Mania *modeData `json:"mania,omitempty"`
+}
 type userFullResponse struct {
 	common.ResponseBase
 	userData
-	STD           modeData              `json:"std"`
-	Taiko         modeData              `json:"taiko"`
-	CTB           modeData              `json:"ctb"`
-	Mania         modeData              `json:"mania"`
-	PlayStyle     int                   `json:"play_style"`
-	FavouriteMode int                   `json:"favourite_mode"`
-	Badges        []singleBadge         `json:"badges"`
-	CustomBadge   *singleBadge          `json:"custom_badge"`
-	SilenceInfo   silenceInfo           `json:"silence_info"`
-	CMNotes       *string               `json:"cm_notes,omitempty"`
-	BanDate       *common.UnixTimestamp `json:"ban_date,omitempty"`
-	Email         string                `json:"email,omitempty"`
-}
-type silenceInfo struct {
-	Reason string               `json:"reason"`
-	End    common.UnixTimestamp `json:"end"`
+	combinedModeData
+	Stats          map[string]combinedModeData `json:"stats,omitempty"`
+	PlayStyle      int                         `json:"play_style"`
+	FavouriteMode  int                         `json:"favourite_mode"`
+	FavouriteRelax int                         `json:"favourite_relax"`
+	Badges         []singleBadge               `json:"badges"`
+	CustomBadge    *singleBadge                `json:"custom_badge"`
+	SilenceInfo    silenceInfo                 `json:"silence_info"`
+	CMNotes        *string                     `json:"cm_notes,omitempty"`
+	BanDate        *common.UnixTimestamp       `json:"ban_date,omitempty"`
+	Email          string                      `json:"email,omitempty"`
 }
 
-// UserFullGET gets all of an user's information, with one exception: their userpage.
-func UserFullGET(md common.MethodData) common.CodeMessager {
-	shouldRet, whereClause, param := whereClauseUser(md, "users")
-	if shouldRet != nil {
-		return *shouldRet
+type relaxModeType int
+
+const (
+	classic relaxModeType = iota
+	relax
+	both
+)
+
+func newRelaxModeType(md common.MethodData) relaxModeType {
+	switch md.Query("relax") {
+	case "1":
+		return relax
+	case "2":
+		return both
+	default:
+		return classic
 	}
+}
 
-	// Hellest query I've ever done.
+func (r *userFullResponse) populateStatsSingle(relaxMode relaxModeType, md common.MethodData, whereClause string, param interface{}) error {
+	if relaxMode == both {
+		return errors.New("cannot populate single stats response struct if in 'both' relaxModeType")
+	}
+	table := "users_stats"
+	if relaxMode == relax {
+		table = "users_stats_relax"
+	}
+	// Howl: Hellest query I've ever done.
+	// Nyo: bro please https://zxq.co/GiradaGroup/backend/src/branch/master/handlers/orders_list.py#L108
 	query := `
 SELECT
 	users.id, users.username, users.register_datetime, users.privileges, users.latest_activity,
 
-	users_stats.username_aka, users_stats.country, users_stats.play_style, users_stats.favourite_mode,
-
-	users_stats.custom_badge_icon, users_stats.custom_badge_name, users_stats.can_custom_badge,
-	users_stats.show_custom_badge,
+	full_stats.username_aka, full_stats.country, full_stats.play_style, full_stats.favourite_mode,
+	full_stats.favourite_relax,
 
 	users_stats.ranked_score_std, users_stats.total_score_std, users_stats.playcount_std,
-	users_stats.replays_watched_std, users_stats.total_hits_std,
+	full_stats.replays_watched_std, users_stats.total_hits_std,
 	users_stats.avg_accuracy_std, users_stats.pp_std, users_stats.playtime_std,
 
 	users_stats.ranked_score_taiko, users_stats.total_score_taiko, users_stats.playcount_taiko,
-	users_stats.replays_watched_taiko, users_stats.total_hits_taiko,
+	full_stats.replays_watched_taiko, users_stats.total_hits_taiko,
 	users_stats.avg_accuracy_taiko, users_stats.pp_taiko, users_stats.playtime_taiko,
 
 	users_stats.ranked_score_ctb, users_stats.total_score_ctb, users_stats.playcount_ctb,
-	users_stats.replays_watched_ctb, users_stats.total_hits_ctb,
+	full_stats.replays_watched_ctb, users_stats.total_hits_ctb,
 	users_stats.avg_accuracy_ctb, users_stats.pp_ctb, users_stats.playtime_ctb,
 
 	users_stats.ranked_score_mania, users_stats.total_score_mania, users_stats.playcount_mania,
-	users_stats.replays_watched_mania, users_stats.total_hits_mania,
+	full_stats.replays_watched_mania, users_stats.total_hits_mania,
 	users_stats.avg_accuracy_mania, users_stats.pp_mania, users_stats.playtime_mania,
 
 	users.silence_reason, users.silence_end,
 	users.notes, users.ban_datetime, users.email
 
 FROM users
-LEFT JOIN users_stats
+LEFT JOIN ` + table + ` AS users_stats
 ON users.id=users_stats.id
+JOIN users_stats AS full_stats
+ON users_stats.id = full_stats.id
 WHERE ` + whereClause + ` AND ` + md.User.OnlyUserPublic(true) + `
 LIMIT 1
 `
 	// Fuck.
-	r := userFullResponse{}
-	var (
-		b    singleBadge
-		can  bool
-		show bool
-	)
 	err := md.DB.QueryRow(query, param).Scan(
 		&r.ID, &r.Username, &r.RegisteredOn, &r.Privileges, &r.LatestActivity,
 
 		&r.UsernameAKA, &r.Country,
-		&r.PlayStyle, &r.FavouriteMode,
-
-		&b.Icon, &b.Name, &can, &show,
+		&r.PlayStyle, &r.FavouriteMode, &r.FavouriteRelax,
 
 		&r.STD.RankedScore, &r.STD.TotalScore, &r.STD.PlayCount,
 		&r.STD.ReplaysWatched, &r.STD.TotalHits,
@@ -283,10 +299,194 @@ LIMIT 1
 		&r.SilenceInfo.Reason, &r.SilenceInfo.End,
 		&r.CMNotes, &r.BanDate, &r.Email,
 	)
+	return err
+}
+
+func (r *userFullResponse) populateStatsDouble(relaxMode relaxModeType, md common.MethodData, whereClause string, param interface{}) error {
+	if relaxMode != both {
+		return errors.New("cannot populate double stats response struct if not in 'both' relaxModeType")
+	}
+	query := `
+SELECT
+	users.id, users.username, users.register_datetime, users.privileges, users.latest_activity,
+
+	users_stats.username_aka, users_stats.country, users_stats.play_style, users_stats.favourite_mode,
+	users_stats.favourite_relax,
+
+	users_stats.ranked_score_std, users_stats.total_score_std, users_stats.playcount_std,
+	users_stats.replays_watched_std, users_stats.total_hits_std,
+	users_stats.avg_accuracy_std, users_stats.pp_std, users_stats.playtime_std,
+
+	users_stats.ranked_score_taiko, users_stats.total_score_taiko, users_stats.playcount_taiko,
+	users_stats.replays_watched_taiko, users_stats.total_hits_taiko,
+	users_stats.avg_accuracy_taiko, users_stats.pp_taiko, users_stats.playtime_taiko,
+
+	users_stats.ranked_score_ctb, users_stats.total_score_ctb, users_stats.playcount_ctb,
+	users_stats.replays_watched_ctb, users_stats.total_hits_ctb,
+	users_stats.avg_accuracy_ctb, users_stats.pp_ctb, users_stats.playtime_ctb,
+
+	users_stats.ranked_score_mania, users_stats.total_score_mania, users_stats.playcount_mania,
+	users_stats.replays_watched_mania, users_stats.total_hits_mania,
+	users_stats.avg_accuracy_mania, users_stats.pp_mania, users_stats.playtime_mania,
+
+	users_stats_relax.ranked_score_std, users_stats_relax.total_score_std, users_stats_relax.playcount_std,
+	users_stats_relax.total_hits_std,
+	users_stats_relax.avg_accuracy_std, users_stats_relax.pp_std, users_stats_relax.playtime_std,
+
+	users_stats_relax.ranked_score_taiko, users_stats_relax.total_score_taiko, users_stats_relax.playcount_taiko,
+	users_stats_relax.total_hits_taiko,
+	users_stats_relax.avg_accuracy_taiko, users_stats_relax.pp_taiko, users_stats_relax.playtime_taiko,
+
+	users_stats_relax.ranked_score_ctb, users_stats_relax.total_score_ctb, users_stats_relax.playcount_ctb,
+	users_stats_relax.total_hits_ctb,
+	users_stats_relax.avg_accuracy_ctb, users_stats_relax.pp_ctb, users_stats_relax.playtime_ctb,
+
+	users_stats_relax.ranked_score_mania, users_stats_relax.total_score_mania, users_stats_relax.playcount_mania,
+	users_stats_relax.total_hits_mania,
+	users_stats_relax.avg_accuracy_mania, users_stats_relax.pp_mania, users_stats_relax.playtime_mania,
+
+	users.silence_reason, users.silence_end,
+	users.notes, users.ban_datetime, users.email
+
+FROM users
+LEFT JOIN users_stats
+ON users_stats.id = users.id
+JOIN users_stats_relax
+ON users_stats_relax.id=users_stats.id
+WHERE ` + whereClause + ` AND ` + md.User.OnlyUserPublic(true) + `
+LIMIT 1
+`
+	// Fuck.
+	r.Stats = map[string]combinedModeData{
+		"classic": combinedModeData{
+			STD:   &modeData{},
+			Taiko: &modeData{},
+			CTB:   &modeData{},
+			Mania: &modeData{},
+		},
+		"relax": combinedModeData{
+			STD:   &modeData{},
+			Taiko: &modeData{},
+			CTB:   &modeData{},
+			Mania: &modeData{},
+		},
+	}
+	classic := r.Stats["classic"]
+	relax := r.Stats["relax"]
+	err := md.DB.QueryRow(query, param).Scan(
+		&r.ID, &r.Username, &r.RegisteredOn, &r.Privileges, &r.LatestActivity,
+
+		&r.UsernameAKA, &r.Country,
+		&r.PlayStyle, &r.FavouriteMode, &r.FavouriteRelax,
+
+		&classic.STD.RankedScore, &classic.STD.TotalScore, &classic.STD.PlayCount,
+		&classic.STD.ReplaysWatched, &classic.STD.TotalHits,
+		&classic.STD.Accuracy, &classic.STD.PP, &classic.STD.PlayTime,
+
+		&classic.Taiko.RankedScore, &classic.Taiko.TotalScore, &classic.Taiko.PlayCount,
+		&classic.Taiko.ReplaysWatched, &classic.Taiko.TotalHits,
+		&classic.Taiko.Accuracy, &classic.Taiko.PP, &classic.Taiko.PlayTime,
+
+		&classic.CTB.RankedScore, &classic.CTB.TotalScore, &classic.CTB.PlayCount,
+		&classic.CTB.ReplaysWatched, &classic.CTB.TotalHits,
+		&classic.CTB.Accuracy, &classic.CTB.PP, &classic.CTB.PlayTime,
+
+		&classic.Mania.RankedScore, &classic.Mania.TotalScore, &classic.Mania.PlayCount,
+		&classic.Mania.ReplaysWatched, &classic.Mania.TotalHits,
+		&classic.Mania.Accuracy, &classic.Mania.PP, &classic.Mania.PlayTime,
+
+		&relax.STD.RankedScore, &relax.STD.TotalScore, &relax.STD.PlayCount,
+		&relax.STD.TotalHits,
+		&relax.STD.Accuracy, &relax.STD.PP, &relax.STD.PlayTime,
+
+		&relax.Taiko.RankedScore, &relax.Taiko.TotalScore, &relax.Taiko.PlayCount,
+		&relax.Taiko.TotalHits,
+		&relax.Taiko.Accuracy, &relax.Taiko.PP, &relax.Taiko.PlayTime,
+
+		&relax.CTB.RankedScore, &relax.CTB.TotalScore, &relax.CTB.PlayCount,
+		&relax.CTB.TotalHits,
+		&relax.CTB.Accuracy, &relax.CTB.PP, &relax.CTB.PlayTime,
+
+		&relax.Mania.RankedScore, &relax.Mania.TotalScore, &relax.Mania.PlayCount,
+		&relax.Mania.TotalHits,
+		&relax.Mania.Accuracy, &relax.Mania.PP, &relax.Mania.PlayTime,
+
+		&r.SilenceInfo.Reason, &r.SilenceInfo.End,
+		&r.CMNotes, &r.BanDate, &r.Email,
+	)
+	return err
+}
+
+func (r *userFullResponse) populateRanksSingle(relaxMode relaxModeType, redis *redis.Client) {
+	for modeID, m := range [...]*modeData{r.STD, r.Taiko, r.CTB, r.Mania} {
+		m.Level = ocl.GetLevelPrecise(int64(m.TotalScore))
+
+		if i := leaderboardPosition(redis, modesToReadable[modeID], r.ID, relaxMode == relax); i != nil {
+			m.GlobalLeaderboardRank = i
+		}
+		if i := countryPosition(redis, modesToReadable[modeID], r.ID, r.Country, relaxMode == relax); i != nil {
+			m.CountryLeaderboardRank = i
+		}
+	}
+}
+
+func (r *userFullResponse) populateRanksDouble(redis *redis.Client) {
+	for k, v := range r.Stats {
+		for modeID, m := range [...]*modeData{v.STD, v.Taiko, v.CTB, v.Mania} {
+			m.Level = ocl.GetLevelPrecise(int64(m.TotalScore))
+
+			if i := leaderboardPosition(redis, modesToReadable[modeID], r.ID, k == "relax"); i != nil {
+				m.GlobalLeaderboardRank = i
+			}
+			if i := countryPosition(redis, modesToReadable[modeID], r.ID, r.Country, k == "relax"); i != nil {
+				m.CountryLeaderboardRank = i
+			}
+		}
+	}
+}
+
+type silenceInfo struct {
+	Reason string               `json:"reason"`
+	End    common.UnixTimestamp `json:"end"`
+}
+
+// UserFullGET gets all of an user's information, with one exception: their userpage.
+func UserFullGET(md common.MethodData) common.CodeMessager {
+	shouldRet, whereClause, param := whereClauseUser(md, "users")
+	if shouldRet != nil {
+		return *shouldRet
+	}
+	relaxMode := newRelaxModeType(md)
+
+	var (
+		b    singleBadge
+		can  bool
+		show bool
+	)
+	r := userFullResponse{}
+	var err error
+	if relaxMode != both {
+		r.STD, r.Taiko, r.CTB, r.Mania = &modeData{}, &modeData{}, &modeData{}, &modeData{}
+		err = r.populateStatsSingle(relaxMode, md, whereClause, param)
+	} else {
+		r.STD, r.Taiko, r.CTB, r.Mania = nil, nil, nil, nil
+		err = r.populateStatsDouble(relaxMode, md, whereClause, param)
+	}
 	switch {
 	case err == sql.ErrNoRows:
 		return common.SimpleResponse(404, "That user could not be found!")
 	case err != nil:
+		md.Err(err)
+		return Err500
+	}
+	err = md.DB.QueryRow(`SELECT 
+	users_stats.custom_badge_icon, users_stats.custom_badge_name, users_stats.can_custom_badge,
+	users_stats.show_custom_badge FROM users_stats LEFT JOIN users ON users_stats.id = users.id
+	WHERE `+whereClause+` AND `+md.User.OnlyUserPublic(true)+`
+	LIMIT 1`, param).Scan(
+		&b.Icon, &b.Name, &can, &show,
+	)
+	if err != nil {
 		md.Err(err)
 		return Err500
 	}
@@ -295,16 +495,10 @@ LIMIT 1
 	if can && (b.Name != "" || b.Icon != "") {
 		r.CustomBadge = &b
 	}
-
-	for modeID, m := range [...]*modeData{&r.STD, &r.Taiko, &r.CTB, &r.Mania} {
-		m.Level = ocl.GetLevelPrecise(int64(m.TotalScore))
-
-		if i := leaderboardPosition(md.R, modesToReadable[modeID], r.ID); i != nil {
-			m.GlobalLeaderboardRank = i
-		}
-		if i := countryPosition(md.R, modesToReadable[modeID], r.ID, r.Country); i != nil {
-			m.CountryLeaderboardRank = i
-		}
+	if relaxMode != both {
+		r.populateRanksSingle(relaxMode, md.R)
+	} else {
+		r.populateRanksDouble(md.R)
 	}
 
 	rows, err := md.DB.Query("SELECT b.id, b.name, b.icon FROM user_badges ub "+
