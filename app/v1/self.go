@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	"zxq.co/ripple/rippleapi/common"
-	"zxq.co/ripple/semantic-icons-ugc"
+	semanticiconsugc "zxq.co/ripple/semantic-icons-ugc"
 )
 
 type donorInfoResponse struct {
@@ -30,7 +30,8 @@ func UsersSelfDonorInfoGET(md common.MethodData) common.CodeMessager {
 
 type favouriteModeResponse struct {
 	common.ResponseBase
-	FavouriteMode int `json:"favourite_mode"`
+	FavouriteMode  int `json:"favourite_mode"`
+	FavouriteRelax int `json:"favourite_relax"`
 }
 
 // UsersSelfFavouriteModeGET gets the current user's favourite mode
@@ -40,8 +41,8 @@ func UsersSelfFavouriteModeGET(md common.MethodData) common.CodeMessager {
 	if md.ID() == 0 {
 		return f
 	}
-	err := md.DB.QueryRow("SELECT users_stats.favourite_mode FROM users_stats WHERE id = ?", md.ID()).
-		Scan(&f.FavouriteMode)
+	err := md.DB.QueryRow("SELECT users_stats.favourite_mode, users_stats.favourite_relax FROM users_stats WHERE id = ?", md.ID()).
+		Scan(&f.FavouriteMode, &f.FavouriteRelax)
 	if err != nil {
 		md.Err(err)
 		return Err500
@@ -50,9 +51,10 @@ func UsersSelfFavouriteModeGET(md common.MethodData) common.CodeMessager {
 }
 
 type userSettingsData struct {
-	UsernameAKA   *string `json:"username_aka"`
-	FavouriteMode *int    `json:"favourite_mode"`
-	CustomBadge   struct {
+	UsernameAKA        *string `json:"username_aka"`
+	FavouriteMode      *int    `json:"favourite_mode"`
+	FavouriteRelaxMode *int    `json:"favourite_relax"`
+	CustomBadge        struct {
 		singleBadge
 		Show *bool `json:"show"`
 	} `json:"custom_badge"`
@@ -74,6 +76,11 @@ func UsersSelfSettingsPOST(md common.MethodData) common.CodeMessager {
 		d.CustomBadge.Show = nil
 	}
 	d.FavouriteMode = intPtrIn(0, d.FavouriteMode, 3)
+	if *d.FavouriteMode == 3 {
+		v := 0
+		d.FavouriteRelaxMode = &v
+	}
+	d.FavouriteRelaxMode = intPtrIn(0, d.FavouriteRelaxMode, 1)
 
 	q := new(common.UpdateQuery).
 		Add("s.username_aka", d.UsernameAKA).
@@ -81,7 +88,8 @@ func UsersSelfSettingsPOST(md common.MethodData) common.CodeMessager {
 		Add("s.custom_badge_name", d.CustomBadge.Name).
 		Add("s.custom_badge_icon", d.CustomBadge.Icon).
 		Add("s.show_custom_badge", d.CustomBadge.Show).
-		Add("s.play_style", d.PlayStyle)
+		Add("s.play_style", d.PlayStyle).
+		Add("s.favourite_relax", d.FavouriteRelaxMode)
 	_, err := md.DB.Exec("UPDATE users u, users_stats s SET "+q.Fields()+" WHERE s.id = u.id AND u.id = ?", append(q.Parameters, md.ID())...)
 	if err != nil {
 		md.Err(err)
@@ -128,6 +136,7 @@ func UsersSelfSettingsGET(md common.MethodData) common.CodeMessager {
 SELECT
 	u.id, u.username,
 	u.email, s.username_aka, s.favourite_mode,
+	s.favourite_relax,
 	s.show_custom_badge, s.custom_badge_icon,
 	s.custom_badge_name, s.can_custom_badge,
 	s.play_style, u.flags
@@ -136,6 +145,7 @@ LEFT JOIN users_stats s ON u.id = s.id
 WHERE u.id = ?`, md.ID()).Scan(
 		&r.ID, &r.Username,
 		&r.Email, &r.UsernameAKA, &r.FavouriteMode,
+		&r.FavouriteRelaxMode,
 		&r.CustomBadge.Show, &r.CustomBadge.Icon,
 		&r.CustomBadge.Name, &ccb,
 		&r.PlayStyle, &r.Flags,
