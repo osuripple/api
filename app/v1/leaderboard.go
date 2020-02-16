@@ -29,14 +29,14 @@ const lbUserQuery = `
 SELECT
 	users.id, users.username, users.register_datetime, users.privileges, users.latest_activity,
 
-	users_stats.username_aka, users_stats.country,
-	users_stats.play_style, users_stats.favourite_mode,
+	full_stats.username_aka, full_stats.country,
+	full_stats.play_style, full_stats.favourite_mode,
 
-	users_stats.ranked_score_%[1]s, users_stats.total_score_%[1]s, users_stats.playcount_%[1]s,
-	users_stats.replays_watched_%[1]s, users_stats.total_hits_%[1]s,
-	users_stats.avg_accuracy_%[1]s, users_stats.pp_%[1]s
+	stats.ranked_score_%[1]s, stats.total_score_%[1]s, stats.playcount_%[1]s,
+	full_stats.replays_watched_%[1]s, stats.total_hits_%[1]s,
+	stats.avg_accuracy_%[1]s, stats.pp_%[1]s
 FROM users
-INNER JOIN users_stats ON users_stats.id = users.id
+INNER JOIN %[2]s AS stats USING(id) JOIN users_stats AS full_stats USING(id)
 WHERE users.id IN (?)
 `
 
@@ -55,6 +55,14 @@ func LeaderboardGET(md common.MethodData) common.CodeMessager {
 	if md.Query("country") != "" {
 		key += ":" + md.Query("country")
 	}
+	isRelax := md.Query("relax") == "1"
+	var table string
+	if isRelax {
+		key += ":relax"
+		table = "users_stats_relax"
+	} else {
+		table = "users_stats"
+	}
 
 	results, err := md.R.ZRevRange(key, int64(p*l), int64(p*l+l-1)).Result()
 	if err != nil {
@@ -69,7 +77,7 @@ func LeaderboardGET(md common.MethodData) common.CodeMessager {
 		return resp
 	}
 
-	query := fmt.Sprintf(lbUserQuery+` ORDER BY users_stats.pp_%[1]s DESC, users_stats.ranked_score_%[1]s DESC`, m)
+	query := fmt.Sprintf(lbUserQuery+` ORDER BY stats.pp_%[1]s DESC, stats.ranked_score_%[1]s DESC`, m, table)
 	query, params, _ := sqlx.In(query, results)
 	rows, err := md.DB.Query(query, params...)
 	if err != nil {
@@ -92,10 +100,10 @@ func LeaderboardGET(md common.MethodData) common.CodeMessager {
 			continue
 		}
 		u.ChosenMode.Level = ocl.GetLevelPrecise(int64(u.ChosenMode.TotalScore))
-		if i := leaderboardPosition(md.R, m, u.ID); i != nil {
+		if i := leaderboardPosition(md.R, m, u.ID, isRelax); i != nil {
 			u.ChosenMode.GlobalLeaderboardRank = i
 		}
-		if i := countryPosition(md.R, m, u.ID, u.Country); i != nil {
+		if i := countryPosition(md.R, m, u.ID, u.Country, isRelax); i != nil {
 			u.ChosenMode.CountryLeaderboardRank = i
 		}
 		resp.Users = append(resp.Users, u)
@@ -103,12 +111,24 @@ func LeaderboardGET(md common.MethodData) common.CodeMessager {
 	return resp
 }
 
-func leaderboardPosition(r *redis.Client, mode string, user int) *int {
-	return _position(r, "ripple:leaderboard:"+mode, user)
+func leaderboardPosition(r *redis.Client, mode string, user int, relax bool) *int {
+	var suffix string
+	if relax {
+		suffix = ":relax"
+	} else {
+		suffix = ""
+	}
+	return _position(r, "ripple:leaderboard:"+mode+suffix, user)
 }
 
-func countryPosition(r *redis.Client, mode string, user int, country string) *int {
-	return _position(r, "ripple:leaderboard:"+mode+":"+strings.ToLower(country), user)
+func countryPosition(r *redis.Client, mode string, user int, country string, relax bool) *int {
+	var suffix string
+	if relax {
+		suffix = ":relax"
+	} else {
+		suffix = ""
+	}
+	return _position(r, "ripple:leaderboard:"+mode+":"+strings.ToLower(country)+suffix, user)
 }
 
 func _position(r *redis.Client, key string, user int) *int {
