@@ -39,7 +39,7 @@ func getUserX(c *fasthttp.RequestCtx, db *sqlx.DB, orderBy string, limit int) {
 		FROM scores
 		LEFT JOIN beatmaps ON beatmaps.beatmap_md5 = scores.beatmap_md5
 		LEFT JOIN users ON scores.userid = users.id
-		WHERE %s AND scores.play_mode = ? AND users.privileges & 1 > 0
+		WHERE %s AND scores.play_mode = ? AND users.is_public = 1
 		%s
 		LIMIT %d`, whereClause, orderBy, limit,
 	)

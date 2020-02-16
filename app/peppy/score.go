@@ -53,7 +53,7 @@ SELECT
 FROM scores
 INNER JOIN users ON users.id = scores.userid
 WHERE scores.completed = '3'
-  AND users.privileges & 1 > 0
+  AND users.is_public = 1
   AND scores.beatmap_md5 = ?
   AND scores.play_mode = ?
   AND scores.mods & ? = ?
