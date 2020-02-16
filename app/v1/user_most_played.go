@@ -5,8 +5,8 @@ import (
 )
 
 type mostPlayedBeatmap struct {
-	Beatmap beatmap `json:"beatmap"`
-	PlayCount int	`json:"playcount"`
+	Beatmap   beatmap `json:"beatmap"`
+	PlayCount int     `json:"playcount"`
 }
 
 type mostPlayedBeatmapResponse struct {
@@ -19,7 +19,7 @@ func UserMostPlayedGET(md common.MethodData) common.CodeMessager {
 	if shouldRet != nil {
 		return *shouldRet
 	}
-	whereClause += " " + genModeClauseColumn(md, "users_beatmap_playcount.game_mode")
+	whereClause += " " + genModeClauseColumn(md, "users_beatmap_playcount.game_mode", true)
 	var q = `SELECT
 beatmap_id, beatmapset_id, beatmap_md5,
 song_name, ar, od, difficulty_std, difficulty_taiko,
