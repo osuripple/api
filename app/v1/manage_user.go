@@ -217,11 +217,15 @@ func updateBanBancho(r *redis.Client, user int) error {
 type wipeUserData struct {
 	ID    int   `json:"id"`
 	Modes []int `json:"modes"`
+	Relax int   `json:"relax"`
 }
 
 // WipeUserPOST wipes an user's scores.
 func WipeUserPOST(md common.MethodData) common.CodeMessager {
-	var data wipeUserData
+	data := wipeUserData{
+		// Wipe both classic & relax by default
+		Relax: -1,
+	}
 	if err := md.Unmarshal(&data); err != nil {
 		return ErrBadJSON
 	}
@@ -246,9 +250,9 @@ func WipeUserPOST(md common.MethodData) common.CodeMessager {
 		return Err500
 	}
 
-	if common.UserPrivileges(userData.Privileges)&common.AdminPrivilegeManageUsers != 0 {
+	/*if common.UserPrivileges(userData.Privileges)&common.AdminPrivilegeManageUsers != 0 {
 		return common.SimpleResponse(403, "Can't edit that user")
-	}
+	}*/
 
 	tx, err := md.DB.Beginx()
 	if err != nil {
@@ -260,21 +264,39 @@ func WipeUserPOST(md common.MethodData) common.CodeMessager {
 		if mode < 0 || mode > 3 {
 			continue
 		}
-		_, err = tx.Exec("INSERT INTO scores_removed SELECT * FROM scores WHERE userid = ? AND play_mode = ?", data.ID, mode)
+		var suffix string
+		if data.Relax > -1 {
+			suffix = fmt.Sprintf("AND is_relax = %d", data.Relax)
+		}
+		_, err = tx.Exec("INSERT INTO scores_removed SELECT * FROM scores WHERE userid = ? AND play_mode = ? "+suffix, data.ID, mode)
 		if err != nil {
 			md.Err(err)
 		}
-		_, err = tx.Exec("DELETE FROM scores WHERE userid = ? AND play_mode = ?", data.ID, mode)
+		_, err = tx.Exec("DELETE FROM scores WHERE userid = ? AND play_mode = ? "+suffix, data.ID, mode)
 		if err != nil {
 			md.Err(err)
 		}
-		_, err = tx.Exec(strings.Replace(
-			`UPDATE users_stats SET total_score_MODE = 0, ranked_score_MODE = 0, replays_watched_MODE = 0,
-			playcount_MODE = 0, avg_accuracy_MODE = 0, total_hits_MODE = 0, level_MODE = 0, pp_MODE = 0
-			WHERE id = ?`, "MODE", modesToReadable[mode], -1,
-		), data.ID)
-		if err != nil {
-			md.Err(err)
+		if data.Relax <= 0 {
+			// Wipe classic stats
+			_, err = tx.Exec(strings.Replace(
+				`UPDATE users_stats SET total_score_MODE = 0, ranked_score_MODE = 0, replays_watched_MODE = 0,
+				playcount_MODE = 0, avg_accuracy_MODE = 0, total_hits_MODE = 0, level_MODE = 0, pp_MODE = 0
+				WHERE id = ?`, "MODE", modesToReadable[mode], -1,
+			), data.ID)
+			if err != nil {
+				md.Err(err)
+			}
+		}
+		if data.Relax < 0 || data.Relax == 1 {
+			// Wipe relax stats
+			_, err = tx.Exec(strings.Replace(
+				`UPDATE users_stats_relax SET total_score_MODE = 0, ranked_score_MODE = 0,
+				playcount_MODE = 0, avg_accuracy_MODE = 0, total_hits_MODE = 0, level_MODE = 0, pp_MODE = 0
+				WHERE id = ?`, "MODE", modesToReadable[mode], -1,
+			), data.ID)
+			if err != nil {
+				md.Err(err)
+			}
 		}
 		_, err = tx.Exec("DELETE FROM users_beatmap_playcount WHERE user_id = ? AND game_mode = ?", data.ID, mode)
 		if err != nil {
