@@ -250,9 +250,9 @@ func WipeUserPOST(md common.MethodData) common.CodeMessager {
 		return Err500
 	}
 
-	/*if common.UserPrivileges(userData.Privileges)&common.AdminPrivilegeManageUsers != 0 {
+	if common.UserPrivileges(userData.Privileges)&common.AdminPrivilegeManageUsers != 0 {
 		return common.SimpleResponse(403, "Can't edit that user")
-	}*/
+	}
 
 	tx, err := md.DB.Beginx()
 	if err != nil {
