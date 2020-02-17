@@ -222,7 +222,7 @@ func newRelaxModeType(md common.MethodData) relaxModeType {
 	switch md.Query("relax") {
 	case "1":
 		return relax
-	case "2":
+	case "-1":
 		return both
 	default:
 		return classic
