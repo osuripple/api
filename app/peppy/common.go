@@ -73,3 +73,14 @@ func json(c *fasthttp.RequestCtx, code int, data interface{}) {
 	}
 	c.Write(d)
 }
+
+func genRelax(c *fasthttp.RequestCtx) string {
+	switch query(c, "relax") {
+	case "1":
+		return "scores.is_relax = 1"
+	case "-1":
+		return "1"
+	default:
+		return "scores.is_relax = 0"
+	}
+}

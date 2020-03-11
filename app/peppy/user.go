@@ -30,18 +30,29 @@ func GetUser(c *fasthttp.RequestCtx, db *sqlx.DB) {
 	whereClause = "WHERE " + whereClause
 
 	mode := genmode(query(c, "m"))
+	isRelax := query(c, "relax") == "1"
+
+	table := "users_stats"
+	var classicJoin string
+	if isRelax {
+		table = "users_stats_relax"
+		// 'country' is in users_stats only, we need to join with both
+		// users_stats_relax and users_stats 😪
+		classicJoin = "LEFT JOIN users_stats USING(id)"
+	}
 
 	err := db.QueryRow(fmt.Sprintf(
 		`SELECT
 			users.id, users.username,
-			users_stats.playcount_%s, users_stats.ranked_score_%s, users_stats.total_score_%s,
-			users_stats.pp_%s, users_stats.avg_accuracy_%s,
-			users_stats.country
+			s.playcount_%s, s.ranked_score_%s, s.total_score_%s,
+			s.pp_%s, s.avg_accuracy_%s,
+			country
 		FROM users
-		LEFT JOIN users_stats ON users_stats.id = users.id
+		LEFT JOIN %s AS s USING(id)
+		%s
 		%s
 		LIMIT 1`,
-		mode, mode, mode, mode, mode, whereClause,
+		mode, mode, mode, mode, mode, table, classicJoin, whereClause,
 	), p).Scan(
 		&user.UserID, &user.Username,
 		&user.Playcount, &user.RankedScore, &user.TotalScore,
@@ -56,8 +67,12 @@ func GetUser(c *fasthttp.RequestCtx, db *sqlx.DB) {
 		return
 	}
 
-	user.Rank = int(R.ZRevRank("ripple:leaderboard:"+mode, strconv.Itoa(user.UserID)).Val()) + 1
-	user.CountryRank = int(R.ZRevRank("ripple:leaderboard:"+mode+":"+strings.ToLower(user.Country), strconv.Itoa(user.UserID)).Val()) + 1
+	var suffix string
+	if isRelax {
+		suffix = ":relax"
+	}
+	user.Rank = int(R.ZRevRank("ripple:leaderboard:"+mode+suffix, strconv.Itoa(user.UserID)).Val()) + 1
+	user.CountryRank = int(R.ZRevRank("ripple:leaderboard:"+mode+":"+strings.ToLower(user.Country)+suffix, strconv.Itoa(user.UserID)).Val()) + 1
 	user.Level = ocl.GetLevelPrecise(user.TotalScore)
 
 	json(c, 200, []osuapi.User{user})
