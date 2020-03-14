@@ -263,18 +263,22 @@ func genModeClause(md common.MethodData) string {
 
 func genModeClauseColumn(md common.MethodData, column string, relaxless bool) string {
 	var modeClause string
-	if md.Query("mode") != "" {
-		m, err := strconv.Atoi(md.Query("mode"))
+	modeQs := md.Query("mode")
+	if modeQs != "" {
+		m, err := strconv.Atoi(modeQs)
 		if err == nil && m >= 0 && m <= 3 {
-			modeClause = fmt.Sprintf("AND "+column+" = '%d'", m)
-		}
-		if !relaxless {
-			r := 0
-			if md.Query("relax") == "1" {
-				r = 1
-			}
-			modeClause += fmt.Sprintf(" AND scores.is_relax = '%d'", r)
+			modeClause += fmt.Sprintf("AND "+column+" = '%d'", m)
 		}
 	}
+
+	relaxQs := md.Query("relax")
+	if !relaxless && (relaxQs == "1" || relaxQs == "0" || relaxQs == "") {
+		r := 0
+		if relaxQs == "1" {
+			r = 1
+		}
+		modeClause += fmt.Sprintf(" AND scores.is_relax = '%d'", r)
+	}
+	// fmt.Printf("%s\n", modeClause)
 	return modeClause
 }
