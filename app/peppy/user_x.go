@@ -43,10 +43,12 @@ func getUserX(c *fasthttp.RequestCtx, db *sqlx.DB, orderBy string, limit int) {
 		WHERE %s
 		AND scores.play_mode = ?
 		AND users.is_public = 1
+		AND
 		(%s)
-		AND %s
+		%s
 		LIMIT %d`, whereClause, relaxWhere, orderBy, limit,
 	)
+	fmt.Printf("%s", sqlQuery)
 	scores := make([]osuapi.GUSScore, 0, limit)
 	m := genmodei(query(c, "m"))
 	rows, err := db.Query(sqlQuery, p, m)
