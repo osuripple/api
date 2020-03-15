@@ -48,7 +48,6 @@ func getUserX(c *fasthttp.RequestCtx, db *sqlx.DB, orderBy string, limit int) {
 		%s
 		LIMIT %d`, whereClause, relaxWhere, orderBy, limit,
 	)
-	fmt.Printf("%s", sqlQuery)
 	scores := make([]osuapi.GUSScore, 0, limit)
 	m := genmodei(query(c, "m"))
 	rows, err := db.Query(sqlQuery, p, m)
