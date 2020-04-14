@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	emoji "github.com/tmdvs/Go-Emoji-Utils"
+	"zxq.co/ripple/playstyle"
 	"zxq.co/ripple/rippleapi/common"
 	semanticiconsugc "zxq.co/ripple/semantic-icons-ugc"
 )
@@ -93,7 +94,7 @@ func UsersSelfSettingsPOST(md common.MethodData) common.CodeMessager {
 		Add("s.custom_badge_name", d.CustomBadge.Name).
 		Add("s.custom_badge_icon", d.CustomBadge.Icon).
 		Add("s.show_custom_badge", d.CustomBadge.Show).
-		Add("s.play_style", d.PlayStyle).
+		Add("s.play_style", *d.PlayStyle&^(playstyle.Spoon|playstyle.LeapMotion|playstyle.OculusRift|playstyle.Dick|playstyle.Eggplant)).
 		Add("s.favourite_relax", d.FavouriteRelaxMode)
 	_, err := md.DB.Exec("UPDATE users u, users_stats s SET "+q.Fields()+" WHERE s.id = u.id AND u.id = ?", append(q.Parameters, md.ID())...)
 	if err != nil {

@@ -207,6 +207,12 @@
 			"revisionTime": "2016-05-18T15:55:25Z"
 		},
 		{
+			"checksumSHA1": "3U6/crKc6VfYeG8Nt5lAI+UvD80=",
+			"path": "zxq.co/ripple/playstyle",
+			"revision": "19a867db35bf4aca8bb901cc721fc04acea45983",
+			"revisionTime": "2019-10-22T09:46:01Z"
+		},
+		{
 			"checksumSHA1": "+6t1fYk62F/7QAol2NrKdVfQIkE=",
 			"path": "zxq.co/ripple/schiavolib",
 			"revision": "9cdc674dad0700ec79618de4ab558db6ad1de372",
