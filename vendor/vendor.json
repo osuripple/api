@@ -105,6 +105,18 @@
 			"revisionTime": "2016-10-17T20:25:41Z"
 		},
 		{
+			"checksumSHA1": "X6AyJnwdzaiFiT0ONMh8mySiWlE=",
+			"path": "github.com/tmdvs/Go-Emoji-Utils",
+			"revision": "89e1e92ad3b5aabd3bab2abff4c5758844df0156",
+			"revisionTime": "2020-02-11T16:16:49Z"
+		},
+		{
+			"checksumSHA1": "wewtNDfwUhbDC2cRcDhXMQwIiC4=",
+			"path": "github.com/tmdvs/Go-Emoji-Utils/utils",
+			"revision": "89e1e92ad3b5aabd3bab2abff4c5758844df0156",
+			"revisionTime": "2020-02-11T16:16:49Z"
+		},
+		{
 			"checksumSHA1": "LTOa3BADhwvT0wFCknPueQALm8I=",
 			"path": "github.com/valyala/bytebufferpool",
 			"revision": "e746df99fe4a3986f4d4f79e13c1e0117ce9c2f7",

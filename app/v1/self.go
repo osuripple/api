@@ -3,6 +3,7 @@ package v1
 import (
 	"strings"
 
+	emoji "github.com/tmdvs/Go-Emoji-Utils"
 	"zxq.co/ripple/rippleapi/common"
 	semanticiconsugc "zxq.co/ripple/semantic-icons-ugc"
 )
@@ -70,7 +71,11 @@ func UsersSelfSettingsPOST(md common.MethodData) common.CodeMessager {
 	*d.UsernameAKA = common.SanitiseString(*d.UsernameAKA)
 	if md.User.UserPrivileges&common.UserPrivilegeDonor > 0 {
 		d.CustomBadge.Name = common.SanitiseString(d.CustomBadge.Name)
-		d.CustomBadge.Icon = sanitiseIconName(d.CustomBadge.Icon)
+		emoji, err := emoji.LookupEmoji(d.CustomBadge.Icon)
+		if err != nil {
+			return common.SimpleResponse(400, "Invalid emoji")
+		}
+		d.CustomBadge.Icon = emoji.Value
 	} else {
 		d.CustomBadge.singleBadge = singleBadge{}
 		d.CustomBadge.Show = nil
