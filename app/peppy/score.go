@@ -2,7 +2,6 @@ package peppy
 
 import (
 	"database/sql"
-	"fmt"
 	"strconv"
 	"strings"
 
