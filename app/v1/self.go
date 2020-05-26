@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"fmt"
 	"strings"
 
 	emoji "github.com/tmdvs/Go-Emoji-Utils"
@@ -133,6 +134,18 @@ type userSettingsResponse struct {
 	userSettingsData
 }
 
+type scoreOverwrite struct {
+	Std   *int `json:"std"`
+	Taiko *int `json:"taiko"`
+	Ctb   *int `json:"ctb"`
+	Mania *int `json:"mania"`
+}
+
+type scoreOverwriteResponse struct {
+	common.ResponseBase
+	Overwrite scoreOverwrite `json:"overwrite"`
+}
+
 // UsersSelfSettingsGET allows to get "sensitive" information about the current user.
 func UsersSelfSettingsGET(md common.MethodData) common.CodeMessager {
 	var r userSettingsResponse
@@ -167,6 +180,40 @@ WHERE u.id = ?`, md.ID()).Scan(
 		}{}
 	}
 	return r
+}
+
+// UsersSelfScoreOverwriteGET returns the score overwrite preferences for the
+// current user
+func UsersSelfScoreOverwriteGET(md common.MethodData) common.CodeMessager {
+	var r scoreOverwriteResponse
+	r.Code = 200
+	err := md.DB.QueryRow(`
+SELECT
+	users.score_overwrite_std, users.score_overwrite_taiko,
+	users.score_overwrite_ctb, users.score_overwrite_mania
+FROM users WHERE users.id = ?`, md.ID()).Scan(
+		&r.Overwrite.Std, &r.Overwrite.Taiko,
+		&r.Overwrite.Ctb, &r.Overwrite.Mania,
+	)
+	if err != nil {
+		md.Err(err)
+		return Err500
+	}
+	return r
+}
+
+// UsersSelfScoreOverwritePOST allows users to change their score overwrite preferences
+func UsersSelfScoreOverwritePOST(md common.MethodData) common.CodeMessager {
+	var d scoreOverwrite
+	err := md.Unmarshal(&d)
+	if err != nil {
+		return ErrBadJSON
+	}
+	fmt.Println(d.Std)
+	fmt.Println(d.Taiko)
+	fmt.Println(d.Ctb)
+	fmt.Println(d.Mania)
+	return BeatmapRankRequestsStatusGET(md)
 }
 
 func intPtrIn(x int, y *int, z int) *int {
