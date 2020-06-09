@@ -19,3 +19,11 @@ func ErrMissingField(missingFields ...string) common.CodeMessager {
 		Message: "Missing parameters: " + strings.Join(missingFields, ", ") + ".",
 	}
 }
+
+// ErrBadField generates a response to a request when some fields are invalid
+func ErrBadField(badFields ...string) common.CodeMessager {
+	return common.ResponseBase{
+		Code:    400,
+		Message: "Bad parameters: " + strings.Join(badFields, ", ") + ".",
+	}
+}

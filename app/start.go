@@ -114,14 +114,14 @@ func Start(conf common.Conf, dbO *sqlx.DB) *fhr.Router {
 		r.Method("/api/v1/users/self/donor_info", v1.UsersSelfDonorInfoGET, common.PrivilegeReadConfidential)
 		r.Method("/api/v1/users/self/favourite_mode", v1.UsersSelfFavouriteModeGET, common.PrivilegeReadConfidential)
 		r.Method("/api/v1/users/self/settings", v1.UsersSelfSettingsGET, common.PrivilegeReadConfidential)
-		r.Method("/api/v1/users/self/score_overwrite", v1.UsersSelfScoreOverwriteGET, common.PrivilegeReadConfidential)
+		r.Method("/api/v1/users/self/scoreboard", v1.UserSelfScoreboardGET, common.PrivilegeReadConfidential)
 
 		// Write privilege required
 		r.POSTMethod("/api/v1/friends/add", v1.FriendsAddPOST, common.PrivilegeWrite)
 		r.POSTMethod("/api/v1/friends/del", v1.FriendsDelPOST, common.PrivilegeWrite)
 		r.POSTMethod("/api/v1/users/self/settings", v1.UsersSelfSettingsPOST, common.PrivilegeWrite)
 		r.POSTMethod("/api/v1/users/self/userpage", v1.UserSelfUserpagePOST, common.PrivilegeWrite)
-		r.POSTMethod("/api/v1/users/self/score_overwrite", v1.UsersSelfScoreOverwritePOST, common.PrivilegeWrite)
+		r.POSTMethod("/api/v1/users/self/scoreboard", v1.UserSelfScoreboardPOST, common.PrivilegeWrite)
 		r.POSTMethod("/api/v1/beatmaps/rank_requests", v1.BeatmapRankRequestsSubmitPOST, common.PrivilegeWrite)
 
 		// Admin: RAP

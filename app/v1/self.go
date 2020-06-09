@@ -1,7 +1,6 @@
 package v1
 
 import (
-	"fmt"
 	"strings"
 
 	emoji "github.com/tmdvs/Go-Emoji-Utils"
@@ -134,18 +133,6 @@ type userSettingsResponse struct {
 	userSettingsData
 }
 
-type scoreOverwrite struct {
-	Std   *int `json:"std"`
-	Taiko *int `json:"taiko"`
-	Ctb   *int `json:"ctb"`
-	Mania *int `json:"mania"`
-}
-
-type scoreOverwriteResponse struct {
-	common.ResponseBase
-	Overwrite scoreOverwrite `json:"overwrite"`
-}
-
 // UsersSelfSettingsGET allows to get "sensitive" information about the current user.
 func UsersSelfSettingsGET(md common.MethodData) common.CodeMessager {
 	var r userSettingsResponse
@@ -182,18 +169,82 @@ WHERE u.id = ?`, md.ID()).Scan(
 	return r
 }
 
-// UsersSelfScoreOverwriteGET returns the score overwrite preferences for the
-// current user
-func UsersSelfScoreOverwriteGET(md common.MethodData) common.CodeMessager {
-	var r scoreOverwriteResponse
+const (
+	overwritePP    = 0
+	overwriteScore = 1
+
+	modeClassic = 0
+	modeRelax   = 1
+
+	autoLastOff          = 0
+	autoLastMessage      = 1
+	autoLastNotification = 2
+
+	displayScore = 0
+	displayPP    = 1
+)
+
+var validOverwrites = []int{overwritePP, overwriteScore}
+var validModes = []int{modeClassic, modeRelax}
+var validAutoLast = []int{autoLastOff, autoLastMessage, autoLastNotification}
+var validDisplayModes = []int{displayScore, displayPP}
+
+type scoreOverwrite struct {
+	Std   *int `json:"std"`
+	Taiko *int `json:"taiko"`
+	Ctb   *int `json:"ctb"`
+	Mania *int `json:"mania"`
+}
+
+type scoreboardDisplay struct {
+	Classic *int `json:"classic"`
+	Relax   *int `json:"relax"`
+}
+
+type autoLast struct {
+	Classic *int `json:"classic"`
+	Relax   *int `json:"relax"`
+}
+
+type scoreboard struct {
+	Mode    *int               `json:"mode"`
+	Display *scoreboardDisplay `json:"display"`
+}
+
+type scoreboardData struct {
+	common.ResponseBase
+	Scoreboard *scoreboard     `json:"scoreboard"`
+	Overwrite  *scoreOverwrite `json:"overwrite"`
+	AutoLast   *autoLast       `json:"auto_last"`
+}
+
+type scoreboardResponse struct {
+	common.ResponseBase
+	scoreboardData
+}
+
+// UserSelfScoreboardGET returns the  in-game scoreboard perferences
+// for the current uesr
+func UserSelfScoreboardGET(md common.MethodData) common.CodeMessager {
+	var r scoreboardResponse
 	r.Code = 200
+	r.Scoreboard = &scoreboard{Display: &scoreboardDisplay{}}
+	r.AutoLast = &autoLast{}
+	r.Overwrite = &scoreOverwrite{}
 	err := md.DB.QueryRow(`
 SELECT
-	users.score_overwrite_std, users.score_overwrite_taiko,
-	users.score_overwrite_ctb, users.score_overwrite_mania
-FROM users WHERE users.id = ?`, md.ID()).Scan(
+	u.is_relax,
+	score_overwrite_std, score_overwrite_taiko,
+	score_overwrite_ctb, score_overwrite_mania,
+	scoreboard_display_classic, scoreboard_display_relax,
+	auto_last_classic, auto_last_relax
+FROM users_preferences JOIN users AS u USING(id)
+WHERE id = ? LIMIT 1`, md.ID()).Scan(
+		&r.Scoreboard.Mode,
 		&r.Overwrite.Std, &r.Overwrite.Taiko,
 		&r.Overwrite.Ctb, &r.Overwrite.Mania,
+		&r.Scoreboard.Display.Classic, &r.Scoreboard.Display.Relax,
+		&r.AutoLast.Classic, &r.AutoLast.Relax,
 	)
 	if err != nil {
 		md.Err(err)
@@ -202,18 +253,61 @@ FROM users WHERE users.id = ?`, md.ID()).Scan(
 	return r
 }
 
-// UsersSelfScoreOverwritePOST allows users to change their score overwrite preferences
-func UsersSelfScoreOverwritePOST(md common.MethodData) common.CodeMessager {
-	var d scoreOverwrite
+// UserSelfScoreboardPOST allows users to change their in-game
+// scoreboard preferences
+func UserSelfScoreboardPOST(md common.MethodData) common.CodeMessager {
+	var d scoreboardData
 	err := md.Unmarshal(&d)
 	if err != nil {
 		return ErrBadJSON
 	}
-	fmt.Println(d.Std)
-	fmt.Println(d.Taiko)
-	fmt.Println(d.Ctb)
-	fmt.Println(d.Mania)
-	return BeatmapRankRequestsStatusGET(md)
+	q := new(common.UpdateQuery)
+
+	type scoreboardDataField struct {
+		value         *int
+		allowedValues []int
+		column        string
+	}
+	for _, field := range []scoreboardDataField{
+		{d.Scoreboard.Mode, []int{modeClassic, modeRelax}, "u.is_relax"},
+		{d.Scoreboard.Display.Classic, validDisplayModes, "scoreboard_display_classic"},
+		{d.Scoreboard.Display.Relax, validDisplayModes, "scoreboard_display_relax"},
+		{d.Overwrite.Std, validOverwrites, "score_overwrite_std"},
+		{d.Overwrite.Taiko, validOverwrites, "score_overwrite_taiko"},
+		{d.Overwrite.Ctb, validOverwrites, "score_overwrite_ctb"},
+		{d.Overwrite.Mania, validOverwrites, "score_overwrite_mania"},
+		{d.AutoLast.Classic, validAutoLast, "auto_last_classic"},
+		{d.AutoLast.Relax, validAutoLast, "auto_last_relax"},
+	} {
+		if field.value == nil {
+			continue
+		}
+		if !contains(*field.value, field.allowedValues) {
+			return ErrBadField(field.column)
+		}
+		q.Add(field.column, field.value)
+	}
+	_, err = md.DB.Exec(
+		`UPDATE users_preferences, users AS u
+		SET `+q.Fields()+`
+		WHERE users_preferences.id = ? AND u.id = ?
+		LIMIT 1`,
+		append(q.Parameters, md.ID(), md.ID())...,
+	)
+	if err != nil {
+		md.Err(err)
+		return Err500
+	}
+	return UserSelfScoreboardGET(md)
+}
+
+func contains(needle int, haystack []int) bool {
+	for _, x := range haystack {
+		if x == needle {
+			return true
+		}
+	}
+	return false
 }
 
 func intPtrIn(x int, y *int, z int) *int {
