@@ -1,4 +1,4 @@
-# rippleapi
+# rippleapi [![Build Status](https://drone.nyodev.xyz/api/badges/ripple/rippleapi/status.svg)](https://drone.nyodev.xyz/ripple/rippleapi)
 
 This is the source code for Ripple's API.
 
