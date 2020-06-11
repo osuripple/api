@@ -37,7 +37,13 @@ func Start(conf common.Conf, dbO *sqlx.DB) *fhr.Router {
 	// sentry
 	if conf.SentryDSN != "" {
 		ravenClient, err := raven.New(conf.SentryDSN)
-		ravenClient.SetRelease(common.Version)
+		var release string
+		if common.GitHash != "" {
+			release = common.GitHash
+		} else {
+			release = common.Version
+		}
+		ravenClient.SetRelease(release)
 		if err != nil {
 			fmt.Println(err)
 		} else {

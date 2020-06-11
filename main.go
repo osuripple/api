@@ -10,7 +10,8 @@ import (
 	"zxq.co/ripple/rippleapi/app"
 	"zxq.co/ripple/rippleapi/beatmapget"
 	"zxq.co/ripple/rippleapi/common"
-	"zxq.co/ripple/schiavolib"
+	schiavo "zxq.co/ripple/schiavolib"
+
 	// Golint pls dont break balls
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
@@ -18,14 +19,15 @@ import (
 	"gopkg.in/thehowl/go-osuapi.v1"
 )
 
-// Version is the git hash of the application. Do not edit. This is
+// GitHash is the git hash of the application. Do not edit. This is
 // automatically set using -ldflags during build time.
-var Version string
+var GitHash string
 
 func init() {
 	log.SetFlags(log.Ltime)
 	log.SetPrefix(fmt.Sprintf("%d|", syscall.Getpid()))
-	common.Version = Version
+	common.GitHash = GitHash
+	common.Version = version
 }
 
 var db *sqlx.DB
@@ -36,9 +38,9 @@ func main() {
 		fmt.Println(err)
 	}
 
-	fmt.Print("Ripple API")
-	if Version != "" {
-		fmt.Print("; git commit hash: ", Version)
+	fmt.Print("Ripple API ", version)
+	if GitHash != "" {
+		fmt.Print("; git commit hash: ", GitHash)
 	}
 	fmt.Println()
 
