@@ -82,7 +82,7 @@ func UsersSelfSettingsPOST(md common.MethodData) common.CodeMessager {
 		d.CustomBadge.Show = nil
 	}
 	d.FavouriteMode = intPtrIn(0, d.FavouriteMode, 3)
-	if *d.FavouriteMode == 3 {
+	if d.FavouriteMode != nil && *d.FavouriteMode == 3 {
 		v := 0
 		d.FavouriteRelaxMode = &v
 	}
