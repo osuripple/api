@@ -298,9 +298,14 @@ func WipeUserPOST(md common.MethodData) common.CodeMessager {
 				md.Err(err)
 			}
 		}
-		_, err = tx.Exec("DELETE FROM users_beatmap_playcount WHERE user_id = ? AND game_mode = ?", data.ID, mode)
-		if err != nil {
-			md.Err(err)
+		if data.Relax < 0 {
+			// Reset playcount for each beatmap only when wiping
+			// both classic and relax. Per-betmap playcount is
+			// shared between classic and relax
+			_, err = tx.Exec("DELETE FROM users_beatmap_playcount WHERE user_id = ? AND game_mode = ?", data.ID, mode)
+			if err != nil {
+				md.Err(err)
+			}
 		}
 	}
 
