@@ -107,8 +107,9 @@ func BlogPostsGET(md common.MethodData) common.CodeMessager {
 		// p.Snippet = mp.Virtuals.Subtitle
 		// p.WordCount = mp.Virtuals.WordCount
 		plainContent := bluemonday.StripTagsPolicy().Sanitize(mp.Content)
-		p.Snippet = plainContent[:200]
-		if len(p.Snippet) >= 200 {
+		const snipMaxLength = 200
+		p.Snippet = plainContent[:snipMaxLength]
+		if len(p.Snippet) >= snipMaxLength {
 			p.Snippet += "..."
 		}
 		p.WordCount = len(plainContent)
