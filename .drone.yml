@@ -36,6 +36,29 @@ steps:
     volumes:
       - name: docker
         path: /var/lib/docker
+      - name: docker_sock
+        path: /var/run/docker.sock
+    when:
+      event:
+        - push
+
+  - name: deploy
+    image: d.nyodev.xyz/ripple-drone/deploy
+    settings:
+      service: api
+      secret:
+        from_secret: deploy_secret
+      url:
+        from_secret: deploy_url
+    secrets: [deploy_secret, deploy_url]
+    when:
+      event:
+        - promote
+      target:
+        - production
+
+image_pull_secrets:
+  - docker_registry_credentials
 
 volumes:
   - name: cache
@@ -44,3 +67,6 @@ volumes:
   - name: docker
     host:
       path: /var/cache/${DRONE_REPO}/docker
+  - name: docker_sock
+    host:
+      path: /var/run/docker.sock
