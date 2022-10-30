@@ -3,51 +3,14 @@ package v1
 import (
 	"bytes"
 	"encoding/gob"
-	"encoding/json"
-	"errors"
-	"io/ioutil"
-	"net/http"
+	"fmt"
 	"strings"
 	"time"
 
+	"github.com/microcosm-cc/bluemonday"
+	"github.com/mmcdole/gofeed"
 	"zxq.co/ripple/rippleapi/common"
 )
-
-// This basically proxies requests from Medium's API and is used on Ripple's
-// home page to display the latest blog posts.
-
-type mediumResp struct {
-	Success bool `json:"success"`
-	Payload struct {
-		Posts      []mediumPost `json:"posts"`
-		References struct {
-			User map[string]mediumUser
-		} `json:"references"`
-	} `json:"payload"`
-}
-
-type mediumPost struct {
-	ID          string             `json:"id"`
-	CreatorID   string             `json:"creatorId"`
-	Title       string             `json:"title"`
-	CreatedAt   int64              `json:"createdAt"`
-	UpdatedAt   int64              `json:"updatedAt"`
-	Virtuals    mediumPostVirtuals `json:"virtuals"`
-	ImportedURL string             `json:"importedUrl"`
-	UniqueSlug  string             `json:"uniqueSlug"`
-}
-
-type mediumUser struct {
-	UserID   string `json:"userId"`
-	Name     string `json:"name"`
-	Username string `json:"username"`
-}
-
-type mediumPostVirtuals struct {
-	Subtitle    string  `json:"subtitle"`
-	WordCount   int     `json:"wordCount"`
-	ReadingTime float64 `json:"readingTime"`
-}
 
 // there's gotta be a better way
 
@@ -78,6 +41,7 @@ type blogPostsResponse struct {
 
 // consts for the medium API
 const (
+	mediumFeed              = `https://blog.ripple.moe/feed`
 	mediumAPIResponsePrefix = `])}while(1);</x>`
 	mediumAPIAllPosts       = `https://blog.ripple.moe/latest?format=json`
 )
@@ -106,56 +70,49 @@ func BlogPostsGET(md common.MethodData) common.CodeMessager {
 		return r
 	}
 
-	// get data from medium api
-	resp, err := http.Get(mediumAPIAllPosts)
+	// get data from medium rss feed
+	fp := gofeed.NewParser()
+	feed, err := fp.ParseURL(mediumFeed)
 	if err != nil {
-		md.Err(err)
-		return Err500
-	}
-
-	// read body and trim the prefix
-	all, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		md.Err(err)
-		return Err500
-	}
-	all = bytes.TrimPrefix(all, []byte(mediumAPIResponsePrefix))
-
-	// unmarshal into response struct
-	var mResp mediumResp
-	err = json.Unmarshal(all, &mResp)
-	if err != nil {
-		md.Err(err)
-		return Err500
-	}
-
-	if !mResp.Success {
-		md.Err(errors.New("medium api call is not successful"))
+		md.Err(fmt.Errorf("rss feed parse url: %w", err))
 		return Err500
 	}
 
 	// create posts slice and fill it up with converted posts from the medium
 	// API
-	posts := make([]blogPost, len(mResp.Payload.Posts))
-	for idx, mp := range mResp.Payload.Posts {
+	posts := make([]blogPost, len(feed.Items))
+	for idx, mp := range feed.Items {
 		var p blogPost
 
 		// convert structs
-		p.ID = mp.ID
+		p.ID = mp.GUID
 		p.Title = mp.Title
-		p.CreatedAt = time.Unix(0, mp.CreatedAt*1000000)
-		p.UpdatedAt = time.Unix(0, mp.UpdatedAt*1000000)
-		p.ImportedURL = mp.ImportedURL
-		p.UniqueSlug = mp.UniqueSlug
+		if mp.PublishedParsed != nil {
+			p.CreatedAt = *mp.PublishedParsed
+		}
+		if mp.UpdatedParsed != nil {
+			p.UpdatedAt = *mp.UpdatedParsed
+		}
+		p.ImportedURL = mp.Link
+		// p.UniqueSlug = mp.UniqueSlug
 
-		cr := mResp.Payload.References.User[mp.CreatorID]
-		p.Creator.UserID = cr.UserID
-		p.Creator.Name = cr.Name
-		p.Creator.Username = cr.Username
+		// cr := mResp.Payload.References.User[mp.CreatorID]
+		// p.Creator.UserID = cr.UserID
+		// p.Creator.Name = cr.Name
+		// p.Creator.Username = cr.Username
+		if len(mp.Authors) > 0 {
+			p.Creator.Name = mp.Authors[0].Name
+		}
 
-		p.Snippet = mp.Virtuals.Subtitle
-		p.WordCount = mp.Virtuals.WordCount
-		p.ReadingTime = mp.Virtuals.ReadingTime
+		// p.Snippet = mp.Virtuals.Subtitle
+		// p.WordCount = mp.Virtuals.WordCount
+		plainContent := bluemonday.StripTagsPolicy().Sanitize(mp.Content)
+		p.Snippet = plainContent[:200]
+		if len(p.Snippet) >= 200 {
+			p.Snippet += "..."
+		}
+		p.WordCount = len(plainContent)
+		// p.ReadingTime = mp.Virtuals.ReadingTime
 
 		posts[idx] = p
 	}

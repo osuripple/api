@@ -16,6 +16,8 @@ require (
 	github.com/leavengood/websocket v0.0.0-20170104145153-470559ebf58e
 	github.com/lib/pq v1.3.0 // indirect
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible // indirect
+	github.com/microcosm-cc/bluemonday v1.0.21 // indirect
+	github.com/mmcdole/gofeed v1.1.3 // indirect
 	github.com/onsi/ginkgo v1.12.0 // indirect
 	github.com/onsi/gomega v1.9.0 // indirect
 	github.com/rcrowley/goagain v0.0.0-20140424170347-f2f192b5d1a9
