@@ -20,7 +20,7 @@ build-docker:
   services:
     - docker:20-dind
   variables:
-    DOCKERFILE: api.Dockerfile
+    DOCKERFILE: rippleapi.Dockerfile
   before_script:
     # prep steps
     - docker info
