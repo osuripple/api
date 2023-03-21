@@ -70,7 +70,7 @@ func UsersSelfSettingsPOST(md common.MethodData) common.CodeMessager {
 
 	// input sanitisation
 	*d.UsernameAKA = common.SanitiseString(*d.UsernameAKA)
-	if md.User.UserPrivileges&common.UserPrivilegeDonor > 0 {
+	if md.User.UserPrivileges&common.UserPrivilegeDonor > 0 && d.CustomBadge.Icon != "" {
 		d.CustomBadge.Name = common.SanitiseString(d.CustomBadge.Name)
 		emoji, err := emoji.LookupEmoji(d.CustomBadge.Icon)
 		if err != nil {
