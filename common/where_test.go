@@ -56,7 +56,11 @@ func TestWhereClause_In(t *testing.T) {
 	}
 	for _, tt := range tests {
 		w := tt.fields
-		if got := w.In(tt.args.initial, tt.args.fields...); !reflect.DeepEqual(got, tt.want) {
+		fieldsBytes := make([][]byte, 0, len(tt.args.fields))
+		for _, x := range tt.args.fields {
+			fieldsBytes = append(fieldsBytes, []byte(x))
+		}
+		if got := w.In(tt.args.initial, fieldsBytes...); !reflect.DeepEqual(got, tt.want) {
 			t.Errorf("%q. WhereClause.In() = %v, want %v", tt.name, got, tt.want)
 		}
 	}
