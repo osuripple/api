@@ -2,6 +2,7 @@ variables:
   REGISTRY: d.nyodev.xyz
   SERVICE: api
   IMAGE: ripple/$SERVICE
+  SOURCE_BRANCH: master
   PRODUCTION_BRANCH: production
   GIT_SUBMODULE_STRATEGY: recursive
 
@@ -76,7 +77,7 @@ build-docker:
     - docker push $REGISTRY/$IMAGE:$CI_COMMIT_SHA
     - docker push $REGISTRY/$IMAGE:$BRANCH_FOR_DOCKER
   rules:
-    - if: $CI_COMMIT_BRANCH != $PRODUCTION_BRANCH
+    - if: $CI_COMMIT_BRANCH == $SOURCE_BRANCH
 
 release:
   stage: release
@@ -85,7 +86,7 @@ release:
   script:
     - merge-into-production
   rules:
-    - if: $CI_COMMIT_BRANCH != $PRODUCTION_BRANCH
+    - if: $CI_COMMIT_BRANCH == $SOURCE_BRANCH
   when: manual
 
 deploy:
