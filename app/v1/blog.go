@@ -52,6 +52,10 @@ func init() {
 
 // BlogPostsGET retrieves the latest blog posts on the Ripple blog.
 func BlogPostsGET(md common.MethodData) common.CodeMessager {
+	var r blogPostsResponse
+	r.Code = 503
+	return r
+
 	// check if posts are cached in redis
 	res := md.R.Get("api:blog_posts").Val()
 	if res != "" {
@@ -127,7 +131,6 @@ func BlogPostsGET(md common.MethodData) common.CodeMessager {
 	}
 	md.R.Set("api:blog_posts", bb.Bytes(), time.Minute*5)
 
-	var r blogPostsResponse
 	r.Code = 200
 	r.Posts = blogLimit(posts, md.Query("l"))
 	return r
