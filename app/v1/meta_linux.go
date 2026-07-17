@@ -1,3 +1,4 @@
+//go:build !windows
 // +build !windows
 
 // TODO: Make all these methods POST

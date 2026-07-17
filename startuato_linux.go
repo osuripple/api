@@ -1,3 +1,4 @@
+//go:build !windows
 // +build !windows
 
 package main
@@ -11,7 +12,7 @@ import (
 	"github.com/rcrowley/goagain"
 	"github.com/valyala/fasthttp"
 	"zxq.co/ripple/rippleapi/common"
-	"zxq.co/ripple/schiavolib"
+	schiavo "zxq.co/ripple/schiavolib"
 )
 
 func startuato(hn fasthttp.RequestHandler) {

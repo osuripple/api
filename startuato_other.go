@@ -1,6 +1,7 @@
-// +build windows
+//go:build windows || darwin
+// +build windows darwin
 
-// The Ripple API on Windows is not officially supported and you're probably
+// The Ripple API on Windows/Mac OS is not officially supported and you're probably
 // gonna swear a lot if you intend to use it on Windows. Caveat emptor.
 
 package main
